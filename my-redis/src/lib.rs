@@ -29,7 +29,7 @@ impl FileChecker {
             if line.starts_with("exit") {
                 return Ok(());
             }
-            if line.trim().len() == 0 {
+            if !line.trim().is_empty() {
                 continue;
             }
             self.inner.write_all(line.as_bytes())?;

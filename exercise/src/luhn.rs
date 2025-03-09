@@ -20,11 +20,7 @@ pub fn is_valid(code: &str) -> bool {
         return false;
     }
     println!("{:?}", card_number);
-    if dbg!(card_number.iter().sum::<u32>()) % 10 == 0 {
-        true
-    } else {
-        false
-    }
+    dbg!(card_number.iter().sum::<u32>()) % 10 == 0
 }
 
 /*

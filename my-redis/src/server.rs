@@ -8,37 +8,35 @@ use tokio::{
 
 #[derive(Debug)]
 enum Cmd {
-    GET(String),
-    SET(String, String),
+    Get(String),
+    Set(String, String),
 }
 impl TryFrom<&Vec<String>> for Cmd {
     type Error = String;
     fn try_from(value: &Vec<String>) -> Result<Self, Self::Error> {
-        if let Some(cmd) = value.get(0) {
+        if let Some(cmd) = value.first(){
             match cmd.to_lowercase().as_str() {
                 "get" => {
                     if let Some(v) = value.get(1) {
-                        return Ok(Cmd::GET(v.into()));
+                        Ok(Cmd::Get(v.into()))
                     } else {
-                        return Err("get <key>".into());
+                        Err("get <key>".into())
                     }
                 }
                 "set" => {
                     if value.len() == 3 {
-                        return Ok(Cmd::SET(
+                        Ok(Cmd::Set(
                             value.get(1).unwrap().into(),
                             value.get(2).unwrap().into(),
-                        ));
+                        ))
                     } else {
-                        return Err("set <key> <value>".into());
+                        Err("set <key> <value>".into())
                     }
                 }
-                _ => {
-                    return Err(format!("{} is not supported", cmd));
-                }
+                _ => Err(format!("{} is not supported", cmd)),
             }
         } else {
-            return Err("input something!".into());
+            Err("input something!".into())
         }
     }
 }
@@ -49,15 +47,15 @@ impl Cmd {
         data_center: Arc<Mutex<T>>,
     ) {
         match self {
-            Cmd::GET(key) => {
+            Cmd::Get(key) => {
                 let data_center = data_center.lock().await;
                 let value = data_center
                     .get(key)
-                    .or_else(|err| Ok::<String, String>(err))
+                    .or_else(Ok::<String, String>)
                     .unwrap();
                 writer.write_all(value.as_bytes()).await.unwrap();
             }
-            Cmd::SET(key, value) => {
+            Cmd::Set(key, value) => {
                 let mut data_center = data_center.lock().await;
                 data_center.set(key, value);
                 writer.write_all(b"ok").await.unwrap();
@@ -75,12 +73,12 @@ impl Cmd {
 
         for (idx, ele) in bytes.iter().enumerate() {
             if *ele == b'\n' {
-                if buf.len() != 0 {
+                if !buf.is_empty() {
                     if let Ok(s) = String::from_utf8(buf.clone()) {
                         args.push(s);
                         buf.clear();
                     } else {
-                        return ExecStat::ERROR(idx + 1);
+                        return ExecStat::Error(idx + 1);
                     }
                 }
                 match Cmd::try_from(&args) {
@@ -90,7 +88,7 @@ impl Cmd {
                     }
                     Err(msg) => {
                         writer.write_all(msg.as_bytes()).await.unwrap_or_default();
-                        return ExecStat::ERROR(idx + 1);
+                        return ExecStat::Error(idx + 1);
                     }
                 }
             }
@@ -102,19 +100,19 @@ impl Cmd {
                     args.push(s);
                     buf.clear();
                 } else {
-                    return ExecStat::ERROR(idx);
+                    return ExecStat::Error(idx);
                 }
             }
         }
-        return ExecStat::LACK;
+         ExecStat::Lack
     }
 }
 
 #[derive(Debug)]
 enum ExecStat {
     OK(usize),
-    LACK,
-    ERROR(usize),
+    Lack,
+    Error(usize),
 }
 struct Client<T: DataCenter<String, String>> {
     inner: TcpStream,
@@ -139,7 +137,7 @@ impl<T: DataCenter<String, String>> Client<T> {
                     self.cursor = 0;
                     self.buffer.drain(..used_size);
                 }
-                ExecStat::LACK => {
+                ExecStat::Lack => {
                     let size = rh.read(&mut self.buffer[self.cursor..]).await?;
 
                     if size == 0 {
@@ -148,7 +146,7 @@ impl<T: DataCenter<String, String>> Client<T> {
                     }
                     self.cursor += size;
                 }
-                ExecStat::ERROR(used_size) => {
+                ExecStat::Error(used_size) => {
                     // wh.write(b"somethingWrong").await?;
                     self.cursor = 0;
                     self.buffer.drain(..used_size);
