@@ -6,6 +6,7 @@ use tokio::{
     sync::Mutex,
 };
 
+#[derive(Debug)]
 enum Cmd {
     GET(String),
     SET(String, String),
@@ -109,6 +110,7 @@ impl Cmd {
     }
 }
 
+#[derive(Debug)]
 enum ExecStat {
     OK(usize),
     LACK,
@@ -182,6 +184,7 @@ impl FileCheckerServer {
         let data_center = Arc::new(Mutex::new(data_center));
         while let Ok((socket, _)) = self.inner.accept().await {
             let c = Client::from((socket, Arc::clone(&data_center)));
+
             tokio::spawn(async move { c.process().await });
         }
         Ok(())

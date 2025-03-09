@@ -149,6 +149,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "dbg-study"
+version = "0.1.0"
+
+[[package]]
 name = "derive_more"
 version = "0.99.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -215,6 +219,10 @@ dependencies = [
  "libc",
  "windows-sys 0.59.0",
 ]
+
+[[package]]
+name = "exercise"
+version = "0.1.0"
 
 [[package]]
 name = "fastrand"

@@ -35,7 +35,10 @@ impl FileChecker {
             self.inner.write_all(line.as_bytes())?;
             self.inner.flush().unwrap();
             let r = self.inner.read(&mut read_buf).unwrap();
-            println!("res {:?}", String::from_utf8(read_buf[..r].to_vec()).unwrap());
+            println!(
+                "res {:?}",
+                String::from_utf8(read_buf[..r].to_vec()).unwrap()
+            );
         }
     }
 }

@@ -3,7 +3,13 @@ use std::{
     time::Duration,
 };
 
-use tokio::{main, net::TcpListener, select, sync::oneshot, time::{self, Instant}};
+use tokio::{
+    main,
+    net::TcpListener,
+    select,
+    sync::oneshot,
+    time::{self, Instant},
+};
 
 #[main]
 async fn main() -> Result<(), Error> {

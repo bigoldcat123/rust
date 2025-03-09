@@ -18,14 +18,14 @@ async fn main() {
 
 async fn task1() -> i32 {
     let id = thread::current().id();
-    println!("current thread: {:?}",id);
+    println!("current thread: {:?}", id);
     tokio::time::sleep(Duration::from_secs(1)).await;
     return 1;
 }
 
 async fn task2() -> i32 {
     let id = thread::current().id();
-    println!("current thread: {:?}",id);
+    println!("current thread: {:?}", id);
     tokio::time::sleep(Duration::from_secs(1)).await;
     return 2;
 }

@@ -1,4 +1,7 @@
-use std::{any::{Any, TypeId}, pin};
+use std::{
+    any::{Any, TypeId},
+    pin,
+};
 
 fn main() {
     let s = Str { value: "".into() };
@@ -8,16 +11,15 @@ fn main() {
     println!("{:?}", x.value);
     println!("{:?}", x2);
 
-    let mut  a: Option<String> = Some("()".into());
-    
+    let mut a: Option<String> = Some("()".into());
+
     let xx = a.as_mut().unwrap();
     xx.push_str("string");
-    println!("{:?}",a);
+    println!("{:?}", a);
     let mut a = Box::new("".to_string());
     let s = a.as_ref();
     let s = a.as_mut();
     // pin::Pin::new(pointer)
-    
 }
 
 struct Str {
