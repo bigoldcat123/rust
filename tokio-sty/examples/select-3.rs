@@ -27,7 +27,7 @@ async fn main() -> Result<(), Error> {
                 println!("{:?}",socket);
             }
             //ignore
-            Ok::<_, io::Error>("end")
+            // Ok::<_, io::Error>("end")
         } => {res},
         _ = rx => {
             println!("G");

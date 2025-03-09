@@ -6,7 +6,7 @@ use tokio::sync::oneshot;
 async fn main() {
     let (mut tx1, rx1) = oneshot::channel();
     let (tx2, rx2) = oneshot::channel();
-    let (tx3, rx3) = oneshot::channel::<String>();
+    let (_, rx3) = oneshot::channel::<String>();
 
     tokio::spawn(async {
         // Select on the operation and the oneshot's
