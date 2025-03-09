@@ -1,7 +1,3 @@
-use std::{
-    any::{Any, TypeId},
-    pin,
-};
 
 fn main() {
     let s = Str { value: "".into() };

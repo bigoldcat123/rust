@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use tokio::{main, select, sync::oneshot};
+use tokio::sync::oneshot;
 
 #[tokio::main]
 async fn main() {
