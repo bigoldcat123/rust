@@ -13,8 +13,8 @@ fn main() {
     xx.push_str("string");
     println!("{:?}", a);
     let mut a = Box::new("".to_string());
-    let s = a.as_ref();
-    let s = a.as_mut();
+    let _s = a.as_ref();
+    let _s = a.as_mut();
     // pin::Pin::new(pointer)
 }
 
