@@ -1,4 +1,3 @@
-use core::num;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
@@ -174,7 +173,7 @@ impl ListNode {
         ListNode { next: None, val }
     }
 }
-struct A {}
+pub struct A {}
 impl A {
     pub fn dfs_is_symmetric(
         left: Option<&Rc<RefCell<TreeNode>>>,
@@ -422,44 +421,232 @@ impl A {
         Self::sorted_array_to_bst_with_ref(&nums)
     }
 
-    pub fn sorted_list_to_bst(head: Option<Box<ListNode>>) -> Option<Rc<RefCell<TreeNode>>> {}
-}
-
-#[cfg(test)]
-mod test {
-    use std::{cell::RefCell, rc::Rc};
-
-    use crate::{A, min_distance, simplify_path};
-
-    #[test]
-    fn axe() {
-        fn ha(star: usize) {
-            let a = vec![1, 2, 3, 4];
-            let e = &a[star..star + 1];
+    pub fn sorted_list_to_bst(head: Option<Box<ListNode>>) -> Option<Rc<RefCell<TreeNode>>> {
+        let mut nums = vec![];
+        let mut head = head.as_ref();
+        while let Some(p) = head {
+            nums.push(p.val);
+            head = p.next.as_ref()
         }
+        return Self::sorted_array_to_bst(nums);
     }
-    #[test]
-    fn asdsad() {
-        let res = A::level_order2(Some(Rc::new(RefCell::new(crate::TreeNode {
-            val: 1,
-            left: None,
-            right: None,
-        }))));
-        println!("{:?}", res);
+
+    //110.
+    pub fn is_balanced(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+        fn dfs_is_balanced(root: Option<&Rc<RefCell<TreeNode>>>, res: &mut bool) -> u32 {
+            if !*res {
+                return 0;
+            }
+            if let Some(root) = root {
+                let left = dfs_is_balanced(root.borrow().left.as_ref(), res);
+                let right = dfs_is_balanced(root.borrow().right.as_ref(), res);
+                if u32::abs_diff(right, left) >= 2 {
+                    *res = false;
+                }
+                return 1 + u32::max(left, right);
+            } else {
+                return 0;
+            }
+        }
+        let mut res = true;
+        // if let Some(root) = root {
+        dfs_is_balanced(root.as_ref(), &mut res);
+        // }
+        res
     }
-    #[test]
-    fn asd() {
-        let x = min_distance("".to_string(), "a".to_string());
-        println!("{:?}", x);
+
+    //111.
+    pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs_min_depth(root: Option<&Rc<RefCell<TreeNode>>>, deep: i32, res: &mut i32) {
+            if let Some(root) = root {
+                if root.borrow().left == None && root.borrow().right == None {
+                    if *res > deep {
+                        *res = deep
+                    } else {
+                        dfs_min_depth(root.borrow().left.as_ref(), deep + 1, res);
+                        dfs_min_depth(root.borrow().right.as_ref(), deep + 1, res);
+                    }
+                }
+            }
+        }
+        let mut res: i32 = i32::MAX;
+        dfs_min_depth(root.as_ref(), 0, &mut res);
+        return res;
     }
-    #[test]
-    fn test1() {
-        let mut s = vec![1, 2, 3, 4];
-        s.splice(0..0, [22, 22]);
-        println!("s{:?}", s);
+    //112.
+    pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
+        fn dfs_has_path_sum(
+            root: Option<&Rc<RefCell<TreeNode>>>,
+            current: i32,
+            target_sum: i32,
+            res: &mut bool,
+        ) {
+            if *res {
+                return;
+            }
+            if let Some(root) = root {
+                if root.borrow().left.is_none()
+                    && root.borrow().right.is_none()
+                    && current + root.borrow().val == target_sum
+                {
+                    *res = true
+                } else {
+                    dfs_has_path_sum(
+                        root.borrow().left.as_ref(),
+                        current + root.borrow().val,
+                        target_sum,
+                        res,
+                    );
+                    dfs_has_path_sum(
+                        root.borrow().right.as_ref(),
+                        current + root.borrow().val,
+                        target_sum,
+                        res,
+                    );
+                }
+            }
+        }
+        let mut res = false;
+        if root.is_some() {
+            dfs_has_path_sum(root.as_ref(), 0, target_sum, &mut res);
+        }
+        res
     }
-    #[test]
-    fn simplify_path_test() {
-        simplify_path("/a/////b/c/d/.././a////c///".to_string());
+    // 113.
+    pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> Vec<Vec<i32>> {
+        fn dfs_path_sum(
+            root: Option<&Rc<RefCell<TreeNode>>>,
+            current: &mut Vec<i32>,
+            res: &mut Vec<Vec<i32>>,
+            target_sum: i32,
+        ) {
+            if let Some(root) = root {
+                let root = root.borrow();
+                current.push(root.val);
+                let sum = current.iter().sum::<i32>();
+                if sum < target_sum {
+                    current.pop();
+                    return;
+                }
+                if root.left.is_none() && root.right.is_none() && sum == target_sum {
+                    res.push(current.clone());
+                } else {
+                    dfs_path_sum(root.left.as_ref(), current, res, target_sum);
+                    dfs_path_sum(root.right.as_ref(), current, res, target_sum);
+                }
+                current.pop();
+            }
+        }
+        let mut res = vec![];
+        let mut current = vec![];
+        dfs_path_sum(root.as_ref(), &mut current, &mut res, target_sum);
+        res
+    }
+    //114. using recursion to play with Linked things
+    pub fn flatten(root: &mut Option<Rc<RefCell<TreeNode>>>) {
+        fn set_last(root: Option<&Rc<RefCell<TreeNode>>>, last: Option<Rc<RefCell<TreeNode>>>) {
+            if let Some(root) = root {
+                if root.borrow().right.is_none() {
+                    root.borrow_mut().right = last
+                } else {
+                    set_last(root.borrow().right.as_ref(), last);
+                }
+            }
+        }
+        fn dfs_flatten(root: Option<&Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+            if let Some(root) = root {
+                let mut flatend_left = dfs_flatten(root.borrow().left.as_ref());
+                let flatend_right = dfs_flatten(root.borrow().right.as_ref());
+                let p = Rc::clone(root);
+
+                if let Some(r) = flatend_right.as_ref() {
+                    r.borrow_mut().left = None
+                }
+
+                if let Some(l) = flatend_left.as_ref() {
+                    set_last(Some(l), flatend_right);
+                    l.borrow_mut().left = None;
+                } else {
+                    flatend_left = flatend_right
+                }
+
+                p.borrow_mut().right = flatend_left;
+                p.borrow_mut().left = None;
+                Some(p)
+            } else {
+                None
+            }
+        }
+        dfs_flatten(root.as_ref());
+    }
+
+    pub fn generate(num_rows: i32) -> Vec<Vec<i32>> {
+        let num_rows = num_rows as usize;
+        let mut res = vec![];
+        for i in 0..num_rows {
+            let p = vec![1; i + 1];
+            res.push(p);
+            if res[i].len() > 2 {
+                for j in 1..res[i].len() - 1 {
+                    res[i][j] = res[i - 1][j - 1] + res[i - 1][j];
+                }
+            }
+        }
+        res
+    }
+    pub fn get_row(row_index: i32) -> Vec<i32> {
+        let e = Self::generate(row_index).pop().unwrap();
+        e
+    }
+    pub fn max_profit(prices: Vec<i32>) -> i32 {
+        let mut dp = vec![vec![0; prices.len()]; 2];
+        dp[0][0] = -prices[0];
+        dp[1][0] = prices[0];
+
+        for i in 1..prices.len() {
+            let profit = prices[i] - dp[1][i - 1];
+            if profit < 0 {
+                dp[0][i] = -prices[i];
+                dp[1][i] = prices[i];
+            } else {
+                if profit < dp[0][i - 1] {
+                    dp[0][i] = dp[0][i - 1]
+                } else {
+                    dp[0][i] = profit
+                }
+                dp[1][i] = dp[1][i - 1];
+            }
+        }
+        let res = dp[0].iter().max().unwrap();
+        if *res > 0 { *res } else { 0 }
+    }
+
+    pub fn max_profit2(prices: Vec<i32>) -> i32 {
+        // 0 : own 1:not own
+        let mut dp = vec![vec![0; prices.len()]; 2];
+        dp[0][0] = -prices.first().unwrap();
+        dp[1][0] = 0;
+        for i in 1..prices.len() {
+            // own = not own - currentPrice, own
+            dp[0][i] = i32::max(dp[0][i - 1], dp[1][i - 1] - prices[i]);
+            // not = own + currentPrice , not
+            dp[1][i] = i32::max(dp[1][i - 1], dp[0][i - 1] + prices[i])
+        }
+        return i32::max(*dp[0].last().unwrap(), *dp[1].last().unwrap());
+    }
+
+    //123
+    pub fn max_profit3(prices: Vec<i32>) -> i32 {
+        let mut buy1 = -prices[0];
+        let mut buy2 = -prices[0];
+        let mut sale1 = 0;
+        let mut sale2 = 0;
+        for i in 1..prices.len() {
+            buy1 = i32::max(buy1, -prices[i]);
+            sale1 = i32::max(sale1, buy1 + prices[i]);
+            buy2 = i32::max(buy2, sale1 - prices[i]);
+            sale2 = i32::max(sale2, buy2 + prices[i]);
+        }
+        sale2
     }
 }

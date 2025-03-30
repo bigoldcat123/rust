@@ -30,8 +30,8 @@ func minDistance(_ word1: String, _ word2: String) -> Int {
 }
 
 func setZeroes(_ matrix: inout [[Int]]) {
-    var xs: [Int] = [];
-    var ys: [Int] = [];
+    var xs: [Int] = []
+    var ys: [Int] = []
     for i in matrix.enumerated() {
         for j in i.element.enumerated() {
             if j.element == 0 {
@@ -40,11 +40,53 @@ func setZeroes(_ matrix: inout [[Int]]) {
             }
         }
     }
-        for i in matrix.enumerated() {
+    for i in matrix.enumerated() {
         for j in i.element.enumerated() {
             if xs.contains(i.offset) || ys.contains(j.offset) {
                 matrix[i.offset][j.offset] = 0
             }
         }
     }
+}
+public class Node {
+    public var val: Int
+    public var left: Node?
+    public var right: Node?
+    public var next: Node?
+    public init(_ val: Int) {
+        self.val = val
+        self.left = nil
+        self.right = nil
+        self.next = nil
+    }
+}
+
+func connect(_ root: Node?) -> Node? {
+    var q: [Node] = []
+    guard let root else {
+        return nil
+    }
+    q.append(root)
+
+    while !q.isEmpty {
+        let currentLen = q.count
+        var nextG: [Node] = []
+        for i in 0..<currentLen {
+
+            if i < currentLen - 1 {
+                q[i].next = q[i + 1]
+            }
+
+            if let left = q[i].left {
+                nextG.append(left)
+            }
+            if let right = q[i].right {
+                nextG.append(right)
+            }
+        }
+        q.removeAll()
+        q.append(contentsOf: nextG)
+    }
+
+    return root
 }
