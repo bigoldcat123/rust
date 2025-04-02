@@ -90,3 +90,34 @@ func connect(_ root: Node?) -> Node? {
 
     return root
 }
+
+public class Node2 {
+    public var val: Int
+    public var neighbors: [Node2?]
+    public init(_ val: Int) {
+        self.val = val
+        self.neighbors = []
+    }
+}
+
+class Solution {
+    var maps: [Int: Node2] = [:]
+    func cloneGraph(_ node: Node2?) -> Node2? {
+        guard let node else {
+            return nil
+        }
+        let newOne = Node2.init(node.val)
+        maps[node.val] = newOne
+        for child in node.neighbors {
+            if let child {
+                if let a = maps[child.val] {
+                    newOne.neighbors.append(a)
+                }else {
+                    newOne.neighbors.append(cloneGraph(child))
+                }
+            }
+
+        }
+        return newOne
+    }
+}

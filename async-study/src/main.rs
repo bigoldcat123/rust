@@ -7,24 +7,23 @@ fn main() {
     // thread::
     trpl::run(async {
         let task1 = async {
-            let thread_id = thread::current().id();
-            for _ in 0..10 {
-                trpl::sleep(Duration::from_secs(2)).await;
-                println!("{:#?} {thread_id:?}", "hello from ");
+            for i in 0..10 {
+                let thread_id = thread::current().id();
+                println!("{},-> {:?}", i, thread_id);
+                trpl::sleep(Duration::from_secs(1)).await;
             }
         };
         let task2 = async {
-            let thread_id = thread::current().id();
-            for _ in 0..10 {
-                trpl::sleep(Duration::from_secs(1)).await;
-                println!("{:#?} {thread_id:?}", "hello from ");
+            for i in 0..5 {
+                let thread_id = thread::current().id();
+                println!("<{}>,-> {:?}", i, thread_id);
+                trpl::sleep(Duration::from_secs(3)).await;
             }
-        };
-        // let res = trpl::join(task1, task2).await;
-        let _ = trpl::race(task1, task2).await;
-
-        // println!("{:#?}",);
-        show_thred_id();
+        };  
+        trpl::join!( task2);
+        
+        println!("{:?}","oVer");
+        // let e = s.await.unwrap();
     });
 }
 

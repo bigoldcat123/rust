@@ -1,4 +1,8 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, VecDeque},
+    rc::Rc,
+};
 
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
     let mut digits = digits;
@@ -648,5 +652,322 @@ impl A {
             sale2 = i32::max(sale2, buy2 + prices[i]);
         }
         sale2
+    }
+    //125
+    pub fn is_palindrome(s: String) -> bool {
+        let res = s
+            .to_lowercase()
+            .chars()
+            .filter(|x| x.is_ascii_alphanumeric())
+            .collect::<Vec<char>>();
+        for i in 0..res.len() / 2 {
+            if res[i] != res[res.len() - i - 1] {
+                return false;
+            }
+        }
+        true
+    }
+    //128
+    pub fn longest_consecutive(mut nums: Vec<i32>) -> i32 {
+        if nums.is_empty() {
+            return 0;
+        }
+        nums.sort();
+        let mut res = 1;
+        let mut x = 1;
+        for i in 0..nums.len() - 1 {
+            if nums[i] == nums[i + 1] {
+                continue;
+            }
+            if nums[i] + 1 == nums[i + 1] {
+                x += 1;
+            } else {
+                if res < x {
+                    res = x;
+                }
+                x = 1;
+            }
+        }
+        if res > x { res } else { x }
+    }
+
+    pub fn sum_numbers(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs_sum_numbers(
+            root: &Rc<RefCell<TreeNode>>,
+            current: &mut Vec<i32>,
+            res: &mut Vec<i32>,
+        ) {
+            current.push(root.borrow().val);
+            if root.borrow().left.is_none() && root.borrow().right.is_none() {
+                let mut sum = 0;
+                let mut step = 1;
+                for i in current.iter().rev() {
+                    sum += *i * step;
+                    step *= 10;
+                }
+                res.push(sum);
+            }
+            if root.borrow().left.is_some() {
+                dfs_sum_numbers(root.borrow().left.as_ref().unwrap(), current, res);
+            }
+            if root.borrow().right.is_some() {
+                dfs_sum_numbers(root.borrow().right.as_ref().unwrap(), current, res);
+            }
+            current.pop().unwrap();
+        }
+        let mut current = vec![];
+        let mut res = vec![];
+        dfs_sum_numbers(root.as_ref().unwrap(), &mut current, &mut res);
+        return res.iter().sum();
+    }
+
+    pub fn solve(board: &mut Vec<Vec<char>>) {
+        fn dfs_solve(board: &mut Vec<Vec<char>>, i: usize, j: usize) {
+            if i < board.len() && j < board.first().unwrap().len() {
+                if board[i][j] == 'O' {
+                    board[i][j] = 'N';
+                    dfs_solve(board, i - 1, j);
+                    dfs_solve(board, i + 1, j);
+                    dfs_solve(board, i, j + 1);
+                    dfs_solve(board, i, j - 1);
+                }
+            }
+        }
+        for i in 0..board.len() {
+            dfs_solve(board, i, 0);
+            dfs_solve(board, i, board.first().unwrap().len() - 1);
+        }
+        for j in 0..board.first().unwrap().len() {
+            dfs_solve(board, 0, j);
+            dfs_solve(board, board.len() - 1, j);
+        }
+        for i in 0..board.len() {
+            for j in 0..board.first().unwrap().len() {
+                if board[i][j] == 'O' {
+                    board[i][j] = 'X';
+                } else if board[i][j] == 'N' {
+                    board[i][j] = 'O';
+                }
+            }
+        }
+        //131
+        pub fn partition(s: String) -> Vec<Vec<String>> {
+            fn is_huiwen(s: &str) -> bool {
+                let e = s.as_bytes();
+                for i in 0..e.len() / 2 {
+                    if e[i] != e[e.len() - 1 - i] {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            fn dfs_parition(
+                s: &str,
+                start: usize,
+                current: &mut Vec<String>,
+                res: &mut Vec<Vec<String>>,
+            ) {
+                if start >= s.len() {
+                    res.push(current.clone());
+                    return;
+                }
+                for i in start + 1..=s.len() {
+                    let ss = &s[start..i];
+                    if is_huiwen(ss) {
+                        current.push(ss.to_string());
+                        println!("{:?}", current);
+                        dfs_parition(s, i, current, res);
+                        current.pop().unwrap();
+                    }
+                }
+            }
+            let mut current = vec![];
+            let mut res = vec![];
+            dfs_parition(&s, 0, &mut current, &mut res);
+            return res;
+        }
+    }
+
+    pub fn min_cut(s: String) -> i32 {
+        let s = s.as_bytes();
+        let mut dp = vec![vec![true; s.len()]; s.len()];
+        for step in 1..s.len() {
+            for i in 0.. {
+                if i + step >= s.len() {
+                    break;
+                }
+                let n = i;
+                let m = i + step;
+                if n + 1 > m - 1 {
+                    dp[n][m] = s[n] == s[m];
+                } else {
+                    dp[n][m] = dp[n + 1][m - 1] && s[n] == s[m];
+                }
+            }
+        }
+        let mut dp2 = vec![i32::MAX; s.len()];
+        for i in 0..s.len() {
+            if dp[0][i] {
+                dp2[i] = 0;
+            } else {
+                for j in 0..i {
+                    if dp[j + 1][i] {
+                        dp2[i] = i32::min(dp2[i], dp2[j] + 1);
+                    }
+                }
+            }
+        }
+        *dp2.last().unwrap()
+    }
+    //134
+    pub fn can_complete_circuit(gas: Vec<i32>, cost: Vec<i32>) -> i32 {
+        if gas.len() == 1 {
+            if gas.first().unwrap() >= cost.first().unwrap() {
+                return 0;
+            }
+        }
+        let mut current_gas;
+        let mut current_station;
+        for start_idx in 0..gas.len() {
+            current_gas = gas[start_idx];
+            let start_station = start_idx;
+            current_station = start_idx;
+            let mut ok = true;
+            if gas[start_idx] == cost[start_idx] {
+                continue;
+            }
+            // drive
+            for _ in 0..gas.len() {
+                let current_cost = cost[current_station];
+                current_station += 1;
+                if current_station == gas.len() {
+                    current_station %= gas.len();
+                }
+                if current_gas - current_cost < 0 {
+                    ok = false;
+                    break;
+                } else {
+                    current_gas = current_gas - current_cost + gas[current_station];
+                }
+            }
+            if ok {
+                return start_station as i32;
+            }
+        }
+        return -1;
+    }
+
+    //136
+    pub fn single_number(nums: Vec<i32>) -> i32 {
+        let mut map = HashMap::new();
+        for ele in nums {
+            if map.contains_key(&ele) {
+                let e = map.get_mut(&ele).unwrap();
+                *e += 1;
+            } else {
+                map.insert(ele, 1);
+            }
+        }
+        for (k, v) in map {
+            if v == 1 {
+                return k;
+            }
+        }
+        0
+    }
+    //139
+    pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
+        let mut dp = vec![false; s.len()];
+        let word_dict_ref: Vec<&str> = word_dict.iter().map(|x| &x[..]).collect();
+        for i in 0..s.len() {
+            if word_dict_ref.contains(&&s[0..=i]) {
+                dp[i] = true;
+            } else {
+                for j in 0..i {
+                    if dp[j] == true && word_dict_ref.contains(&&s[j + 1..=i]) {
+                        dp[i] = true
+                    }
+                }
+            }
+        }
+        *dp.last().unwrap()
+    }
+
+    pub fn word_break2(s: String, word_dict: Vec<String>) -> Vec<String> {
+        let mut res = vec![];
+        let mut dp = vec![false; s.len()];
+        let word_dict_ref: Vec<&str> = word_dict.iter().map(|x| &x[..]).collect();
+        for i in 0..s.len() {
+            if word_dict_ref.contains(&&s[0..=i]) {
+                dp[i] = true;
+                if i > 0 {
+                    if dp[i - 1] == true {
+                        res.pop().unwrap();
+                    }
+                }
+                res.push(s[0..=i].to_string());
+            } else {
+                for j in 0..i {
+                    if dp[j] == true && word_dict_ref.contains(&&s[j + 1..=i]) {
+                        dp[i] = true;
+                        res.push(s[j + 1..=i].to_string());
+                        break;
+                    }
+                }
+            }
+        }
+        if *dp.last().unwrap() { res } else { vec![] }
+    }
+    //143
+    pub fn reorder_list(head: &mut Option<Box<ListNode>>) {
+        let mut nodes = HashMap::new();
+        fn to_map(
+            head: &mut Option<Box<ListNode>>,
+            nodes: &mut HashMap<usize, Option<Box<ListNode>>>,
+            n: usize,
+        ) {
+            if let Some(head) = head {
+                let mut next = head.next.take();
+
+                to_map(&mut next, nodes, n + 1);
+                if next.is_some() {
+                    nodes.insert(n, next);
+                }
+            }
+        }
+        to_map(head, &mut nodes, 1);
+        for ele in nodes.iter() {
+            if let Some(e) = ele.1 {
+                println!("{}-{:?}",ele.0,e.val);
+            }else {
+                 println!("{:?} is none",ele.0);
+            }
+        }
+        let len = nodes.len() + 1;
+        fn resume(
+            head: &mut Option<Box<ListNode>>,
+            mut nodes: HashMap<usize, Option<Box<ListNode>>>,
+            n: usize,
+            len: usize,
+            real_len: usize,
+        ) {
+            if n > len {
+                return;
+            }
+            if let Some(head) = head {
+                if n == 0 {
+                    let mut next = nodes.remove(&n).unwrap();
+                    resume(&mut next, nodes, n + 1, len,real_len);
+                    head.next = next;
+                } else {
+                    let mut next = nodes.remove(&n).unwrap();
+                    let mut next_next = nodes.remove(&(real_len - n)).unwrap();
+                    resume(&mut next_next, nodes, n + 1, len, real_len);
+                    next.as_mut().unwrap().next = next_next;
+                    head.next = next;
+                }
+            }
+        }
+        resume(head, nodes, 0, len / 2, len - 1);
     }
 }
