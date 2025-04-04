@@ -938,9 +938,9 @@ impl A {
         to_map(head, &mut nodes, 1);
         for ele in nodes.iter() {
             if let Some(e) = ele.1 {
-                println!("{}-{:?}",ele.0,e.val);
-            }else {
-                 println!("{:?} is none",ele.0);
+                println!("{}-{:?}", ele.0, e.val);
+            } else {
+                println!("{:?} is none", ele.0);
             }
         }
         let len = nodes.len() + 1;
@@ -957,7 +957,7 @@ impl A {
             if let Some(head) = head {
                 if n == 0 {
                     let mut next = nodes.remove(&n).unwrap();
-                    resume(&mut next, nodes, n + 1, len,real_len);
+                    resume(&mut next, nodes, n + 1, len, real_len);
                     head.next = next;
                 } else {
                     let mut next = nodes.remove(&n).unwrap();
@@ -969,5 +969,184 @@ impl A {
             }
         }
         resume(head, nodes, 0, len / 2, len - 1);
+    }
+    pub fn preorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        let mut res = vec![];
+        fn dfs(root: Option<&Rc<RefCell<TreeNode>>>, res: &mut Vec<i32>) {
+            if let Some(root) = root {
+                res.push(root.borrow().val);
+                dfs(root.borrow().left.as_ref(), res);
+                dfs(root.borrow().right.as_ref(), res);
+            }
+        }
+        dfs(root.as_ref(), &mut res);
+        res
+    }
+    //148
+    fn e() {
+        struct CacheValue {
+            value: i32,
+            life: i32,
+        }
+        struct LRUCache {
+            store: HashMap<i32, CacheValue>,
+            capacity: i32,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl LRUCache {
+            fn new(capacity: i32) -> Self {
+                Self {
+                    store: HashMap::with_capacity(capacity as usize),
+                    capacity: capacity,
+                }
+            }
+
+            fn get(&mut self, key: i32) -> i32 {
+                for x in self.store.values_mut() {
+                    x.life -= 1;
+                }
+                if let Some(e) = self.store.get_mut(&key) {
+                    e.life = 0;
+                    //
+                    return e.value;
+                } else {
+                    -1
+                }
+            }
+
+            fn put(&mut self, key: i32, value: i32) {
+                for x in self.store.values_mut() {
+                    x.life -= 1;
+                }
+                if self.store.contains_key(&key) {
+                    self.store.insert(key, CacheValue { value, life: 0 });
+                    return;
+                }
+                if self.store.len() >= self.capacity as usize {
+                    let mut key_to_rm = 0;
+                    let mut min_life = 0;
+                    //get the smallest life
+                    for (k, v) in self.store.iter() {
+                        if v.life < min_life {
+                            min_life = v.life;
+                            key_to_rm = *k;
+                        }
+                    }
+
+                    self.store.remove(&key_to_rm).unwrap();
+                    self.store.insert(key, CacheValue { value, life: 0 });
+                } else {
+                    self.store.insert(key, CacheValue { value, life: 0 });
+                }
+            }
+        }
+    }
+    //149
+    pub fn insertion_sort_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        if head.is_none() {
+            return None;
+        }
+        let mut res = Box::new(ListNode::new(9));
+        fn dfs(head: Option<Box<ListNode>>, res: &mut Box<ListNode>) {
+            if let Some(mut next) = head {
+                let nn = next.next.take();
+                dfs_insert(res, next);
+                dfs(nn, res);
+            }
+        }
+        fn dfs_insert(head: &mut Box<ListNode>, mut value: Box<ListNode>) {
+            if head.next.is_none() {
+                head.next = Some(value);
+                return;
+            } else if head.next.as_ref().unwrap().val > value.val {
+                let next_next = head.next.take();
+                value.next = next_next;
+                head.next = Some(value)
+            } else {
+                let next = head.next.as_mut().unwrap();
+                dfs_insert(next, value);
+            }
+        }
+        dfs(head, &mut res);
+        res.next
+    }
+    pub fn eval_rpn(mut tokens: Vec<String>) -> i32 {
+        let mut stack = vec![];
+        tokens.reverse();
+        while let Some(next) = tokens.pop() {
+            if next == "+" {
+                let right = stack.pop().unwrap();
+                let left = stack.pop().unwrap();
+                stack.push(right + left);
+            } else if next == "-" {
+                let right = stack.pop().unwrap();
+                let left = stack.pop().unwrap();
+                stack.push(left - right);
+            } else if next == "*" {
+                let right = stack.pop().unwrap();
+                let left = stack.pop().unwrap();
+                stack.push(left * right);
+            } else if next == "/" {
+                let right = stack.pop().unwrap();
+                let left = stack.pop().unwrap();
+                stack.push(left / right);
+            } else {
+                stack.push(next.parse::<i32>().unwrap());
+            }
+        }
+        stack.pop().unwrap()
+    }
+    //151
+    pub fn reverse_words(mut s: String) -> String {
+        let mut buf = VecDeque::new();
+        //hello
+        //hello
+        while let Some(c) = s.pop() {
+            buf.push_front(c);
+        }
+
+        let mut buf_str = String::new();
+        let mut res = vec![];
+        while let Some(c) = buf.pop_front() {
+            if c == ' ' {
+                if !buf_str.is_empty() {
+                    res.push(buf_str.clone());
+                }
+                buf_str.clear();
+                continue;
+            } else {
+                buf_str.push(c);
+            }
+        }
+        if !buf_str.is_empty() {
+            res.push(buf_str);
+        }
+        res.reverse();
+        res.join(" ")
+    }
+    //152
+    pub fn max_product(nums: Vec<i32>) -> i32 {
+        let mut dp = vec![vec![0; nums.len()]; nums.len()];
+        let mut res = i32::MIN;
+        for i in 0..nums.len() {
+            dp[i][i] = nums[i];
+            if dp[i][i] > res {
+                res = dp[i][i]
+            }
+        }
+
+        for i in 0..nums.len() {
+            for j in i + 1..nums.len() {
+                dp[i][j] = dp[i][j - 1] * nums[j];
+                if dp[i][j] > res {
+                    res = dp[i][j];
+                }
+            }
+        }
+        res
     }
 }
