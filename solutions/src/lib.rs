@@ -1,7 +1,5 @@
 use std::{
-    cell::RefCell,
-    collections::{HashMap, VecDeque},
-    rc::Rc,
+    cell::RefCell, collections::{HashMap, LinkedList, VecDeque}, i32, rc::Rc
 };
 
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
@@ -1130,23 +1128,108 @@ impl A {
     }
     //152
     pub fn max_product(nums: Vec<i32>) -> i32 {
-        let mut dp = vec![vec![0; nums.len()]; nums.len()];
+        let mut dp = vec![0; nums.len()];
         let mut res = i32::MIN;
         for i in 0..nums.len() {
-            dp[i][i] = nums[i];
-            if dp[i][i] > res {
-                res = dp[i][i]
+            dp.push(nums[i]);
+            if res < nums[i] {
+                res = nums[i]
             }
-        }
-
-        for i in 0..nums.len() {
             for j in i + 1..nums.len() {
-                dp[i][j] = dp[i][j - 1] * nums[j];
-                if dp[i][j] > res {
-                    res = dp[i][j];
+                dp[j] = dp[j - 1] * nums[j];
+                if dp[j] > res {
+                    res = dp[j];
                 }
+            }
+           dp.clear();
+           dp.reserve(nums.len());
+        }
+        res
+    }
+    //153
+    pub fn find_min(nums: Vec<i32>) -> i32 {
+        // the nums is a sorted array ,and it is rotated
+        // 1,2,3,4,5,6
+        // 4,5,6,1,2,3
+        // find the min one
+        let mut res = i32::MAX;
+        let mut left = 0;
+        let mut right = nums.len() - 1;
+        while left <= right {
+            let mid =( left + right) / 2;
+            if nums[mid] < nums[left] {
+                right = mid + 1;
+            }else if nums[mid] > nums[right] {
+                left = mid + 1;
+            }else if left == 0 {
+                res = nums[left];
+            }else if nums[left] > nums[left -1] {
+                res = nums[left]
             }
         }
         res
+    }
+    //155
+    fn min_stack() {
+        struct MinValue {
+            value:i32,
+            count:i32
+        }
+        struct MinStack {
+            stack:Vec<i32>,
+            min_value:Option<MinValue>
+        }
+        
+        
+        /** 
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl MinStack {
+        
+            fn new() -> Self {
+                Self { stack: vec![], min_value: None }
+            }
+            
+            fn push(&mut self, val: i32) {
+                if self.min_value.is_none() {
+                    self.min_value = Some(MinValue { value: val, count: 1 })
+                }else if val == self.min_value.as_ref().unwrap().value {
+                    self.min_value.as_mut().unwrap().count += 1;
+                }else if val < self.min_value.as_ref().unwrap().value{
+                    self.min_value.as_mut().unwrap().count = 1;
+                    self.min_value.as_mut().unwrap().value = val;
+                }
+                self.stack.push(val);
+            }
+            
+            fn pop(&mut self) {
+                let last = self.stack.pop().unwrap();
+                if last == self.get_min() {
+                    self.min_value.as_mut().unwrap().count -= 1;
+                    if self.min_value.as_ref().unwrap().count == 0 {
+                        // search new
+                        let mut  new_min = MinValue{value:i32::MAX,count:0};
+                        for ele in self.stack.iter() {
+                            if *ele < new_min.value {
+                                new_min.count = 0;
+                                new_min.value = *ele;
+                            }else if *ele == new_min.value {
+                                new_min.count += 1;
+                            }
+                        }
+                        self.min_value = Some(new_min)
+                    }
+                }
+            }
+            
+            fn top(&self) -> i32 {
+                *self.stack.last().unwrap()
+            }
+            
+            fn get_min(&self) -> i32 {
+                self.min_value.as_ref().unwrap().value
+            }
+        }
     }
 }
