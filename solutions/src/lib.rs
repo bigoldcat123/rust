@@ -1,5 +1,9 @@
 use std::{
-    cell::RefCell, collections::{HashMap, LinkedList, VecDeque}, i32, rc::Rc
+    cell::RefCell,
+    collections::{HashMap, LinkedList, VecDeque},
+    i32,
+    ops::Index,
+    rc::Rc,
 };
 
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
@@ -1141,8 +1145,8 @@ impl A {
                     res = dp[j];
                 }
             }
-           dp.clear();
-           dp.reserve(nums.len());
+            dp.clear();
+            dp.reserve(nums.len());
         }
         res
     }
@@ -1156,14 +1160,14 @@ impl A {
         let mut left = 0;
         let mut right = nums.len() - 1;
         while left <= right {
-            let mid =( left + right) / 2;
+            let mid = (left + right) / 2;
             if nums[mid] < nums[left] {
                 right = mid + 1;
-            }else if nums[mid] > nums[right] {
+            } else if nums[mid] > nums[right] {
                 left = mid + 1;
-            }else if left == 0 {
+            } else if left == 0 {
                 res = nums[left];
-            }else if nums[left] > nums[left -1] {
+            } else if nums[left] > nums[left - 1] {
                 res = nums[left]
             }
         }
@@ -1172,49 +1176,56 @@ impl A {
     //155
     fn min_stack() {
         struct MinValue {
-            value:i32,
-            count:i32
+            value: i32,
+            count: i32,
         }
         struct MinStack {
-            stack:Vec<i32>,
-            min_value:Option<MinValue>
+            stack: Vec<i32>,
+            min_value: Option<MinValue>,
         }
-        
-        
-        /** 
+
+        /**
          * `&self` means the method takes an immutable reference.
          * If you need a mutable reference, change it to `&mut self` instead.
          */
         impl MinStack {
-        
             fn new() -> Self {
-                Self { stack: vec![], min_value: None }
+                Self {
+                    stack: vec![],
+                    min_value: None,
+                }
             }
-            
+
             fn push(&mut self, val: i32) {
                 if self.min_value.is_none() {
-                    self.min_value = Some(MinValue { value: val, count: 1 })
-                }else if val == self.min_value.as_ref().unwrap().value {
+                    self.min_value = Some(MinValue {
+                        value: val,
+                        count: 1,
+                    })
+                } else if val == self.min_value.as_ref().unwrap().value {
                     self.min_value.as_mut().unwrap().count += 1;
-                }else if val < self.min_value.as_ref().unwrap().value{
+                } else if val < self.min_value.as_ref().unwrap().value {
                     self.min_value.as_mut().unwrap().count = 1;
                     self.min_value.as_mut().unwrap().value = val;
                 }
                 self.stack.push(val);
             }
-            
+
             fn pop(&mut self) {
                 let last = self.stack.pop().unwrap();
                 if last == self.get_min() {
                     self.min_value.as_mut().unwrap().count -= 1;
                     if self.min_value.as_ref().unwrap().count == 0 {
                         // search new
-                        let mut  new_min = MinValue{value:i32::MAX,count:0};
+                        let mut new_min = MinValue {
+                            value: i32::MAX,
+                            count: 0,
+                        };
                         for ele in self.stack.iter() {
                             if *ele < new_min.value {
                                 new_min.count = 0;
                                 new_min.value = *ele;
-                            }else if *ele == new_min.value {
+                            } else if *ele == new_min.value {
                                 new_min.count += 1;
                             }
                         }
@@ -1222,14 +1233,151 @@ impl A {
                     }
                 }
             }
-            
+
             fn top(&self) -> i32 {
                 *self.stack.last().unwrap()
             }
-            
+
             fn get_min(&self) -> i32 {
                 self.min_value.as_ref().unwrap().value
             }
         }
+    }
+    //164
+    pub fn find_peak_element(nums: Vec<i32>) -> i32 {
+        for (idx, value) in nums.iter().enumerate() {
+            let left = if idx == 0 { i32::MIN } else { nums[idx - 1] };
+            let right = if idx == nums.len() - 1 {
+                i32::MIN
+            } else {
+                nums[idx + 1]
+            };
+            if *value > left && *value > right {
+                return idx as i32;
+            }
+        }
+        0
+    }
+    pub fn maximum_gap(mut nums: Vec<i32>) -> i32 {
+        nums.sort();
+        let mut max = 0;
+
+        for i in 1..nums.len() {
+            let interval = nums[i] - nums[i - 1];
+            if interval > max {
+                max = interval;
+            }
+        }
+        max
+    }
+    //165
+    pub fn compare_version(version1: String, version2: String) -> i32 {
+        let version1 = version1
+            .split(".")
+            .map(|x| x.parse::<i32>().unwrap())
+            .collect::<Vec<i32>>();
+        let version2 = version2
+            .split(".")
+            .map(|x| x.parse::<i32>().unwrap())
+            .collect::<Vec<i32>>();
+        let mut idx = 0;
+        loop {
+            let v1 = version1.get(idx);
+            let v2 = version2.get(idx);
+
+            if v1.is_some() && v2.is_some() {
+                let v1 = v1.unwrap();
+                let v2 = v2.unwrap();
+                if v1 == v2 {
+                } else if v1 > v2 {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
+
+            if v1.is_none() && v2.is_none() {
+                return 0;
+            }
+            if v1.is_none() && v2.is_some() {
+                if let Some(v2) = v2 {
+                    if *v2 != 0 {
+                        return -1;
+                    }
+                }
+            }
+
+            if v2.is_none() && v1.is_some() {
+                if let Some(v1) = v1 {
+                    if *v1 != 0 {
+                        return -1;
+                    }
+                }
+            }
+            idx += 1
+        }
+    }
+    //166
+    pub fn fraction_to_decimal(numerator: i32, denominator: i32) -> String {
+        if numerator == 0 {
+            return "0".to_string();
+        }
+        let mut is_negtive = false;
+        if numerator < 0 || denominator < 0 {
+            is_negtive = true;
+        }
+        if numerator < 0 && denominator < 0 {
+            is_negtive = false;
+        }
+        let numerator = (numerator as i64).abs();
+        let denominator = (denominator as i64).abs();
+        let x = numerator / denominator;
+        let mut vec = vec![];
+        let mut left = numerator;
+        let mut s = String::new();
+
+        loop {
+            left = left % denominator;
+            if left == 0 {
+                break;
+            }
+            if vec.contains(&left) {
+                let mut x = 0;
+                for (idx, e) in vec.iter().enumerate() {
+                    if *e == left {
+                        x = idx;
+                        break;
+                    }
+                }
+                s.insert(x, '(');
+                s.push(')');
+                break;
+            }
+
+            vec.push(left);
+            left *= 10;
+            let y = left / denominator;
+            s.push_str(&y.to_string());
+        }
+        if s.is_empty() {
+            let res = format!("{}{}", if is_negtive { "-" } else { "" }, x);
+            res
+        } else {
+            let res = format!("{}{}.{}", if is_negtive { "-" } else { "" }, x, s);
+            res
+        }
+    }
+    //167
+    pub fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+        for i in 0..numbers.len() - 1 {
+            for j in i + 1..numbers.len() {
+                if numbers[i] + numbers[j] == target {
+                    return vec![(i + 1) as i32,(j + 1) as i32];
+                }else if numbers[i] + numbers[j] > target {
+                    break;
+                }
+            }
+        }
+        vec![]
     }
 }

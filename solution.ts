@@ -55,7 +55,7 @@ function hasCycle(head: ListNode | null): boolean {
         if (map.has(head)) {
             return true
         }
-        map.set(head,1)
+        map.set(head, 1)
         head = head.next
     }
     return res
@@ -69,8 +69,31 @@ function detectCycle(head: ListNode | null): ListNode | null {
         if (map.has(head)) {
             return head
         }
-        map.set(head,1)
+        map.set(head, 1)
         head = head.next
     }
     return res
+};
+
+class A {
+
+}
+const a = new A();
+const b = new A();
+console.log(a == b);
+
+
+function getIntersectionNode(headA: ListNode | null, headB: ListNode | null): ListNode | null {
+    const map = new Map();
+    while (headA != null) {
+        map.set(headA, 0)
+        headA = headA.next
+    }
+    while (headB != null) {
+        if (map.has(headB)) {
+            return headB
+        }
+        headB = headB.next
+    }
+    return null
 };
