@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    cmp::Ordering,
     collections::{HashMap, LinkedList, VecDeque},
     i32,
     ops::Index,
@@ -1372,12 +1373,144 @@ impl A {
         for i in 0..numbers.len() - 1 {
             for j in i + 1..numbers.len() {
                 if numbers[i] + numbers[j] == target {
-                    return vec![(i + 1) as i32,(j + 1) as i32];
-                }else if numbers[i] + numbers[j] > target {
+                    return vec![(i + 1) as i32, (j + 1) as i32];
+                } else if numbers[i] + numbers[j] > target {
                     break;
                 }
             }
         }
         vec![]
+    }
+    //168
+    pub fn convert_to_title(mut column_number: i32) -> String {
+        if column_number == 26 {
+            return "Z".to_string();
+        }
+        let mut res = vec![];
+        while column_number != 0 {
+            let c = column_number % 26;
+            println!("{:?}", (c as u8 + 64) as char);
+            if c == 0 {
+                res.push(b'Z');
+            } else {
+                res.push((c as u8 + 64) as u8);
+            }
+
+            column_number /= 26;
+            if column_number == 26 {
+                println!("{:?}", "Z");
+                res.push(b'Z');
+                break;
+            }
+        }
+        res.reverse();
+        String::from_utf8(res).unwrap()
+    }
+    //171
+    pub fn title_to_number(mut column_title: String) -> i32 {
+        let mut step: i32 = 1;
+        let mut res: i32 = 0;
+        while let Some(next) = column_title.pop() {
+            let next_u8 = (next as u8 - 64) as i32;
+            res += next_u8 * step;
+            step *= 26;
+        }
+        res
+    }
+    //172
+    pub fn trailing_zeroes(n: i32) -> i32 {
+        let mut step = 5;
+        let mut res = 0;
+        while step <= n {
+            res += n / step;
+            step *= 5;
+        }
+        res
+    }
+    //173
+    fn eleee() {
+        struct BSTIterator {
+            nodes: Vec<i32>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl BSTIterator {
+            fn new(root: Option<Rc<RefCell<TreeNode>>>) -> Self {
+                fn dfs(root: Option<Rc<RefCell<TreeNode>>>, nodes: &mut Vec<i32>) {
+                    if let Some(root) = root {
+                        let left = root.borrow_mut().left.take();
+                        dfs(left, nodes);
+                        nodes.push(root.borrow().val);
+                        let right = root.borrow_mut().right.take();
+                        dfs(right, nodes);
+                    }
+                }
+                let mut nodes = vec![];
+                dfs(root, &mut nodes);
+                nodes.reverse();
+                Self { nodes }
+            }
+
+            fn next(&mut self) -> i32 {
+                self.nodes.pop().unwrap()
+            }
+
+            fn has_next(&self) -> bool {
+                !self.nodes.is_empty()
+            }
+        }
+    }
+    //179
+    pub fn largest_number(mut nums: Vec<i32>) -> String {
+        nums.sort_by(|a, b| {
+            let mut e = String::new();
+            e.push_str(&a.to_string());
+            e.push_str(&b.to_string());
+            let mut x = String::new();
+            x.push_str(&b.to_string());
+            x.push_str(&a.to_string());
+            let left = e.parse::<i32>().unwrap();
+            let right = x.parse::<i32>().unwrap();
+            if left > right {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+        println!("{:?}", nums);
+        if *nums.first().unwrap() == 0 {
+            return "0".to_string();
+        }
+        let mut res = String::new();
+        for e in nums {
+            res.push_str(&e.to_string());
+        }
+        res
+    }
+    //187
+    pub fn find_repeated_dna_sequences(s: String) -> Vec<String> {
+        if s.len() < 10 {
+            return vec![];
+        }
+        let mut map = HashMap::new();
+
+        for i in 0..s.len() - 9 {
+            let sub = &s[i..i+10];
+            if map.contains_key(&sub) {
+                *map.get_mut(&sub).unwrap() += 1;
+            }else {
+                map.insert(sub, 0);
+            }
+        };
+        let mut res = vec![];
+        for (k,v) in map {
+            if v > 1 {
+                res.push(k.to_string());
+            }
+        }
+        res
     }
 }
