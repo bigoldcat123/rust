@@ -1498,18 +1498,111 @@ impl A {
         let mut map = HashMap::new();
 
         for i in 0..s.len() - 9 {
-            let sub = &s[i..i+10];
+            let sub = &s[i..i + 10];
             if map.contains_key(&sub) {
                 *map.get_mut(&sub).unwrap() += 1;
-            }else {
+            } else {
                 map.insert(sub, 0);
             }
-        };
+        }
         let mut res = vec![];
-        for (k,v) in map {
+        for (k, v) in map {
             if v > 1 {
                 res.push(k.to_string());
             }
+        }
+        res
+    }
+    //189
+    pub fn rotate(nums: &mut Vec<i32>, k: i32) {
+        if k > nums.len() as i32 {
+            for _ in 0..k {
+                let last = nums.pop().unwrap();
+                nums.insert(0, last);
+            }
+        } else {
+            let mut p = vec![];
+            for _ in 0..k {
+                if let Some(next) = nums.pop() {
+                    p.push(next);
+                } else {
+                    break;
+                }
+            }
+            p.reverse();
+            p.append(nums);
+            *nums = p;
+        }
+    }
+    //191
+    pub fn hamming_weight(mut n: i32) -> i32 {
+        let mut res = 0;
+        while n != 0 {
+            let x = n % 2;
+            if x == 1 {
+                res += 1;
+            }
+            n /= 2;
+        }
+        res
+    }
+    //199
+    pub fn right_side_view(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        let mut res = vec![];
+        fn search(
+            root: Option<&Rc<RefCell<TreeNode>>>,
+            current_deep: i32,
+            deep: &mut i32,
+            res: &mut Vec<i32>,
+        ) {
+            if let Some(root) = root {
+                if current_deep >= *deep {
+                    res.push(root.borrow().val);
+                    *deep += 1;
+                }
+
+                search(root.borrow().right.as_ref(), current_deep + 1, deep, res);
+                search(root.borrow().left.as_ref(), current_deep + 1, deep, res);
+            }
+        }
+        let mut deep = 0;
+        search(root.as_ref(), 0, &mut deep, &mut res);
+        res
+    }
+    //200
+    pub fn num_islands(mut grid: Vec<Vec<char>>) -> i32 {
+        fn mark(grid: &mut Vec<Vec<char>>, i: usize, j: usize) {
+            grid[i][j] = 'x';
+            if i + 1 < grid.len() && grid[i + 1][j] == '1' {
+                mark(grid, i + 1, j);
+            }
+            if j + 1 < grid.first().unwrap().len() && grid[i][j + 1] == '1' {
+                mark(grid, i, j + 1);
+            }
+
+            if i != 0 && grid[i - 1][j] == '1' {
+                mark(grid, i - 1, j);
+            }
+            if j != 0 && grid[i][j - 1] == '1' {
+                mark(grid, i, j - 1);
+            }
+        }
+        let mut res = 0;
+        for i in 0..grid.len() {
+            for j in 0..grid.first().unwrap().len() {
+                if grid[i][j] == '1' {
+                    mark(&mut grid, i, j);
+                    res += 1;
+                }
+            }
+        }
+        res
+    }
+    //201
+    pub fn range_bitwise_and(left: i32, right: i32) -> i32 {
+        let mut res = left;
+        for i in left + 1..=right {
+            res &= i;
         }
         res
     }
