@@ -1599,11 +1599,175 @@ impl A {
         res
     }
     //201
-    pub fn range_bitwise_and(left: i32, right: i32) -> i32 {
-        let mut res = left;
-        for i in left + 1..=right {
-            res &= i;
+    pub fn range_bitwise_and(mut left: i32, mut right: i32) -> i32 {
+        let mut shift = 0;
+        while left < right {
+            left >>= 1;
+            right >>= 1;
+            shift += 1;
+        }
+        left << shift
+    }
+    //202
+    pub fn is_happy(n: i32) -> bool {
+        fn cal(mut n: i32, res: &mut HashMap<i32, i32>, is_of: &mut bool) {
+            let mut r = 0;
+            while n != 0 {
+                let off = n % 10;
+                r += off * off;
+                n /= 10;
+            }
+            if r == 1 {
+                *is_of = true;
+                return;
+            }
+            if res.contains_key(&r) {
+                *is_of = false;
+            } else {
+                res.insert(r, 0);
+                cal(r, res, is_of);
+            }
+        }
+        let mut res = HashMap::new();
+        let mut is_ok = false;
+        cal(n, &mut res, &mut is_ok);
+        is_ok
+    }
+    //203
+    pub fn remove_elements(mut head: Option<Box<ListNode>>, val: i32) -> Option<Box<ListNode>> {
+        fn search_del(node: &mut Option<Box<ListNode>>, val: i32) {
+            if node.is_some() {
+                loop {
+                    let n = node.as_mut().unwrap();
+                    if n.val == val {
+                        *node = n.next.take();
+                    } else {
+                        search_del(&mut n.next, val);
+                        break;
+                    }
+
+                    if node.is_none() || node.as_ref().unwrap().val != val {
+                        search_del(node, val);
+                        break;
+                    }
+                }
+            }
+        }
+        search_del(&mut head, val);
+        head
+    }
+    //204
+    pub fn count_primes(n: i32) -> i32 {
+        let mut is_prime = vec![true; n as usize];
+        let mut res = 0;
+        for i in 2..n {
+            if is_prime[i as usize] {
+                res += 1;
+                let mut start = 2;
+                loop {
+                    if start * i < n {
+                        is_prime[(start * i) as usize] = false;
+                        start += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
         }
         res
+    }
+    //205
+    pub fn is_isomorphic(s: String, t: String) -> bool {
+        let mut map_s_t = HashMap::new();
+        let mut map_t_s = HashMap::new();
+        let s = s.as_bytes();
+        let t = t.as_bytes();
+        for i in 0..s.len() {
+            if map_s_t.contains_key(&s[i]) {
+                let v = map_s_t.get(&s[i]).unwrap();
+                if *v != *&t[i] {
+                    return false;
+                }
+            } else {
+                map_s_t.insert(*&s[i], *&t[i]);
+            }
+            if map_t_s.contains_key(&t[i]) {
+                let v = map_t_s.get(&t[i]).unwrap();
+                if *v != *&s[i] {
+                    return false;
+                }
+            } else {
+                map_t_s.insert(*&t[i], *&s[i]);
+            }
+        }
+        return true;
+    }
+    // 206
+    pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        fn help(
+            mut node: Option<Box<ListNode>>,
+            next: Option<Box<ListNode>>,
+        ) -> Option<Box<ListNode>> {
+            if node.is_some() {
+                let mut n = node.take();
+                let nn = n.as_mut().unwrap().next.take();
+                n.as_mut().unwrap().next = next;
+                return help(nn, n);
+            } else {
+                return next;
+            }
+        }
+        return help(head, None);
+    }
+    //207
+    pub fn can_finish(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> bool {
+        let mut map: HashMap<i32, Vec<i32>> = HashMap::new();
+        for x in prerequisites {
+            let k = *x.first().unwrap();
+            let v = *x.last().unwrap();
+            if map.contains_key(&k) {
+                map.get_mut(&k).unwrap().push(v);
+            } else {
+                map.insert(k, vec![v]);
+            }
+        }
+
+        fn find_cirlce(map: &HashMap<i32, Vec<i32>>, prev: &mut Vec<i32>, k: &i32) -> bool {
+            if !map.contains_key(k) {
+                return false;
+            } else {
+                let prereq = map.get(k).unwrap();
+                for i in prereq {
+                    if prev.contains(i) {
+                        return true;
+                    } else {
+                        prev.push(*i);
+                        let res = find_cirlce(map, prev, i);
+                        prev.pop().unwrap();
+                        if res {
+                            return true;
+                        }
+                    }
+                }
+            };
+            false
+        }
+
+        let mut prev = vec![];
+        for i in 0..num_courses {
+            prev.push(i);
+            if let Some(req) = map.get(&i) {
+                for next in req {
+                    if *next < i {
+                        continue;
+                    }
+                    if find_cirlce(&map, &mut prev, next) {
+                        return false;
+                    }
+                }
+            }
+            prev.pop().unwrap();
+        }
+        true
     }
 }
