@@ -1721,22 +1721,18 @@ impl A {
     }
     //207
     pub fn can_finish(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> bool {
-        let mut map: HashMap<i32, Vec<i32>> = HashMap::new();
+        let mut map = vec![vec![]; num_courses as usize];
         for x in prerequisites {
-            let k = *x.first().unwrap();
+            let k = *x.first().unwrap() as usize;
             let v = *x.last().unwrap();
-            if map.contains_key(&k) {
-                map.get_mut(&k).unwrap().push(v);
-            } else {
-                map.insert(k, vec![v]);
-            }
+            map[k].push(v);
         }
 
-        fn find_cirlce(map: &HashMap<i32, Vec<i32>>, prev: &mut Vec<i32>, k: &i32) -> bool {
-            if !map.contains_key(k) {
+        fn find_cirlce(map: &Vec<Vec<i32>>, prev: &mut Vec<i32>, k: &i32) -> bool {
+            if map[*k as usize].len() == 0 {
                 return false;
             } else {
-                let prereq = map.get(k).unwrap();
+                let prereq = map.get(*k as usize).unwrap();
                 for i in prereq {
                     if prev.contains(i) {
                         return true;
@@ -1756,7 +1752,7 @@ impl A {
         let mut prev = vec![];
         for i in 0..num_courses {
             prev.push(i);
-            if let Some(req) = map.get(&i) {
+            if let Some(req) = map.get(i as usize) {
                 for next in req {
                     if *next < i {
                         continue;
@@ -1769,5 +1765,216 @@ impl A {
             prev.pop().unwrap();
         }
         true
+    }
+    //208
+    fn e_208() {
+        struct Trie {
+            nodes: Vec<Option<TrieNode>>,
+        }
+        #[derive(Clone)]
+        struct TrieNode {
+            charatror: char,
+            is_word: bool,
+            nexts: Vec<Option<TrieNode>>,
+        }
+        impl TrieNode {
+            fn new(c: char, is_word: bool) -> Self {
+                Self {
+                    charatror: c,
+                    is_word: is_word,
+                    nexts: vec![None; 26],
+                }
+            }
+        }
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Trie {
+            fn new() -> Self {
+                Self {
+                    nodes: vec![Option::None; 26],
+                }
+            }
+
+            fn insert(&mut self, word: String) {
+                let word = word.as_bytes();
+                fn handle_insert(
+                    nodes: &mut Vec<Option<TrieNode>>,
+                    current_index: usize,
+                    word: &[u8],
+                ) {
+                    if current_index >= word.len() {
+                        return;
+                    }
+                    let word_to_insert = word[current_index];
+                    if let Some(node) = nodes.get_mut((word_to_insert - 97) as usize) {
+                        if let Some(node) = node {
+                            if current_index == word.len() - 1 {
+                                node.is_word = true
+                            } else {
+                                handle_insert(&mut node.nexts, current_index + 1, word);
+                            }
+                        } else {
+                            if current_index == word.len() - 1 {
+                                nodes[(word_to_insert - 97) as usize] =
+                                    Some(TrieNode::new(word_to_insert as char, true));
+                            } else {
+                                nodes[(word_to_insert - 97) as usize] =
+                                    Some(TrieNode::new(word_to_insert as char, false));
+                                handle_insert(
+                                    &mut nodes[(word_to_insert - 97) as usize]
+                                        .as_mut()
+                                        .unwrap()
+                                        .nexts,
+                                    current_index + 1,
+                                    word,
+                                );
+                            }
+                        }
+                    }
+                }
+                handle_insert(&mut self.nodes, 0, word);
+            }
+
+            fn search(&self, word: String) -> bool {
+                let word = word.as_bytes();
+                fn dfs_search(
+                    word: &[u8],
+                    current_idx: usize,
+                    nodes: &Vec<Option<TrieNode>>,
+                ) -> bool {
+                    if current_idx >= word.len() {
+                        return false;
+                    }
+                    let c_to_search = word[current_idx];
+                    let node_idx = (c_to_search - 97) as usize;
+                    if let Some(node) = nodes.get(node_idx) {
+                        if let Some(node) = node {
+                            if node.is_word && current_idx == word.len() - 1 {
+                                return true;
+                            } else {
+                                return dfs_search(word, current_idx + 1, &node.nexts);
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                return dfs_search(word, 0, &self.nodes);
+            }
+
+            fn starts_with(&self, prefix: String) -> bool {
+                let word = prefix.as_bytes();
+                fn dfs_search(
+                    word: &[u8],
+                    current_idx: usize,
+                    nodes: &Vec<Option<TrieNode>>,
+                ) -> bool {
+                    if current_idx >= word.len() {
+                        return false;
+                    }
+                    let c_to_search = word[current_idx];
+                    let node_idx = (c_to_search - 97) as usize;
+                    if let Some(node) = nodes.get(node_idx) {
+                        if let Some(node) = node {
+                            if current_idx == word.len() - 1 {
+                                return true;
+                            } else {
+                                return dfs_search(word, current_idx + 1, &node.nexts);
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                return dfs_search(word, 0, &self.nodes);
+            }
+        }
+    }
+
+    //209
+    pub fn min_sub_array_len(target: i32, nums: Vec<i32>) -> i32 {
+        let mut res = i32::MAX;
+        fn search(target: i32, nums: Vec<i32>, res: &mut i32, start: usize) {
+            let mut sum = 0;
+            for i in start..nums.len() {
+                sum += nums[i];
+                if sum >= target {
+                    if i - start < *res as usize {
+                        *res = (i - start + 1) as i32;
+                    }
+                    search(target, nums, res, start + 1);
+                    break;
+                }
+            }
+            if *res == i32::MAX {
+                *res = 0;
+            }
+        }
+        search(target, nums, &mut res, 0);
+        res
+    }
+    //210
+    pub fn find_order(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> Vec<i32> {
+        let num_courses = num_courses as usize;
+        let mut pre_req = vec![vec![]; num_courses];
+        for req in prerequisites {
+            pre_req[req[0] as usize].push(req[1]);
+        }
+        let mut visited = vec![Status::NotVisited; num_courses];
+
+        #[derive(PartialEq, Eq, Clone)]
+        enum Status {
+            NotVisited,
+            Processing,
+            Visited,
+        }
+
+        fn dfs(
+            pre_req: &Vec<Vec<i32>>,
+            visited: &mut Vec<Status>,
+            res: &mut Vec<i32>,
+            course_id: i32,
+        ) {
+            if visited[course_id as usize] == Status::Visited {
+                return;
+            }
+            let req = pre_req.get(course_id as usize).unwrap();
+            for ele in req {
+                if visited[*ele as usize] == Status::Visited {
+                    continue;
+                }
+                if visited[*ele as usize] == Status::Processing {
+                    res.clear();
+                    return;
+                }
+                visited[*ele as usize] = Status::Processing;
+                dfs(pre_req, visited, res, *ele);
+                if visited[*ele as usize] == Status::Processing {
+                    return;
+                }
+            }
+            visited[course_id as usize] = Status::Visited;
+            res.push(course_id);
+        }
+
+        let mut res = vec![];
+        for i in 0..num_courses {
+            if visited[i] == Status::Visited {
+                continue;
+            }
+            visited[i] = Status::Processing;
+            dfs(&pre_req, &mut visited, &mut res, i as i32);
+            if visited[i] == Status::Processing {
+                break;
+            }
+        }
+
+        res
     }
 }

@@ -62,9 +62,6 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    // A::find_repeated_dna_sequences("s".to_string());
-    let s = "A".to_string();
-    for i in 0..s.len() - 9{
-        println!("{:?}",i);
-    }
+let res = A::find_order(2, vec![vec![0,1]]);
+println!("{:?}",res);
 }
