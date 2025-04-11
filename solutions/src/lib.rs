@@ -181,6 +181,7 @@ impl ListNode {
     }
 }
 pub struct A {}
+#[allow(unused)]
 impl A {
     pub fn dfs_is_symmetric(
         left: Option<&Rc<RefCell<TreeNode>>>,
@@ -1975,6 +1976,145 @@ impl A {
             }
         }
 
+        res
+    }
+    //211
+    fn solution_211() {
+        struct WordDictionary {
+            nodes: HashMap<char, DicNode>,
+        }
+
+        struct DicNode {
+            is_world: bool,
+            nexts: HashMap<char, DicNode>,
+        }
+        impl DicNode {
+            fn new(is_world: bool) -> Self {
+                Self {
+                    is_world,
+                    nexts: HashMap::new(),
+                }
+            }
+        }
+
+        impl WordDictionary {
+            fn new() -> Self {
+                Self {
+                    nodes: HashMap::new(),
+                }
+            }
+
+            fn add_word(&mut self, word: String) {
+                let word = word.as_bytes();
+                fn dfs_insert(node: &mut HashMap<char, DicNode>, current_idx: usize, word: &[u8]) {
+                    let c_to_insert = word[current_idx] as char;
+                    let is_last_c = if current_idx == word.len() - 1 {
+                        true
+                    } else {
+                        false
+                    };
+
+                    if let Some(next_node) = node.get_mut(&c_to_insert) {
+                        if is_last_c {
+                            next_node.is_world = true;
+                            return;
+                        }
+                        dfs_insert(&mut next_node.nexts, current_idx + 1, word);
+                    } else {
+                        let mut dic_node = DicNode::new(if is_last_c { true } else { false });
+
+                        if !is_last_c {
+                            dfs_insert(&mut dic_node.nexts, current_idx + 1, word);
+                        }
+                        node.insert(c_to_insert, dic_node);
+                    }
+                }
+                dfs_insert(&mut self.nodes, 0, word);
+            }
+
+            fn search(&self, word: String) -> bool {
+                fn dfs_search(
+                    node: &HashMap<char, DicNode>,
+                    current_idx: usize,
+                    word: &[u8],
+                ) -> bool {
+                    let c_to_search = word[current_idx] as char;
+
+                    if current_idx == word.len() - 1 {
+                        if c_to_search == '.' {
+                            for (_, v) in node {
+                                if v.is_world {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        } else {
+                            if let Some(node) = node.get(&c_to_search) {
+                                if node.is_world {
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+
+                    if c_to_search == '.' {
+                        for (_, v) in node {
+                            let res = dfs_search(&v.nexts, current_idx + 1, word);
+                            if res {
+                                return true;
+                            }
+                        }
+                        return false;
+                    } else {
+                        if let Some(n) = node.get(&c_to_search) {
+                            return dfs_search(&n.nexts, current_idx + 1, word);
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+                dfs_search(&self.nodes, 0, word.as_bytes())
+            }
+        }
+    }
+
+    //216
+    pub fn combination_sum3(k: i32, n: i32) -> Vec<Vec<i32>> {
+        let mut res = vec![];
+        let mut temp = vec![];
+        fn search(
+            left: usize,
+            current: usize,
+            temp: &mut Vec<i32>,
+            res: &mut Vec<Vec<i32>>,
+            n: i32,
+        ) -> bool {
+            if temp.len() >= left {
+                let sum = temp.iter().sum::<i32>();
+                if sum == n {
+                    res.push(temp.clone());
+                    return false;
+                } else if sum < n {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            for i in current..=8 {
+                temp.push((i + 1) as i32);
+                let continue_ = search(left, i + 1, temp, res, n);
+                temp.pop().unwrap();
+                if !continue_ {
+                    return true;
+                }
+            }
+            return true;
+        }
+        search(k as usize, 0, &mut temp, &mut res, n);
         res
     }
 }
