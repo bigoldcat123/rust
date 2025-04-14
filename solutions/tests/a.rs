@@ -62,6 +62,7 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-let res = A::find_order(2, vec![vec![0,1]]);
-println!("{:?}",res);
+    for i in -10..0 {
+        println!("{:?}",i);
+    }
 }

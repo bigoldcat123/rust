@@ -2117,4 +2117,174 @@ impl A {
         search(k as usize, 0, &mut temp, &mut res, n);
         res
     }
+    //217
+    pub fn contains_duplicate(nums: Vec<i32>) -> bool {
+        let mut map = std::collections::HashMap::new();
+        for ele in nums.iter() {
+            if map.contains_key(ele) {
+                return false;
+            }
+            map.insert(*ele, 0);
+        }
+        return true;
+    }
+
+    //219
+    pub fn contains_nearby_duplicate(nums: Vec<i32>, k: i32) -> bool {
+        let mut map: std::collections::HashMap<i32, Vec<i32>> = std::collections::HashMap::new();
+
+        for (idx, v) in nums.iter().enumerate() {
+            if let Some(idxs) = map.get_mut(v) {
+                for i in idxs.iter() {
+                    if i32::abs_diff(idx as i32, *i) <= k as u32 {
+                        return true;
+                    }
+                }
+                idxs.push(idx as i32);
+            } else {
+                map.insert(*v, vec![idx as i32]);
+            }
+        }
+        return false;
+    }
+
+    //222
+    pub fn count_nodes(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs(root: Option<&Rc<RefCell<TreeNode>>>, res: &mut i32) {
+            if let Some(root) = root {
+                *res += 1;
+                dfs(root.borrow().left.as_ref(), res);
+                dfs(root.borrow().right.as_ref(), res);
+            }
+        }
+        let mut res = 0;
+
+        dfs(root.as_ref(), &mut res);
+        res
+    }
+
+    //223
+    pub fn compute_area(
+        mut ax1: i32,
+        mut ay1: i32,
+        mut ax2: i32,
+        mut ay2: i32,
+        mut bx1: i32,
+        mut by1: i32,
+        mut bx2: i32,
+        mut by2: i32,
+    ) -> i32 {
+        if ax1 > bx1 {
+            std::mem::swap(&mut ax1, &mut bx1);
+            std::mem::swap(&mut ay1, &mut by1);
+            std::mem::swap(&mut ax2, &mut bx2);
+            std::mem::swap(&mut ay2, &mut by2);
+        };
+        let ax = ax2 - ax1;
+        let ay = ay2 - ay1;
+        let bx = bx2 - bx1;
+        let by = by2 - by1;
+        if by1 > ay2 || by2 < ay1 || bx1 > ax2 {
+            //just return
+
+            return ax * ay + bx * by;
+        } else {
+            //some overlap
+            let max_up = ay2.max(by2);
+            let max_down = ay1.min(by1);
+            let max_y = max_up - max_down;
+            let mut res = 0;
+            let max = bx2.max(ax2);
+            for x in ax1..max {
+                if x < bx1 {
+                    res += ay;
+                    continue;
+                }
+                if x >= ax2 {
+                    res += by;
+                    continue;
+                }
+                res += max_y;
+            }
+            return res;
+        }
+    }
+
+    //225
+    fn solution_225() {
+        struct MyStack {
+            q1: VecDeque<i32>,
+            q2: VecDeque<i32>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl MyStack {
+            fn new() -> Self {
+                Self {
+                    q1: VecDeque::new(),
+                    q2: VecDeque::new(),
+                }
+            }
+
+            fn push(&mut self, x: i32) {
+                if self.q1.is_empty() {
+                    self.q2.push_back(x);
+                } else {
+                    self.q1.push_back(x);
+                }
+            }
+
+            fn pop(&mut self) -> i32 {
+                let full;
+                let empty;
+                if self.q1.is_empty() {
+                    full = &mut self.q2;
+                    empty = &mut self.q1;
+                } else {
+                    full = &mut self.q1;
+                    empty = &mut self.q2;
+                };
+
+                for _ in 0..full.len() - 1 {
+                    empty.push_back(full.pop_front().unwrap());
+                }
+                full.pop_front().unwrap()
+            }
+
+            fn top(&self) -> i32 {
+                if self.q1.is_empty() {
+                    *self.q2.iter().last().unwrap()
+                } else {
+                    *self.q1.iter().last().unwrap()
+                }
+            }
+
+            fn empty(&self) -> bool {
+                self.q1.is_empty() && self.q2.is_empty()
+            }
+        }
+    }
+
+    //226
+    pub fn invert_tree(mut root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+        if let Some(root) = root.as_mut() {
+            let left = Self::invert_tree(root.borrow_mut().left.take());
+            let right = Self::invert_tree(root.borrow_mut().right.take());
+            root.borrow_mut().left = right;
+            root.borrow_mut().right = left;
+        }
+        return root;
+    }
+
+    //227
+    // pub fn calculate(s: String) -> i32 {
+    //     enum Acton {
+    //         Multiply,
+    //         Divide
+    //     }
+
+    // }
 }
