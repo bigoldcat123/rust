@@ -2,7 +2,7 @@ use std::{
     cell::RefCell,
     cmp::Ordering,
     collections::{HashMap, LinkedList, VecDeque},
-    i32,
+    default, i32,
     ops::Index,
     rc::Rc,
 };
@@ -2279,12 +2279,301 @@ impl A {
         return root;
     }
 
-    //227
-    // pub fn calculate(s: String) -> i32 {
-    //     enum Acton {
-    //         Multiply,
-    //         Divide
-    //     }
+    // 227
+    pub fn calculate(s: String) -> i32 {
+        let mut back_s = String::new();
+        let mut opt_stack = vec![];
 
-    // }
+        for c in s.chars() {
+            let mut number = String::new();
+            if c.is_whitespace() {
+                continue;
+            }
+            if c.is_ascii_digit() {
+                back_s.push(c);
+            } else {
+                back_s.push(' ');
+                if opt_stack.is_empty() {
+                    opt_stack.push(c);
+                } else {
+                    let last = *opt_stack.last().unwrap();
+                    match c {
+                        '*' => {
+                            if last == '*' || last == '/' {
+                                while let Some(x) = opt_stack.pop() {
+                                    back_s.push(x);
+                                    if let Some(last) = opt_stack.last() {
+                                        if *last == '-' || *last == '+' {
+                                            break;
+                                        }
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            opt_stack.push(c);
+                        }
+                        '/' => {
+                            if last == '*' || last == '/' {
+                                while let Some(x) = opt_stack.pop() {
+                                    back_s.push(x);
+                                    if let Some(last) = opt_stack.last() {
+                                        if *last == '-' || *last == '+' {
+                                            break;
+                                        }
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            opt_stack.push(c);
+                        }
+                        '+' => {
+                            if last == '*' || last == '/' || last == '-' || last == '+' {
+                                while let Some(x) = opt_stack.pop() {
+                                    back_s.push(x);
+                                    if opt_stack.is_empty() {
+                                        break;
+                                    }
+                                }
+                            }
+                            opt_stack.push(c);
+                        }
+                        '-' => {
+                            if last == '*' || last == '/' || last == '+' || last == '-' {
+                                while let Some(x) = opt_stack.pop() {
+                                    back_s.push(x);
+                                    if opt_stack.is_empty() {
+                                        break;
+                                    }
+                                }
+                            }
+                            opt_stack.push(c);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        while let Some(x) = opt_stack.pop() {
+            back_s.push(x);
+        }
+        println!("{}", back_s);
+        let mut stack = vec![];
+
+        let mut number = String::new();
+        for ele in back_s.chars() {
+            println!("{:?}", stack);
+            if ele.is_ascii_digit() {
+                number.push(ele);
+            } else {
+                if !number.is_empty() {
+                    stack.push(number.parse::<i32>().unwrap());
+                    number.clear();
+                }
+                if !ele.is_whitespace() {
+                    match ele {
+                        '+' => {
+                            let right = stack.pop().unwrap();
+                            let left = stack.pop().unwrap();
+                            stack.push(left + right);
+                        }
+                        '-' => {
+                            let right = stack.pop().unwrap();
+                            let left = stack.pop().unwrap();
+                            stack.push(left - right);
+                        }
+                        '*' => {
+                            let right = stack.pop().unwrap();
+                            let left = stack.pop().unwrap();
+                            stack.push(left * right);
+                        }
+                        '/' => {
+                            let right = stack.pop().unwrap();
+                            let left = stack.pop().unwrap();
+                            stack.push(left / right);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        if !number.is_empty() {
+            stack.push(number.parse::<i32>().unwrap());
+            number.clear();
+        }
+        *stack.last().unwrap()
+    }
+    //228
+    pub fn summary_ranges(nums: Vec<i32>) -> Vec<String> {
+        let mut start = 0;
+        let mut res = vec![];
+        for i in 0..nums.len() - 1 {
+            if nums[i] + 1 != nums[i + 1] {
+                if i == start {
+                    res.push(format!("{}", nums[start]));
+                } else {
+                    res.push(format!("{}->{}", nums[start], nums[i]));
+                }
+                start = (i + 1);
+            }
+        }
+        if nums.len() - 1 == start {
+            res.push(format!("{}", nums[start]));
+        } else {
+            res.push(format!("{}->{}", nums[start], *nums.last().unwrap()));
+        }
+        res
+    }
+    //229
+    pub fn majority_element(nums: Vec<i32>) -> Vec<i32> {
+        let times = (nums.len() / 3) as i32;
+        let mut map = std::collections::HashMap::new();
+        let mut res = vec![];
+        for ele in nums {
+            if let Some(e) = map.get_mut(&ele) {
+                *e += 1;
+                if *e == times + 1 {
+                    res.push(*e);
+                }
+            } else {
+                map.insert(ele, 1_i32);
+            }
+        }
+        res
+    }
+    //230
+    pub fn kth_smallest(root: Option<Rc<RefCell<TreeNode>>>, k: i32) -> i32 {
+        let mut res = vec![];
+        fn dfs_search(root: Option<&Rc<RefCell<TreeNode>>>, k: usize, res: &mut Vec<i32>) {
+            if let Some(root) = root {
+                dfs_search(root.borrow().left.as_ref(), k, res);
+                res.push(root.borrow().val);
+                if res.len() == k {
+                    return;
+                }
+                dfs_search(root.borrow().right.as_ref(), k, res);
+            }
+        }
+        dfs_search(root.as_ref(), k as usize, &mut res);
+        *res.last().unwrap()
+    }
+    //231
+    pub fn is_power_of_two(mut n: i32) -> bool {
+        loop {
+            if n == 1 {
+                return true;
+            }
+            if n % 2 != 0 {
+                return false;
+            }
+            n /= 2;
+        }
+    }
+    //232
+    fn solution_232() {
+        struct MyQueue {
+            stack1: Vec<i32>,
+            stack2: Vec<i32>,
+        }
+        impl MyQueue {
+            fn new() -> Self {
+                Self {
+                    stack1: vec![],
+                    stack2: vec![],
+                }
+            }
+
+            fn push(&mut self, x: i32) {
+                let full;
+                if self.stack1.is_empty() {
+                    full = &mut self.stack2
+                } else {
+                    full = &mut self.stack1;
+                }
+                full.push(x);
+            }
+
+            fn pop(&mut self) -> i32 {
+                let empty;
+                let full;
+                if self.stack1.is_empty() {
+                    empty = &mut self.stack1;
+                    full = &mut self.stack2
+                } else {
+                    empty = &mut self.stack2;
+                    full = &mut self.stack1;
+                }
+                while let Some(x) = full.pop() {
+                    empty.push(x);
+                }
+                let res = empty.pop().unwrap();
+                while let Some(x) = empty.pop() {
+                    full.push(x);
+                }
+                res
+            }
+
+            fn peek(&mut self) -> i32 {
+                let empty;
+                let full;
+                if self.stack1.is_empty() {
+                    empty = &mut self.stack1;
+                    full = &mut self.stack2
+                } else {
+                    empty = &mut self.stack2;
+                    full = &mut self.stack1;
+                }
+                while let Some(x) = full.pop() {
+                    empty.push(x);
+                }
+                let res = *empty.last().unwrap();
+                while let Some(x) = empty.pop() {
+                    full.push(x);
+                }
+                res
+            }
+
+            fn empty(&self) -> bool {
+                self.stack1.is_empty() && self.stack2.is_empty()
+            }
+        }
+    }
+    //233
+    pub fn count_digit_one(n: i32) -> i32 {
+        if n == 0 {
+            return 0;
+        }
+        let mut n = n as u128;
+        let mut dp = vec![vec![1; 10]; 2];
+        for i in 1..10 {
+            dp[0][i] = 9 * dp[1][i - 1] + 10_u128.pow(i as u32);
+            dp[1][i] = dp[0][i] + dp[1][i - 1];
+        }
+        let mut res = 0;
+        fn cal(n: i32, dp: &Vec<u128>, res: &mut i32) {
+            if n < 10 {
+                if n >= 1 {
+                    *res += 1;
+                }
+            }
+            let mut i = 0;
+            let mut step = 10;
+            while step <= n {
+                step *= 10;
+                i += 1;
+            }
+            step /= 10;
+            i -= 1;
+            *res += dp[i] as i32;
+            if n / step >= 2 {
+                *res += step;
+            } else {
+                *res = *res + n - step + 1
+            }
+            cal(n % step, dp, res);
+        }
+        cal(n as i32, &dp[1], &mut res);
+        res as i32
+    }
 }

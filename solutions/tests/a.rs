@@ -40,7 +40,7 @@ fn elee() {
 fn convert_to_title() {
     A::largest_number(vec![432, 43243]);
 
-    let mut e = vec![34323,3432];
+    let mut e = vec![34323, 3432];
     e.sort_by(|a, b| {
         let mut e = String::new();
         e.push_str(&a.to_string());
@@ -56,13 +56,10 @@ fn convert_to_title() {
             Ordering::Greater
         }
     });
-    println!("e{:?}",e);
+    println!("e{:?}", e);
 }
-
 
 #[test]
 fn sort() {
-    for i in -10..0 {
-        println!("{:?}",i);
-    }
+    A::count_digit_one(2);
 }
