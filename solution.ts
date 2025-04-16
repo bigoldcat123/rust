@@ -1,99 +1,108 @@
-
 class _Node {
-    val: number
-    next: _Node | null
-    random: _Node | null
+  val: number;
+  next: _Node | null;
+  random: _Node | null;
 
-    constructor(val?: number, next?: _Node, random?: _Node) {
-        this.val = (val === undefined ? 0 : val)
-        this.next = (next === undefined ? null : next)
-        this.random = (random === undefined ? null : random)
-    }
+  constructor(val?: number, next?: _Node, random?: _Node) {
+    this.val = val === undefined ? 0 : val;
+    this.next = next === undefined ? null : next;
+    this.random = random === undefined ? null : random;
+  }
 }
-
 
 let map = new Map();
 
 function copyRandomList(head: _Node | null): _Node | null {
-    if (head == null) {
-        return null
+  if (head == null) {
+    return null;
+  } else {
+    let newNode = new _Node(head.val);
+    map.set(head, newNode);
+    let next = head.next;
+    let random = head.random;
+    if (map.get(newNode) != null) {
+      newNode.next = map.get(newNode);
     } else {
-        let newNode = new _Node(head.val);
-        map.set(head, newNode);
-        let next = head.next;
-        let random = head.random;
-        if (map.get(newNode) != null) {
-            newNode.next = map.get(newNode);
-        } else {
-            newNode.next = copyRandomList(next);
-        }
-        if (map.get(random) != null) {
-            newNode.random = map.get(random)
-        } else {
-            newNode.random = copyRandomList(random);
-        }
-        return newNode
+      newNode.next = copyRandomList(next);
     }
-
-};
-
-
+    if (map.get(random) != null) {
+      newNode.random = map.get(random);
+    } else {
+      newNode.random = copyRandomList(random);
+    }
+    return newNode;
+  }
+}
 
 class ListNode {
-    val: number
-    next: ListNode | null
-    constructor(val?: number, next?: ListNode | null) {
-        this.val = (val === undefined ? 0 : val)
-        this.next = (next === undefined ? null : next)
-    }
+  val: number;
+  next: ListNode | null;
+  constructor(val?: number, next?: ListNode | null) {
+    this.val = val === undefined ? 0 : val;
+    this.next = next === undefined ? null : next;
+  }
 }
 
 function hasCycle(head: ListNode | null): boolean {
-    let map = new Map();
-    let res = false
-    while (head != null) {
-        if (map.has(head)) {
-            return true
-        }
-        map.set(head, 1)
-        head = head.next
+  let map = new Map();
+  let res = false;
+  while (head != null) {
+    if (map.has(head)) {
+      return true;
     }
-    return res
-};
+    map.set(head, 1);
+    head = head.next;
+  }
+  return res;
+}
 //142
 function detectCycle(head: ListNode | null): ListNode | null {
-    let map = new Map();
-    let res = null
+  let map = new Map();
+  let res = null;
 
-    while (head != null) {
-        if (map.has(head)) {
-            return head
-        }
-        map.set(head, 1)
-        head = head.next
+  while (head != null) {
+    if (map.has(head)) {
+      return head;
     }
-    return res
-};
-
-class A {
-
+    map.set(head, 1);
+    head = head.next;
+  }
+  return res;
 }
+
+class A {}
 const a = new A();
 const b = new A();
 console.log(a == b);
 
-
-function getIntersectionNode(headA: ListNode | null, headB: ListNode | null): ListNode | null {
-    const map = new Map();
-    while (headA != null) {
-        map.set(headA, 0)
-        headA = headA.next
+function getIntersectionNode(
+  headA: ListNode | null,
+  headB: ListNode | null,
+): ListNode | null {
+  const map = new Map();
+  while (headA != null) {
+    map.set(headA, 0);
+    headA = headA.next;
+  }
+  while (headB != null) {
+    if (map.has(headB)) {
+      return headB;
     }
-    while (headB != null) {
-        if (map.has(headB)) {
-            return headB
-        }
-        headB = headB.next
+    headB = headB.next;
+  }
+  return null;
+}
+//237
+function deleteNode(node: ListNode | null): void {
+  let next = node?.next;
+  let p = node;
+  while (next != null) {
+    p!.val = next.val;
+    if (next.next == null) {
+      p!.next = null;
+      break;
     }
-    return null
-};
+    p = p!.next;
+    next = next.next;
+  }
+}

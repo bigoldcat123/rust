@@ -2576,4 +2576,139 @@ impl A {
         cal(n as i32, &dp[1], &mut res);
         res as i32
     }
+    // 234
+    pub fn is_palindrome_list(head: Option<Box<ListNode>>) -> bool {
+        let mut nodes = vec![];
+        fn dfs_collect(head: Option<&Box<ListNode>>, nodes: &mut Vec<i32>) {
+            if let Some(h) = head {
+                nodes.push(h.val);
+                dfs_collect(h.next.as_ref(), nodes);
+            }
+        }
+        dfs_collect(head.as_ref(), &mut nodes);
+        let mut start = 0 as i32;
+        let mut end = (nodes.len() - 1) as i32;
+        while start <= end {
+            if nodes[start as usize] != nodes[end as usize] {
+                return false;
+            }
+            start += 1;
+            end -= 1;
+        }
+        return true;
+    }
+    //235
+    pub fn lowest_common_ancestor(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        p: Option<Rc<RefCell<TreeNode>>>,
+        q: Option<Rc<RefCell<TreeNode>>>,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        let mut res_a = vec![];
+        let mut res_b = vec![];
+        fn search(
+            root: Option<&Rc<RefCell<TreeNode>>>,
+            p: Rc<RefCell<TreeNode>>,
+            q: Rc<RefCell<TreeNode>>,
+            res_a: &mut Vec<Rc<RefCell<TreeNode>>>,
+            res_b: &mut Vec<Rc<RefCell<TreeNode>>>,
+        ) -> (bool, bool) {
+            if let Some(r) = root {
+                let (x1, y1) = search(
+                    r.borrow().left.as_ref(),
+                    Rc::clone(&p),
+                    Rc::clone(&q),
+                    res_a,
+                    res_b,
+                );
+                let (x2, y2) = search(
+                    r.borrow().right.as_ref(),
+                    Rc::clone(&p),
+                    Rc::clone(&q),
+                    res_a,
+                    res_b,
+                );
+                let self_is_parent_x = r.borrow().val == p.borrow().val;
+                let self_is_parent_y = r.borrow().val == q.borrow().val;
+                let x = x1 || x2 || self_is_parent_x;
+                let y = y1 || y2 || self_is_parent_y;
+                if x {
+                    res_a.push(Rc::clone(r));
+                }
+                if y {
+                    res_b.push(Rc::clone(r));
+                }
+                (x, y)
+            } else {
+                return (false, false);
+            }
+        }
+        search(
+            root.as_ref(),
+            p.unwrap(),
+            q.unwrap(),
+            &mut res_a,
+            &mut res_b,
+        );
+
+        // println!(
+        //     "{:?}",
+        //     res_a
+        //         .iter()
+        //         .map(|x| { x.borrow().val })
+        //         .collect::<Vec<i32>>()
+        // );
+        // println!(
+        //     "{:?}",
+        //     res_b
+        //         .iter()
+        //         .map(|x| { x.borrow().val })
+        //         .collect::<Vec<i32>>()
+        // );
+        res_a.reverse();
+        res_b.reverse();
+        let len = res_a.len().min(res_b.len());
+        for i in 0..len {
+            if res_a[i].borrow().val != res_b[i].borrow().val {
+                return Some(Rc::clone(&res_a[i - 1]));
+            }
+        }
+        Some(Rc::clone(&res_a[len - 1]))
+    }
+    //238
+    pub fn product_except_self(nums: Vec<i32>) -> Vec<i32> {
+        let mut res = vec![0; nums.len()];
+        let mut right = 1;
+        let mut left = 1;
+        for i in 1..nums.len() {
+            right *= nums[i];
+        }
+        res[0] = right;
+        for i in 1..nums.len() {
+            left *= nums[i - 1];
+            if i == nums.len() - 1 {
+                right = 1;
+            } else {
+                if nums[i] != 0 {
+                    right /= nums[i];
+                } else {
+                    right = 1;
+                    for i in i + 1..nums.len() {
+                        right *= nums[i];
+                    }
+                }
+            }
+            res[i] = left * right;
+        }
+        res
+    }
+    //240
+    pub fn search_matrix(matrix: Vec<Vec<i32>>, target: i32) -> bool {
+        matrix
+            .iter()
+            .any(|line| line.binary_search(&target).is_ok())
+    }
+    //241
+    pub fn diff_ways_to_compute(expression: String) -> Vec<i32> {
+        vec![]
+    }
 }
