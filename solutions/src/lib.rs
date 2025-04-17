@@ -2707,8 +2707,209 @@ impl A {
             .iter()
             .any(|line| line.binary_search(&target).is_ok())
     }
-    //241
+    //241 bad!!!!!!!!!!!!!!
     pub fn diff_ways_to_compute(expression: String) -> Vec<i32> {
         vec![]
+    }
+
+    //242
+    pub fn is_anagram(s: String, t: String) -> bool {
+        if s.len() != t.len() {
+            false
+        } else {
+            let mut map1 = std::collections::HashMap::new();
+            let mut map2 = std::collections::HashMap::new();
+            for c in s.chars() {
+                if let Some(x) = map1.get_mut(&c) {
+                    *x += 1;
+                } else {
+                    map1.insert(c, 0);
+                }
+            }
+            for c in t.chars() {
+                if let Some(x) = map2.get_mut(&c) {
+                    *x += 1;
+                } else {
+                    map2.insert(c, 0);
+                }
+            }
+
+            map1 == map2
+        }
+    }
+    //257
+    pub fn binary_tree_paths(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<String> {
+        let mut res = vec![];
+
+        let mut temp = vec![];
+
+        fn dfs_search(
+            root: Option<&Rc<RefCell<TreeNode>>>,
+            temp: &mut Vec<String>,
+            res: &mut Vec<Vec<String>>,
+        ) -> bool {
+            if let Some(root) = root {
+                temp.push(root.borrow().val.to_string());
+                let letf = dfs_search(root.borrow().left.as_ref(), temp, res);
+                let right = dfs_search(root.borrow().right.as_ref(), temp, res);
+
+                if !letf && !right {
+                    if let Some(last) = res.last() {
+                        if *last != *temp {
+                            res.push(temp.clone());
+                        }
+                    } else {
+                        res.push(temp.clone());
+                    }
+                }
+                temp.pop().unwrap();
+                true
+            } else {
+                false
+            }
+        }
+        dfs_search(root.as_ref(), &mut temp, &mut res);
+
+        res.iter().map(|x| x.join("->")).collect::<Vec<String>>()
+    }
+    //258
+    pub fn add_digits(mut num: i32) -> i32 {
+        let mut temp = 0;
+        loop {
+            while num != 0 {
+                temp += num % 10;
+                num /= 10;
+            }
+            num = temp;
+            if temp < 10 {
+                break;
+            }
+            temp = 0;
+        }
+        num
+    }
+    //260
+    pub fn single_number2(nums: Vec<i32>) -> Vec<i32> {
+        let mut map = std::collections::HashMap::new();
+        for num in nums {
+            if map.contains_key(&num) {
+                map.remove(&num).unwrap();
+            } else {
+                map.insert(num, 0);
+            }
+        }
+        map.iter().map(|(k, _)| *k).collect::<Vec<i32>>()
+    }
+    //263
+    pub fn is_ugly(n: i32) -> bool {
+        fn find(n: i32, factors: &Vec<i32>) -> bool {
+            if n == 1 {
+                return true;
+            }
+            if n == 0 {
+                return false;
+            }
+            for i in factors.iter() {
+                if n % *i == 0 {
+                    if find(n / *i, factors) {
+                        return true;
+                    }
+                }
+            }
+            false
+        }
+        let factors = vec![2, 3, 5];
+
+        return find(n, &factors);
+    }
+    //264
+    pub fn nth_ugly_number(n: i32) -> i32 {
+        let factors = vec![2, 3, 5];
+        let mut set = std::collections::HashSet::new();
+        let mut heap = std::collections::BinaryHeap::new();
+        set.insert(1);
+        heap.push(std::cmp::Reverse(1));
+
+        for i in 0..n - 1 {
+            let next = heap.pop().unwrap().0 as usize;
+            for f in factors.iter() {
+                if set.insert(*f * next) {
+                    heap.push(std::cmp::Reverse(*f * next));
+                }
+            }
+        }
+        heap.pop().unwrap().0 as i32
+    }
+    //268
+    pub fn missing_number(nums: Vec<i32>) -> i32 {
+        let mut set = std::collections::HashSet::with_capacity(nums.len() + 1);
+        for i in 0..=nums.len() {
+            set.insert(i as i32);
+        }
+        for ele in nums {
+            set.remove(&ele);
+        }
+        let e = set.iter().next().unwrap();
+        *e
+    }
+
+    //274
+    pub fn h_index(mut citations: Vec<i32>) -> i32 {
+        // citations.sort_by(|a, b| b.cmp(a));
+        for (idx, value) in citations.iter().rev().enumerate() {
+            if idx + 1 > *value as usize {
+                return (idx + 1) as i32;
+            }
+        }
+        citations.len() as i32
+    }
+
+    //278
+    pub fn first_bad_version(&self, n: i32) -> i32 {
+        0
+        // let left = 1 as usize;
+        // let right = n as usize;
+        // while left < right {
+        //     let mid = (left + right) / 2;
+        //     if self.isBadVersion(mid as i32) {
+        //         right = mid - 1;
+        //     } else {
+        //         left = mid + 1;
+        //     }
+        //     if right - left <= 5 {
+        //         for ii in left..=right {
+        //             if self.isBadVersion(ii as i32) {
+        //                 return ii as i32;
+        //             }
+        //         }
+        //     }
+        // }
+        // 1
+        // // T T T F F F
+        // // 1 2 3 4 5 6
+        // // 1 + 6 / 2 = 3
+        // // 3 + 6 / 2 = 4
+    }
+    //279
+    pub fn num_squares(n: i32) -> i32 {
+        let mut end = n.isqrt();
+        let mut res = 0;
+        let mut x = 0;
+        loop {
+            res += 1;
+            if x + end * end > x {
+                end -= 1;
+                res -= 1;
+            } else {
+                x += end * end;
+            }
+            if x == n {
+                break;
+            }
+        }
+        // 12 % 1 == 0  12
+        // 12 % 4 == 0  3
+        // 12 % 9 == 3  1  3 % 1 == 0 1 + 3 = 4
+        res
     }
 }

@@ -61,9 +61,10 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    let a = -1;
     //4294967295
     //18446744073709551615
     //340282366920938463463374607431768211455
-    println!("{}", a as u32)
+    let a = 10 as i32;
+    let e = a.isqrt();
+    println!("{}", e);
 }
