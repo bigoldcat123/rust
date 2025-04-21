@@ -70,7 +70,7 @@ function detectCycle(head: ListNode | null): ListNode | null {
   return res;
 }
 
-class A {}
+class A { }
 const a = new A();
 const b = new A();
 console.log(a == b);
@@ -106,3 +106,51 @@ function deleteNode(node: ListNode | null): void {
     next = next.next;
   }
 }
+
+
+/**
+ * // This is the Iterator's API interface.
+ * // You should not implement it, or speculate about its implementation
+ * class Iterator {
+ *      hasNext(): boolean {}
+ *
+ *      next(): number {}
+ * }
+ */
+
+
+class Iterator {
+  hasNext(): boolean {
+    return true;
+  }
+
+  next(): number { 
+    return 0;
+  }
+}
+class PeekingIterator {
+  public itr: Iterator<any>
+  constructor(iterator: Iterator<any>) {
+    this.itr
+  }
+
+  peek(): number {
+
+  }
+
+  next(): number {
+
+  }
+
+  hasNext(): boolean {
+
+  }
+}
+
+/**
+ * Your PeekingIterator object will be instantiated and called as such:
+ * var obj = new PeekingIterator(iterator)
+ * var param_1 = obj.peek()
+ * var param_2 = obj.next()
+ * var param_3 = obj.hasNext()
+ */

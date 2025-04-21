@@ -2892,24 +2892,47 @@ impl A {
     }
     //279
     pub fn num_squares(n: i32) -> i32 {
-        let mut end = n.isqrt();
-        let mut res = 0;
-        let mut x = 0;
-        loop {
-            res += 1;
-            if x + end * end > x {
-                end -= 1;
-                res -= 1;
-            } else {
-                x += end * end;
+        let mut res = i32::MAX;
+        for i in 1..res {
+            let x = i * i;
+            if x > res {
+                break;
             }
-            if x == n {
+            if n % x == 0 {
+                res = res.min(n / x);
+            } else {
+                let mut temp = n / x;
+                let left = n % x;
+                let l = Self::num_squares(left);
+                temp += l;
+                res = res.min(temp);
+            }
+        }
+        res
+    }
+    //283
+    pub fn move_zeroes(nums: &mut Vec<i32>) {
+        let mut slow_ptr = 0;
+        let mut fast_ptr = 0;
+        while slow_ptr < nums.len() && nums[slow_ptr] != 0 {
+            slow_ptr += 1;
+        }
+        if slow_ptr >= nums.len() - 1 {
+            return;
+        }
+        fast_ptr = slow_ptr + 1;
+
+        loop {
+            if fast_ptr != 0 {
+                nums[slow_ptr] = nums[fast_ptr];
+                nums[fast_ptr] = 0;
+                slow_ptr += 1;
+            }
+            fast_ptr += 1;
+            if fast_ptr == nums.len() {
                 break;
             }
         }
-        // 12 % 1 == 0  12
-        // 12 % 4 == 0  3
-        // 12 % 9 == 3  1  3 % 1 == 0 1 + 3 = 4
-        res
+        
     }
 }

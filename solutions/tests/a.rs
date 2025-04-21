@@ -61,10 +61,5 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    //4294967295
-    //18446744073709551615
-    //340282366920938463463374607431768211455
-    let a = 10 as i32;
-    let e = a.isqrt();
-    println!("{}", e);
+    A::num_squares(13);
 }
