@@ -2933,6 +2933,129 @@ impl A {
                 break;
             }
         }
-        
+    }
+
+    //287
+    pub fn find_duplicate(nums: Vec<i32>) -> i32 {
+        let mut fast = 0;
+        let mut slow = 0;
+        loop {
+            fast = nums[nums[fast] as usize] as usize;
+            slow = nums[slow] as usize;
+            if fast == slow {
+                break;
+            }
+        }
+        slow = 0;
+        while slow != fast {
+            slow = nums[slow] as usize;
+            fast = nums[fast] as usize;
+        }
+        fast as i32
+    }
+    //288
+    pub fn game_of_life(board: &mut Vec<Vec<i32>>) {
+        for i in 0..board.len() {
+            for j in 0..board[0].len() {
+                let mut live_number = 0;
+                // up
+                if i >= 1 {
+                    let up = board[i - 1][j];
+                    if up == 1 || up == 2 || up == 3 {
+                        live_number += 1;
+                    }
+                }
+                //down
+                if i < board.len() - 1 {
+                    let down = board[i + 1][j];
+                    if down == 1 || down == 2 || down == 3 {
+                        live_number += 1;
+                    }
+                }
+                //left
+                if j >= 1 {
+                    let left = board[i][j - 1];
+                    if left == 1 || left == 2 || left == 3 {
+                        live_number += 1;
+                    }
+                }
+                //right
+                if j < board[0].len() - 1 {
+                    let right = board[i][j + 1];
+                    if right == 1 || right == 2 || right == 3 {
+                        live_number += 1;
+                    }
+                }
+                //up-left
+                if i >= 1 && j >= 1 {
+                    let up_left = board[i - 1][j - 1];
+                    if up_left == 1 || up_left == 2 || up_left == 3 {
+                        live_number += 1;
+                    }
+                }
+                //up-right
+                if i >= 1 && j < board[0].len() - 1 {
+                    let up_right = board[i - 1][j + 1];
+                    if up_right == 1 || up_right == 2 || up_right == 3 {
+                        live_number += 1;
+                    }
+                }
+                //down-left
+                if i < board.len() - 1 && j >= 1 {
+                    let down_left = board[i + 1][j - 1];
+                    if down_left == 1 || down_left == 2 || down_left == 3 {
+                        live_number += 1;
+                    }
+                }
+                //down-right
+                if i < board.len() - 1 && j < board[0].len() - 1 {
+                    let down_right = board[i + 1][j + 1];
+                    if down_right == 1 || down_right == 2 || down_right == 3 {
+                        live_number += 1;
+                    }
+                }
+                let current = board[i][j];
+                if current == 1 {
+                    match live_number {
+                        l if l < 2 => {
+                            //die from live to die
+                            board[i][j] = 2;
+                        }
+                        l if l == 2 || l == 3 => {
+                            //alive from live to live
+                            board[i][j] = 3;
+                        }
+                        l if l > 3 => {
+                            // dir from live to die
+                            board[i][j] = 2;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                } else {
+                    match live_number {
+                        l if l == 3 => {
+                            //alive from die to live
+                            board[i][j] = 4;
+                        }
+                        _ => {
+                            //die from die to die
+                            board[i][j] = 5;
+                            // unreachable!()
+                        }
+                    }
+                }
+            }
+        }
+        for i in 0..board.len() {
+            for j in 0..board[0].len() {
+                if board[i][j] == 4 || board[i][j] == 3 {
+                    board[i][j] = 1;
+                }else {
+                    board[i][j] = 0;
+                }
+            }
+        }
     }
 }

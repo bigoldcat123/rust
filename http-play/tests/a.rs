@@ -11,12 +11,12 @@ fn test_use() {
     form_data_adaptor.write_field("hello2", "2fucky????????ou");
     form_data_adaptor.write_path(
         "fuckyou",
-        PathBuf::from_str("/Users/dadigua/Desktop/code/http-play/src/lib.rs").unwrap(),
+        PathBuf::from_str("/Users/dadigua/Desktop/keyboard-shortcuts-macos 2.pdf").unwrap(),
         "image/png",
     );
     form_data_adaptor.write_path(
         "fuckyou2",
-        PathBuf::from_str("/Users/dadigua/Desktop/code/http-play/a.html").unwrap(),
+        PathBuf::from_str("/Users/dadigua/Desktop/DCIM/2025-20/_MG_1953.CR3").unwrap(),
         "image/png",
     );
     form_data_adaptor.write_field("hello3", "world!");
