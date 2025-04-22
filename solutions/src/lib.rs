@@ -7,6 +7,8 @@ use std::{
     rc::Rc,
 };
 
+use log::info;
+
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
     let mut digits = digits;
     let mut x;
@@ -3118,5 +3120,9 @@ impl A {
         }
 
         format!("{}A{}B", bulls.len(), cows)
+    }
+    //play
+    pub fn log_play() {
+        info!("hello")
     }
 }

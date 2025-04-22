@@ -61,7 +61,5 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    let a = vec![1,2,3];
-    let a = 2 ^ 2^8^7^8^0;
-    println!("{:?}",a);
+    A::log_play();
 }
