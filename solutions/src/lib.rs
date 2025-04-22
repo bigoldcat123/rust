@@ -3052,10 +3052,71 @@ impl A {
             for j in 0..board[0].len() {
                 if board[i][j] == 4 || board[i][j] == 3 {
                     board[i][j] = 1;
-                }else {
+                } else {
                     board[i][j] = 0;
                 }
             }
         }
+    }
+    //290
+    pub fn word_pattern(pattern: String, s: String) -> bool {
+        let mut map_c_w = std::collections::HashMap::new();
+        let mut map_w_c = std::collections::HashMap::new();
+        let chars = pattern.as_bytes();
+        let words = s.split_whitespace().collect::<Vec<&str>>();
+        if chars.len() != words.len() {
+            false
+        } else {
+            for i in 0..chars.len() {
+                if let Some(x) = map_c_w.insert(chars[i], words[i]) {
+                    if x != words[i] {
+                        return false;
+                    }
+                }
+                if let Some(x) = map_w_c.insert(words[i], chars[i]) {
+                    if x != chars[i] {
+                        return false;
+                    }
+                }
+            }
+            true
+        }
+    }
+    //299
+    pub fn get_hint(secret: String, guess: String) -> String {
+        let secret = secret.as_bytes();
+        let guess = guess.as_bytes();
+        let len = secret.len();
+        let mut bulls = std::collections::HashSet::new();
+        let mut left_sec = std::collections::HashMap::new();
+        let mut left_gus = std::collections::HashMap::new();
+        for i in 0..len {
+            if secret[i] == guess[i] {
+                bulls.insert(i);
+            }
+        }
+
+        for i in 0..len {
+            if !bulls.contains(&i) {
+                if let Some(x) = left_sec.get_mut(&secret[i]) {
+                    *x += 1;
+                } else {
+                    left_sec.insert(secret[i], 1);
+                }
+                if let Some(x) = left_gus.get_mut(&guess[i]) {
+                    *x += 1;
+                } else {
+                    left_gus.insert(guess[i], 1);
+                }
+            }
+        }
+        let mut cows = 0;
+        for (k, v) in left_gus.iter() {
+            if let Some(x) = left_sec.get(k) {
+                cows += *v.min(x);
+            }
+        }
+
+        format!("{}A{}B", bulls.len(), cows)
     }
 }
