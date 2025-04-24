@@ -1,3 +1,4 @@
+use core::str;
 use std::{
     cell::RefCell,
     cmp::Ordering,
@@ -3124,5 +3125,152 @@ impl A {
     //play
     pub fn log_play() {
         info!("hello")
+    }
+
+    //303
+    fn solution_303() {
+        struct NumArray {
+            nums: Vec<i32>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl NumArray {
+            fn new(nums: Vec<i32>) -> Self {
+                Self { nums }
+            }
+
+            fn sum_range(&self, left: i32, right: i32) -> i32 {
+                let left = left as usize;
+                let right = right as usize;
+                let e = &self.nums[left..=right].iter().sum::<i32>();
+                *e
+            }
+        }
+    }
+    fn solution_304() {
+        struct NumMatrix {
+            dp: Vec<Vec<i32>>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl NumMatrix {
+            fn new(matrix: Vec<Vec<i32>>) -> Self {
+                let mut dp = vec![];
+                for line in matrix {
+                    let mut l = vec![0];
+                    for ele in line {
+                        l.push(l.last().unwrap() + ele);
+                    }
+                    dp.push(l);
+                }
+                Self { dp }
+            }
+
+            fn sum_region(&self, row1: i32, col1: i32, row2: i32, col2: i32) -> i32 {
+                let row1 = row1 as usize;
+                let col1 = col1 as usize;
+                let row2 = row2 as usize;
+                let col2 = col2 as usize;
+                let mut res = 0;
+                for i in row1..=row2 {
+                    res += self.dp[i][col2 + 1] - self.dp[i][col1 + 1];
+                }
+                res
+            }
+        }
+    }
+    //306
+    pub fn is_additive_number(num: String) -> bool {
+        fn is_z_started(n: &str) -> bool {
+            n.starts_with('0') && n.len() != 1
+        }
+        fn search(
+            first: (usize, usize),
+            sec: (usize, usize),
+            max: usize,
+            num: &str,
+            count: i32,
+        ) -> bool {
+            if sec.1 == num.len() - 1 {
+                return count >= 2;
+            }
+
+            let l = &num[first.0..=first.1];
+            let r = &num[sec.0..=sec.1];
+            if is_z_started(l) {
+                return false;
+            }
+            if is_z_started(r) {
+                return false;
+            }
+            let l: u128 = l.parse().unwrap();
+            let r: u128 = r.parse().unwrap();
+            for i in 0..2 {
+                let from = sec.1 + 1;
+                let to = from + max + i;
+                if to >= num.len() {
+                    return false;
+                }
+                let evl = &num[from..=to];
+                if evl.starts_with('0') && evl.len() != 1 {
+                    continue;
+                }
+                let evl = evl.parse::<u128>().unwrap();
+                if l + r == evl {
+                    return search(sec, (from, to), to - from, num, count + 1);
+                }
+            }
+            false
+        }
+        for i in 0..num.len() {
+            for j in i..num.len() {
+                let from = (0 as usize, i);
+                let to = (i + 1, j + 1);
+                let max = usize::max(from.1 - from.0, to.1 - to.0);
+                if search(from, to, max, &num, 1) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    //307
+    fn solution_307() {
+        struct NumArray {
+            nums: Vec<i32>,
+            dp: Vec<i32>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl NumArray {
+            fn new(nums: Vec<i32>) -> Self {
+                let mut dp = vec![0];
+                for i in nums.iter() {
+                    dp.push(dp.last().unwrap() + *i);
+                }
+                Self { nums, dp }
+            }
+
+            fn update(&mut self, index: i32, val: i32) {
+                let dif = val - self.nums[index as usize];
+                self.nums[index as usize] = val;
+                for i in (index + 1) as usize..self.dp.len() {
+                    *self.dp.get_mut(i).unwrap() += dif;
+                }
+            }
+
+            fn sum_range(&self, left: i32, right: i32) -> i32 {
+                self.dp[(right + 1) as usize] - self.dp[(left - 1 )as usize]
+            }
+        }
     }
 }
