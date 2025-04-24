@@ -2,7 +2,7 @@ use core::str;
 use std::{
     cell::RefCell,
     cmp::Ordering,
-    collections::{HashMap, LinkedList, VecDeque},
+    collections::{HashMap, HashSet, LinkedList, VecDeque},
     default, i32,
     ops::Index,
     rc::Rc,
@@ -3269,8 +3269,175 @@ impl A {
             }
 
             fn sum_range(&self, left: i32, right: i32) -> i32 {
-                self.dp[(right + 1) as usize] - self.dp[(left - 1 )as usize]
+                self.dp[(right + 1) as usize] - self.dp[(left - 1) as usize]
             }
         }
+    }
+
+    //310
+    pub fn find_min_height_trees(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
+        let mut map: HashMap<i32, HashSet<i32>> = std::collections::HashMap::new();
+        for edge in edges {
+            if let Some(x) = map.get_mut(&edge[0]) {
+                x.insert(edge[1]);
+            } else {
+                let mut set = std::collections::HashSet::new();
+                set.insert(edge[1]);
+                map.insert(edge[0], set);
+            }
+            if let Some(x) = map.get_mut(&edge[1]) {
+                x.insert(edge[0]);
+            } else {
+                let mut set = std::collections::HashSet::new();
+                set.insert(edge[0]);
+                map.insert(edge[1], set);
+            }
+        }
+        let mut q = std::collections::VecDeque::new();
+
+        fn search(
+            q: &mut VecDeque<Vec<i32>>,
+            mut map: HashMap<i32, HashSet<i32>>,
+            mut count: i32,
+            min: i32,
+        ) -> i32 {
+            while !q.is_empty() {
+                let parents = q.pop_front().unwrap();
+                let mut nexts = vec![];
+                for p in parents {
+                    if let Some(children) = map.remove(&p) {
+                        for child in children.iter() {
+                            if let Some(x) = map.get_mut(child) {
+                                x.remove(&p);
+                            }
+                        }
+                        nexts.append(&mut children.into_iter().collect::<Vec<i32>>());
+                    }
+                }
+                if nexts.len() != 0 {
+                    q.push_back(nexts);
+                }
+                count += 1;
+                if count > min {
+                    return i32::MAX;
+                }
+            }
+            println!("{:?}", count);
+            count
+        }
+        let mut res = vec![];
+        let mut min = i32::MAX;
+        for i in 0..n {
+            q.push_back(vec![i]);
+            let mut count = 0;
+            let len = search(&mut q, map.clone(), count, min);
+            if len <= min {
+                if len < min {
+                    res.clear();
+                }
+                min = len;
+                res.push(i);
+            }
+            q.clear();
+        }
+        res
+    }
+
+    //313
+    pub fn nth_super_ugly_number(n: i32, primes: Vec<i32>) -> i32 {
+        let mut heap = std::collections::BinaryHeap::new();
+        let mut set = std::collections::HashSet::new();
+        heap.push(std::cmp::Reverse(1));
+        for _ in 0..n - 1 {
+            let i = heap.pop().unwrap().0;
+            for p in primes.iter() {
+                let next = i * *p as usize;
+                if set.insert(next) {
+                    heap.push(std::cmp::Reverse(next));
+                }
+            }
+        }
+        heap.pop().unwrap().0 as i32
+    }
+    //316
+    pub fn remove_duplicate_letters(s: String) -> String {
+        let mut map: HashMap<u8, Vec<usize>> = std::collections::HashMap::new();
+        let s = s.as_bytes();
+        for i in 0..s.len() {
+            if let Some(x) = map.get_mut(&s[i]) {
+                x.push(i);
+            } else {
+                map.insert(s[i], vec![i]);
+            }
+        }
+        let mut e = map
+            .into_iter()
+            .map(|(k, v)| (k, v))
+            .collect::<Vec<(u8, Vec<usize>)>>();
+        e.sort_by(|x, y| x.0.cmp(&y.0));
+        let mut next = 0;
+        let mut res = vec![];
+        for i in e {
+            let mut x = true;
+            for k in i.1.iter() {
+                if *k >= next {
+                    res.push((i.0, *k));
+                    next = *k;
+                    x = false;
+                    break;
+                }
+            }
+            if x {
+                res.push((i.0, (*i.1.last().unwrap())));
+            }
+        }
+        println!("{:?}", res);
+        "".to_string()
+    }
+    //318
+    pub fn max_product_318(words: Vec<String>) -> i32 {
+        let mut sets = Vec::with_capacity(words.len());
+        for w in words.iter() {
+            let mut x = HashSet::new();
+            for xx in w.as_bytes().iter() {
+                x.insert(*xx);
+            }
+            sets.push(x);
+        }
+        let mut max = 0;
+        for i in 0..words.len() - 1 {
+            for j in i + 1..words.len() {
+                let left = &words[i];
+                let right = &words[j];
+                let x = &sets[i];
+                let y = &sets[j];
+                if x.intersection(&y).collect::<Vec<&u8>>().len() != 0 {
+                    continue;
+                } else {
+                    max = max.max(left.len() * right.len())
+                }
+            }
+        }
+        max as i32
+    }
+
+    //319
+    pub fn bulb_switch(n: i32) -> i32 {
+        let n = n as usize;
+        let mut bulbs = vec![true; n]; // round 1
+        for i in (1..bulbs.len()).step_by(2) {
+            // round 2
+            bulbs[i] = false
+        }
+        for i in (2..bulbs.len()).step_by(3) {
+            // round 3
+            bulbs[i] = !bulbs[i];
+        }
+        for i in 4..n {
+            for j in (i - 1..bulbs.len()).step_by(i) {
+                bulbs[i] = !bulbs[i];
+            }
+        }
+        bulbs.iter().filter(|x| **x).count() as i32
     }
 }

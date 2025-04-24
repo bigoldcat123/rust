@@ -61,5 +61,5 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    A::log_play();
+    println!("{:?}",i32::MAX);
 }
