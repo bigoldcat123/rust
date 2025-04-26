@@ -1,6 +1,6 @@
-use std::{cmp::Ordering, collections::HashMap, f32::consts::PI, future, thread, time::Duration};
+use std::{cmp::Ordering, collections::HashMap, f32::consts::PI, future, rc::Rc, thread, time::Duration};
 
-use solutions::A;
+use solutions::{TreeNode, A};
 
 #[test]
 fn test_function() {
@@ -61,5 +61,7 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    println!("{:?}",i32::MAX);
+    let a = Rc::new(TreeNode::new(2));
+    let b = a.clone();
+    println!("{:?}",a == b);
 }

@@ -1,4 +1,4 @@
-use core::str;
+use core::{num, str};
 use std::{
     cell::RefCell,
     cmp::Ordering,
@@ -6,6 +6,7 @@ use std::{
     default, i32,
     ops::Index,
     rc::Rc,
+    vec,
 };
 
 use log::info;
@@ -3423,21 +3424,223 @@ impl A {
 
     //319
     pub fn bulb_switch(n: i32) -> i32 {
-        let n = n as usize;
-        let mut bulbs = vec![true; n]; // round 1
-        for i in (1..bulbs.len()).step_by(2) {
-            // round 2
-            bulbs[i] = false
+        let mut n = n as f32;
+        n += 0.5;
+        n.sqrt() as i32
+    }
+    //322
+    ///
+    /// # what did i lean?
+    /// you have to find the optimal structure and in this case it is
+    ///
+    /// *F(S) = F(S - C) + 1;*
+    ///
+    /// F(S) the number of coins constructing S --the amount
+    ///
+    /// if we kown the last one, we can do this.
+    ///
+    /// but we do not konw the last one , so we have to iterate every possibility.
+    pub fn coin_change(mut coins: Vec<i32>, amount: i32) -> i32 {
+        fn search(coins: &Vec<i32>, remain: i32, dp: &mut Vec<i32>) -> i32 {
+            if remain < 0 {
+                return -1;
+            }
+            if remain == 0 {
+                return 0;
+            }
+            if dp[(remain - 1) as usize] != 0 {
+                return dp[(remain - 1) as usize];
+            }
+            let mut min = i32::MAX;
+
+            for ele in coins {
+                let res = search(coins, remain - *ele, dp);
+                if res >= 0 && res + 1 < min {
+                    min = res + 1;
+                }
+            }
+            dp[(remain - 1) as usize] = if min == i32::MAX { -1 } else { min };
+            dp[(remain - 1) as usize]
         }
-        for i in (2..bulbs.len()).step_by(3) {
-            // round 3
-            bulbs[i] = !bulbs[i];
+        let mut dp = vec![0; amount as usize];
+        let res = search(&coins, amount, &mut dp);
+        res
+    }
+
+    //334
+    pub fn wiggle_sort(nums: &mut Vec<i32>) {
+        nums.sort();
+        let mut res = vec![];
+        let mut mid = (nums.len() + 1) / 2;
+
+        if nums.len() % 2 != 0 {
+            mid -= 1;
+            for i in 0..mid {
+                res.push(i as i32);
+                res.push(nums[i + mid]);
+            }
+            res.push(nums[nums.len() - mid - 1]);
+        } else {
+            for i in 0..mid {
+                res.push(nums[i + mid]);
+                res.push(i as i32);
+            }
+            res.reverse();
         }
-        for i in 4..n {
-            for j in (i - 1..bulbs.len()).step_by(i) {
-                bulbs[i] = !bulbs[i];
+        *nums = res
+    }
+    //326
+    pub fn is_power_of_three(n: i32) -> bool {
+        if n == 0 {
+            false
+        } else {
+            let mut n = n;
+            loop {
+                if n == 1 {
+                    return true;
+                }
+                n /= 3;
+                if n % 3 != 0 {
+                    break;
+                }
+            }
+            false
+        }
+    }
+    //328
+    pub fn odd_even_list(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        if let None = head {
+            return head;
+        }
+        let mut even_head = Box::new(ListNode::new(0));
+        fn cal(head: &mut Box<ListNode>, even_head: &mut Box<ListNode>) {
+            if let Some(mut next_head) = head.next.take() {
+                let next_next_head = next_head.next.take();
+                even_head.next = Some(next_head);
+                head.next = next_next_head;
+                if let Some(next) = head.next.as_mut() {
+                    cal(next, even_head.next.as_mut().unwrap());
+                }
             }
         }
-        bulbs.iter().filter(|x| **x).count() as i32
+        fn conjunction(head: &mut Box<ListNode>, last: Option<Box<ListNode>>) {
+            if let None = head.next.as_ref() {
+                head.next = last
+            } else {
+                conjunction(head.next.as_mut().unwrap(), last);
+            }
+        }
+        cal(head.as_mut().unwrap(), &mut even_head);
+        conjunction(head.as_mut().unwrap(), even_head.next);
+        head
+    }
+
+    //331
+    pub fn is_valid_serialization(preorder: String) -> bool {
+        if preorder.starts_with("#") {
+            false
+        } else {
+            let mut stack = vec![];
+            let nodes = preorder.split(|c| c == ',').collect::<Vec<&str>>();
+            let size = nodes.len() - 1;
+            for (idx, node) in nodes.into_iter().enumerate() {
+                if let Some(top) = stack.last() {
+                    if *top == "#" && node == "#" {
+                        loop {
+                            stack.pop().unwrap();
+                            stack.pop().unwrap();
+                            stack.pop().unwrap();
+                            if let Some(last) = stack.last() {
+                                if *last != "#" {
+                                    break;
+                                }
+                            } else {
+                                if idx == size {
+                                    return true;
+                                }
+                                return false;
+                            }
+                            stack.push(node);
+                        }
+                        stack.push(node);
+                    }
+                } else {
+                    stack.push(node);
+                }
+            }
+            if stack.len() != 0 { false } else { true }
+        }
+    }
+
+    //300 😭
+    /// # dynamic program..
+    /// dp[i] the max in first five..
+    /// dp[i] = max(dp[0..i]) + 1;
+    pub fn length_of_lis(nums: Vec<i32>) -> i32 {
+        let mut dp = vec![1; nums.len()];
+        let mut max = 1;
+        for i in 1..nums.len() {
+            for j in 0..i {
+                if nums[j] < nums[i] && dp[i] < dp[j] + 1 {
+                    dp[i] = dp[j] + 1;
+                    if dp[i] > max {
+                        max = dp[i];
+                    }
+                }
+            }
+        }
+        max
+    }
+    //334 😭
+    pub fn increasing_triplet(nums: Vec<i32>) -> bool {
+        if nums.len() < 3 {
+            return false;
+        } else {
+            let mut left_min = vec![nums[0]; nums.len()];
+            for i in 1..nums.len() {
+                if nums[i] < left_min[i - 1] {
+                    left_min[i] = nums[i];
+                } else {
+                    left_min[i] = left_min[i - 1];
+                }
+            }
+
+            let mut right_max = vec![nums[nums.len() - 1]; nums.len()];
+            for i in (0..nums.len() - 1).rev() {
+                if nums[i] > right_max[nums.len() - i - 1] {
+                    right_max.push(nums[i]);
+                } else {
+                    right_max.push(right_max[nums.len() - i - 1]);
+                }
+            }
+            for i in 1..nums.len() - 1 {
+                if nums[i] > left_min[i - 1] && nums[i] < right_max[i + 1] {
+                    return true;
+                }
+            }
+
+            false
+        }
+    }
+    //337
+    /// 😭
+    /// 
+    /// dp_yes[[p]] = dp_no[[l]] + dp_no[[r]] + p.val
+    /// 
+    /// dp_no[[p]]  = Max(dp_yes[[l]],dp_no[[l]]) + Max(dp_yes[[r]],dp_no[[r]])
+    pub fn rob(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs(root: Option<&Rc<RefCell<TreeNode>>>) -> (i32, i32) {
+            if let Some(root) = root {
+                let left = dfs(root.borrow().left.as_ref());
+                let right = dfs(root.borrow().right.as_ref());
+                let yes = left.1 + right.1 + root.borrow().val;
+                let no = left.1.max(left.0) + right.0.max(right.1);
+                (yes, no)
+            } else {
+                (0, 0)
+            }
+        }
+        let e = dfs(root.as_ref());
+        e.0.max(e.1)
     }
 }
