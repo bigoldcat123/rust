@@ -1,6 +1,14 @@
-use std::{cmp::Ordering, collections::HashMap, f32::consts::PI, future, rc::Rc, thread, time::Duration};
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    f32::consts::PI,
+    future,
+    rc::Rc,
+    thread,
+    time::{Duration, Instant},
+};
 
-use solutions::{TreeNode, A};
+use solutions::{A, TreeNode};
 
 #[test]
 fn test_function() {
@@ -61,7 +69,18 @@ fn convert_to_title() {
 
 #[test]
 fn sort() {
-    let a = Rc::new(TreeNode::new(2));
-    let b = a.clone();
-    println!("{:?}",a == b);
+    let val = vec![1, 2, 3, 4, 5, 5, 6, 1,2, 3, 4, 5, 5, 6, 1,2, 3, 4, 5, 5, 6, 1, 5, 6, 1,2, 3, 4];
+    let val2 = val.clone();
+    let wei = vec![2, 3, 4, 3, 4, 6, 6, 1,2, 3, 4,2, 3, 4, 5, 5, 6, 1, 5, 6, 1,2, 3, 4, 5, 5, 6, 1];
+    let wei2 = wei.clone();
+    let cap = wei.iter().sum::<i32>() / 2;
+
+    let ist = std::time::Instant::now();
+    let e = A::knapsack_(val, wei, cap);
+    let d = ist.elapsed();
+    println!("{:?}", d);
+    let ist = Instant::now();
+    let e2 = A::knapscak_back_trace(val2, wei2, cap);
+    println!("{:?}", ist.elapsed());
+    assert_eq!(e, e2)
 }

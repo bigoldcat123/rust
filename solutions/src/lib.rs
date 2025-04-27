@@ -1,7 +1,7 @@
 use core::{num, str};
 use std::{
     cell::RefCell,
-    cmp::Ordering,
+    cmp::{Ordering, max},
     collections::{HashMap, HashSet, LinkedList, VecDeque},
     default, i32,
     ops::Index,
@@ -3624,9 +3624,9 @@ impl A {
     }
     //337
     /// 😭
-    /// 
+    ///
     /// dp_yes[[p]] = dp_no[[l]] + dp_no[[r]] + p.val
-    /// 
+    ///
     /// dp_no[[p]]  = Max(dp_yes[[l]],dp_no[[l]]) + Max(dp_yes[[r]],dp_no[[r]])
     pub fn rob(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
         fn dfs(root: Option<&Rc<RefCell<TreeNode>>>) -> (i32, i32) {
@@ -3642,5 +3642,85 @@ impl A {
         }
         let e = dfs(root.as_ref());
         e.0.max(e.1)
+    }
+
+    // steps
+    fn steps(n: i128) -> usize {
+        if n <= 2 {
+            return 1;
+        }
+        #[derive(PartialEq, Eq, Hash)]
+        enum State {
+            OneStep,
+            TwoStep,
+        }
+        fn search(step: i128, stat: State, mem: &mut HashMap<State, Vec<i128>>) -> usize {
+            if let Some(m) = mem.get(&stat) {
+                if m[step as usize] != -1 {
+                    return m[step as usize] as usize;
+                }
+            }
+
+            let e = if stat == State::OneStep {
+                if step == 1 {
+                    1
+                } else if step == 2 {
+                    0
+                } else {
+                    search(step - 1, State::TwoStep, mem)
+                }
+            } else {
+                if step == 1 {
+                    0
+                } else if step == 2 {
+                    1
+                } else {
+                    search(step - 2, State::OneStep, mem) + search(step - 2, State::TwoStep, mem)
+                }
+            };
+            let vec = mem.get_mut(&stat).unwrap();
+            vec[step as usize] = e as i128;
+
+            e
+        }
+        let mut mem = HashMap::new();
+        mem.insert(State::OneStep, vec![-1; n as usize]);
+        mem.insert(State::TwoStep, vec![-1; n as usize]);
+        search(n - 2, State::OneStep, &mut mem)
+            + search(n - 2, State::TwoStep, &mut mem)
+            + search(n - 1, State::TwoStep, &mut mem)
+    }
+
+    // 01 knapsack
+    pub fn knapsack_(val: Vec<i32>, wei: Vec<i32>, cap: i32) -> i32 {
+        let mut dp = vec![vec![0; (cap + 1) as usize]; val.len()];
+        for i in 1..val.len() {
+            for cap in 1..=cap as usize {
+                if wei[i] <= cap as i32 {
+                    dp[i][cap] = i32::max(dp[i - 1][cap], dp[i - 1][cap - wei[i] as usize] + val[i]);
+                } else {
+                    dp[i][cap] = dp[i - 1][cap];
+                }
+            }
+        }
+        // dp.iter().for_each(|x| println!("{:?}", x));
+        *dp.last().unwrap().last().unwrap()
+    }
+    pub fn knapscak_back_trace(val: Vec<i32>, wei: Vec<i32>, cap: i32) -> i32 {
+        fn search(val: &Vec<i32>, wei: &Vec<i32>, i: usize, cap: i32) -> i32 {
+            if i == 0 || cap == 0 {
+                0
+            } else {
+                if wei[i] <= cap {
+                    max(
+                        search(val, wei, i - 1, cap - wei[i]) + val[i],
+                        search(val, wei, i - 1, cap),
+                    )
+                } else {
+                    search(val, wei, i - 1, cap)
+                }
+            }
+        }
+        search(&val, &wei, val.len() - 1, cap)
     }
 }
