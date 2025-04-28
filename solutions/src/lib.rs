@@ -3,7 +3,9 @@ use std::{
     cell::RefCell,
     cmp::{Ordering, max},
     collections::{HashMap, HashSet, LinkedList, VecDeque},
-    default, i32,
+    default,
+    hash::RandomState,
+    i32,
     ops::Index,
     rc::Rc,
     vec,
@@ -3877,6 +3879,88 @@ impl A {
         }
         let mut e = map.into_iter().map(|x| x).collect::<Vec<(i32, i32)>>();
         e.sort_by(|a, b| b.1.cmp(&a.1));
-        e.into_iter().take(k as usize).map(|(k, v)| k).collect::<Vec<i32>>()
+        e.into_iter()
+            .take(k as usize)
+            .map(|(k, v)| k)
+            .collect::<Vec<i32>>()
+    }
+    //349
+    pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+        let num1: std::collections::HashSet<i32, std::hash::RandomState> =
+            std::collections::HashSet::from_iter(nums1.into_iter());
+        let num2: std::collections::HashSet<i32, std::hash::RandomState> =
+            std::collections::HashSet::from_iter(nums2.into_iter());
+
+        num1.intersection(&num2).map(|x| *x).collect::<Vec<i32>>()
+    }
+
+    //350
+
+    pub fn intersect(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
+        let max;
+        let min;
+        let mut res = vec![];
+        if nums1.len() > nums2.len() {
+            max = nums1;
+            min = nums2;
+        } else {
+            min = nums2;
+            max = nums1;
+        }
+
+        let mut max_map = std::collections::HashMap::new();
+        let mut min_map = std::collections::HashMap::new();
+
+        for ele in max {
+            if let Some(x) = max_map.get_mut(&ele) {
+                *x += 1;
+            } else {
+                max_map.insert(ele, 1);
+            }
+        }
+
+        for ele in min {
+            if let Some(x) = min_map.get_mut(&ele) {
+                *x += 1;
+            } else {
+                min_map.insert(ele, 1);
+            }
+        }
+        for (k, v) in min_map {
+            if let Some(x) = max_map.get(&k) {
+                res.append(&mut [k].repeat(v.min(*x) as usize));
+            }
+        }
+        res
+    }
+    //355
+    fn solution_355() {
+        struct Twitter {}
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Twitter {
+            fn new() -> Self {
+                unimplemented!()
+            }
+
+            fn post_tweet(&self, user_id: i32, tweet_id: i32) {
+                unimplemented!()
+            }
+
+            fn get_news_feed(&self, user_id: i32) -> Vec<i32> {
+                unimplemented!()
+            }
+
+            fn follow(&self, follower_id: i32, followee_id: i32) {
+                unimplemented!()
+            }
+
+            fn unfollow(&self, follower_id: i32, followee_id: i32) {
+                unimplemented!()
+            }
+        }
     }
 }
