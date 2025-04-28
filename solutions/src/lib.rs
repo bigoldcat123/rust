@@ -3697,7 +3697,8 @@ impl A {
         for i in 1..val.len() {
             for cap in 1..=cap as usize {
                 if wei[i] <= cap as i32 {
-                    dp[i][cap] = i32::max(dp[i - 1][cap], dp[i - 1][cap - wei[i] as usize] + val[i]);
+                    dp[i][cap] =
+                        i32::max(dp[i - 1][cap], dp[i - 1][cap - wei[i] as usize] + val[i]);
                 } else {
                     dp[i][cap] = dp[i - 1][cap];
                 }
@@ -3722,5 +3723,160 @@ impl A {
             }
         }
         search(&val, &wei, val.len() - 1, cap)
+    }
+    //338
+    pub fn count_bits(n: i32) -> Vec<i32> {
+        let mut x = 1;
+        let mut res = vec![0, 1];
+        for i in 2..=n {
+            if i < x * 2 {
+                res.push(res[(i - x) as usize] + 1);
+            } else if i == x * 2 {
+                x *= 2;
+                res.push(1);
+            }
+        }
+        res.into_iter().take(n as usize).collect()
+    }
+
+    //341
+    fn solution_341() {
+        #[derive(Debug, PartialEq, Eq)]
+        pub enum NestedInteger {
+            Int(i32),
+            List(Vec<NestedInteger>),
+        }
+        struct NestedIterator {
+            list: Vec<i32>,
+            current_idx: usize,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl NestedIterator {
+            fn new(nestedList: Vec<NestedInteger>) -> Self {
+                fn dfs(nestedList: Vec<NestedInteger>) -> Vec<i32> {
+                    let mut r = vec![];
+                    for ele in nestedList {
+                        match ele {
+                            NestedInteger::Int(i) => {
+                                r.push(i);
+                            }
+                            NestedInteger::List(l) => {
+                                r.append(&mut dfs(l));
+                            }
+                        }
+                    }
+                    r
+                }
+                let list = dfs(nestedList);
+                Self {
+                    list,
+                    current_idx: 0,
+                }
+            }
+
+            fn next(&mut self) -> i32 {
+                self.current_idx += 1;
+                self.list[self.current_idx - 1]
+            }
+
+            fn has_next(&self) -> bool {
+                self.current_idx < self.list.len()
+            }
+        }
+    }
+
+    //342
+    pub fn is_power_of_four(n: i32) -> bool {
+        if n == 1 {
+            return true;
+        }
+        let mut n = n;
+        loop {
+            if n % 4 != 0 {
+                return false;
+            }
+            n /= 4;
+            if n == 1 {
+                return true;
+            }
+        }
+    }
+    //343
+    pub fn integer_break(n: i32) -> i32 {
+        let n = (n / 3) as u32;
+        let left = n % 3;
+        if left == 0 {
+            3_i32.pow(n)
+        } else if left == 2 {
+            3_i32.pow(n) * 2
+        } else {
+            3_i32.pow(n - 1) * 4
+        }
+    }
+    //344
+    pub fn reverse_string(s: &mut Vec<char>) {
+        let mid = s.len();
+        let len = s.len() - 1;
+        for i in 0..mid {
+            let t = s[i];
+            s[i] = s[len - i];
+            s[len - i] = t;
+            println!("{}->{}", s[i], s[len - i]);
+        }
+    }
+    //345
+    pub fn reverse_vowels(mut s: String) -> String {
+        let mut set = std::collections::HashSet::new();
+        set.insert('e');
+        set.insert('E');
+        set.insert('o');
+        set.insert('O');
+        set.insert('u');
+        set.insert('U');
+        set.insert('i');
+        set.insert('I');
+        set.insert('a');
+        set.insert('A');
+
+        unsafe {
+            let ss = s.as_bytes_mut();
+            let mut left = 0;
+            let mut right = ss.len() - 1;
+            while left < right {
+                let l = ss[left];
+                let r = ss[right];
+                if !set.contains(&(l as char)) {
+                    left += 1;
+                    continue;
+                }
+                if !set.contains(&(r as char)) {
+                    right -= 1;
+                    continue;
+                }
+                ss[left] = r;
+                ss[right] = l;
+                left += 1;
+                right -= 1;
+            }
+            s
+        }
+    }
+    //347
+    pub fn top_k_frequent(nums: Vec<i32>, k: i32) -> Vec<i32> {
+        let mut map = std::collections::HashMap::new();
+        for ele in nums {
+            if let Some(e) = map.get_mut(&ele) {
+                *e += 1;
+            } else {
+                map.insert(ele, 0);
+            }
+        }
+        let mut e = map.into_iter().map(|x| x).collect::<Vec<(i32, i32)>>();
+        e.sort_by(|a, b| b.1.cmp(&a.1));
+        e.into_iter().take(k as usize).map(|(k, v)| k).collect::<Vec<i32>>()
     }
 }

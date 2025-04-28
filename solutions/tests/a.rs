@@ -84,3 +84,10 @@ fn sort() {
     println!("{:?}", ist.elapsed());
     assert_eq!(e, e2)
 }
+
+#[test]
+fn e() {
+    for i in 0..=10 as u32 {
+        println!("{:?}",2_usize.pow(i));
+    }
+}
