@@ -3935,7 +3935,10 @@ impl A {
     }
     //355
     fn solution_355() {
-        struct Twitter {}
+        struct Twitter {
+            tweets: Vec<(i32, i32)>,
+            followers: std::collections::HashMap<i32, std::collections::HashSet<i32>>,
+        }
 
         /**
          * `&self` means the method takes an immutable reference.
@@ -3943,24 +3946,122 @@ impl A {
          */
         impl Twitter {
             fn new() -> Self {
-                unimplemented!()
+                Self {
+                    tweets: vec![],
+                    followers: std::collections::HashMap::new(),
+                }
             }
 
-            fn post_tweet(&self, user_id: i32, tweet_id: i32) {
-                unimplemented!()
+            fn post_tweet(&mut self, user_id: i32, tweet_id: i32) {
+                self.tweets.push((user_id, tweet_id));
             }
 
             fn get_news_feed(&self, user_id: i32) -> Vec<i32> {
-                unimplemented!()
+                let mut res = vec![];
+                if let Some(followers) = self.followers.get(&user_id) {
+                    for (user_id_, tweet_id) in self.tweets.iter().rev() {
+                        if *user_id_ == user_id || followers.contains(user_id_) {
+                            res.push(*tweet_id);
+                        }
+                        if res.len() == 10 {
+                            break;
+                        }
+                    }
+                } else {
+                    for (user_id_, tweet_id) in self.tweets.iter().rev() {
+                        if *user_id_ == user_id {
+                            res.push(*tweet_id);
+                        }
+                        if res.len() == 10 {
+                            break;
+                        }
+                    }
+                }
+                res
             }
 
-            fn follow(&self, follower_id: i32, followee_id: i32) {
-                unimplemented!()
+            fn follow(&mut self, follower_id: i32, followee_id: i32) {
+                if let Some(f) = self.followers.get_mut(&follower_id) {
+                    f.insert(followee_id);
+                } else {
+                    let mut f = std::collections::HashSet::new();
+                    f.insert(followee_id);
+                    self.followers.insert(follower_id, f);
+                }
             }
 
-            fn unfollow(&self, follower_id: i32, followee_id: i32) {
-                unimplemented!()
+            fn unfollow(&mut self, follower_id: i32, followee_id: i32) {
+                if let Some(f) = self.followers.get_mut(&follower_id) {
+                    f.remove(&followee_id);
+                }
             }
         }
+    }
+
+    //357
+    pub fn count_numbers_with_unique_digits(n: i32) -> i32 {
+        let mut dp_2 = vec![9 as i32; n as usize];
+        for i in 1..n as usize {
+            dp_2[i] = dp_2[i - 1] * (10 - i as i32);
+        }
+        let mut dp = vec![1; (n + 1) as usize];
+        for i in 1..=n as usize {
+            dp[i] = dp[i - 1] + dp_2[i - 1];
+        }
+        dp[n as usize]
+    }
+
+    //365
+    pub fn can_measure_water(x: i32, y: i32, target: i32) -> bool {
+        let mut set = std::collections::HashSet::new();
+        fn dfs(
+            current: (i32, i32),
+            res: &mut std::collections::HashSet<(i32, i32)>,
+            max: (i32, i32),
+            r: &mut bool,
+            target: i32,
+        ) {
+            if *r || res.contains(&current) {
+                return;
+            }
+            if current.0 + current.1 == target {
+                *r = true;
+                return;
+            }
+
+            res.insert(current);
+
+            if current.0 == 0 && current.1 != 0 {
+                // full x
+                dfs((max.0, current.1), res, max, r, target);
+                // y -> x
+                let next;
+                if current.1 >= max.0 {
+                    next = (max.0, current.1 - max.0);
+                } else {
+                    next = (current.1, 0);
+                }
+                dfs(next, res, max, r, target);
+            } else if current.0 == 0 && current.1 == 0 {
+                // full x
+                dfs((max.0, 0), res, max, r, target);
+                // full y
+                dfs((0, max.1), res, max, r, target);
+            } else if current.0 != 0 && current.1 == 0 {
+                // full y
+                dfs((current.0, max.1), res, max, r, target);
+                // x-> y
+                let next;
+                if current.0 >= max.1 {
+                    next = (current.0 - max.1, max.1);
+                } else {
+                    next = (0, current.0);
+                }
+                dfs(next, res, max, r, target);
+            }
+        }
+        let mut r = false;
+        dfs((x, y), &mut set, (x, y), &mut r, target);
+        r
     }
 }
