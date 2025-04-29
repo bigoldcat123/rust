@@ -4030,7 +4030,7 @@ impl A {
             }
 
             res.insert(current);
-
+            // x = 0 , y != 0
             if current.0 == 0 && current.1 != 0 {
                 // full x
                 dfs((max.0, current.1), res, max, r, target);
@@ -4042,6 +4042,7 @@ impl A {
                     next = (current.1, 0);
                 }
                 dfs(next, res, max, r, target);
+                //x = 0, y = 0
             } else if current.0 == 0 && current.1 == 0 {
                 // full x
                 dfs((max.0, 0), res, max, r, target);
@@ -4058,10 +4059,84 @@ impl A {
                     next = (0, current.0);
                 }
                 dfs(next, res, max, r, target);
+            } else if current.0 != 0 && current.1 != 0 {
+                //full x
+                dfs((max.0, current.1), res, max, r, target);
+                //full y
+                dfs((current.0, max.1), res, max, r, target);
+                // empty x
+                dfs((0, current.1), res, max, r, target);
+                //empty y
+                dfs((current.0, 0), res, max, r, target);
+                //x -> y
+                let y_left = max.1 - current.1;
+                if y_left >= current.0 {
+                    dfs((0, current.1 + current.0), res, max, r, target);
+                } else {
+                    dfs((current.0 - y_left, max.1), res, max, r, target);
+                }
+                //y -> x
+                let x_left = max.0 - current.0;
+                if current.1 <= x_left {
+                    dfs((current.0 + current.1, 0), res, max, r, target);
+                } else {
+                    dfs((max.0, current.1 - x_left), res, max, r, target);
+                }
             }
         }
         let mut r = false;
-        dfs((x, y), &mut set, (x, y), &mut r, target);
+        dfs((0, 0), &mut set, (x, y), &mut r, target);
         r
+    }
+    //367
+    pub fn is_perfect_square(num: i32) -> bool {
+        if num == 1 {
+            return true;
+        }
+        let mut left = 2;
+        let mut right = num / 2;
+        while left <= right {
+            let middle = (left + right) / 2;
+            let x = (middle as usize) * (middle as usize);
+            if x > num as usize {
+                right = middle - 1;
+            } else if x < num as usize {
+                left = middle + 1;
+            } else {
+                return true;
+            }
+        }
+        false
+    }
+    //368
+    pub fn largest_divisible_subset(nums: Vec<i32>) -> Vec<i32> {
+        let mut nums = nums;
+        nums.sort();
+        let mut dp = vec![(1, 0); nums.len()];
+        for e in dp.iter_mut().enumerate() {
+            e.1.1 = e.0;
+        }
+        let mut max = 1;
+        let mut max_idx = 0;
+        for i in 1..nums.len() {
+            for j in (0..i - 1).rev() {
+                if nums[i] % nums[j] == 0 {
+                    dp[i] = (dp[j].0 + 1, j);
+                    if dp[i].0 > max {
+                        max = dp[i].0;
+                        max_idx = i;
+                    }
+                }
+            }
+        }
+        let mut res = vec![];
+        loop {
+            res.push(nums[max_idx]);
+            if max_idx == dp[max_idx].1 {
+                break;
+            }
+            max_idx = dp[max_idx].1;
+        }
+        res
     }
 }

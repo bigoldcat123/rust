@@ -87,7 +87,12 @@ fn sort() {
 
 #[test]
 fn e() {
-    for i in 0..=10 as u32 {
-        println!("{:?}",2_usize.pow(i));
-    }
+    let a = vec![2,3,4];
+    let b = &a[1..];
+    println!("{}",b.len());
+    let c = &b[1..];
+    println!("{:?}",c.len());
+    let d = &c[1..];
+    println!("{:?}",d.len());
+
 }
