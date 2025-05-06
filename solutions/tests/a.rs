@@ -87,12 +87,6 @@ fn sort() {
 
 #[test]
 fn e() {
-    let a = vec![2,3,4];
-    let b = &a[1..];
-    println!("{}",b.len());
-    let c = &b[1..];
-    println!("{:?}",c.len());
-    let d = &c[1..];
-    println!("{:?}",d.len());
-
+   let mut a = i32::MAX;
+   println!("{:?}",a + 1);
 }

@@ -4139,4 +4139,152 @@ impl A {
         }
         res
     }
+
+    // //371
+    // pub fn get_sum(a: i32, b: i32) -> i32 {
+
+    // }
+
+    //372
+    pub fn super_pow(mut a: i32, b: Vec<i32>) -> i32 {
+        fn pow_wlth_mod(a: i32, n: i32, m: i32) -> i32 {
+            let a = a as u128;
+            let m = m as u128;
+            let mut r: u128 = 1;
+            for i in 0..n {
+                r = (r * a) % m;
+            }
+            r as i32
+        }
+        let m = 1337;
+        let mut r = 1;
+        for i in (0..b.len()).rev() {
+            r = (r * pow_wlth_mod(a, b[i], m)) % m;
+            a = pow_wlth_mod(a, 10, m);
+        }
+        r
+    }
+
+    //373
+    pub fn k_smallest_pairs(nums1: Vec<i32>, nums2: Vec<i32>, k: i32) -> Vec<Vec<i32>> {
+        // let mut res = vec![];
+        // let mut kk = vec![];
+        // for i in 0..nums1.len() {
+        //     kk.push((i, 0, nums1[i] + nums2[0]));
+        // }
+        // while res.len() != k as usize {
+        //     let mut min = *kk.iter().min_by(|x, y| x.2.cmp(&y.2)).unwrap();
+        //     res.push(vec![nums1[min.0], nums2[min.1]]);
+        //     if min.1 + 1 >= nums2.len()  {
+        //         min = (min.0, min.1 + 1, i32::MAX);
+        //     } else {
+        //         min = (min.0, min.1 + 1, nums1[min.0] + nums2[min.1 + 1]);
+        //     }
+        //     kk[min.0] = min;
+        // }
+        // res
+        struct Item(usize, usize, i32);
+        impl PartialOrd for Item {
+            fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+                Some(std::cmp::Reverse(self.2).cmp(&std::cmp::Reverse(other.2)))
+            }
+        }
+
+        impl PartialEq for Item {
+            fn eq(&self, other: &Self) -> bool {
+                self.2 == other.2
+            }
+        }
+        impl Eq for Item {}
+        impl Ord for Item {
+            fn cmp(&self, other: &Self) -> Ordering {
+                // std::cmp::Reverse(self.2).cmp(&std::cmp::Reverse(other.2))
+                self.partial_cmp(other).unwrap()
+            }
+        }
+        let mut res = vec![];
+
+        let mut heap = std::collections::BinaryHeap::new();
+        for i in 0..nums1.len() {
+            heap.push(Item(i, 0, nums1[i] + nums2[0]));
+        }
+        while res.len() != k as usize {
+            let mut next = heap.pop().unwrap();
+            res.push(vec![nums1[next.0], nums2[next.1]]);
+            if next.1 + 1 >= nums2.len() {
+                next.2 = i32::MAX;
+            } else {
+                next.1 = next.1 + 1;
+                next.2 = nums1[next.0] + nums2[next.1];
+            }
+            heap.push(next);
+        }
+        res
+    }
+    //374
+    unsafe fn guessNumber(n: i32) -> i32 {
+        fn guess(num: i32) -> i32 {
+            0
+        }
+        let mut left = 1 as u128;
+        let mut right = n as u128;
+        loop {
+            let mid = (left + right) / 2;
+            let r = guess(mid as i32);
+            if r == 0 {
+                return n;
+            } else if r == -1 {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+    }
+    //             (i <= k <= j)
+    //375 dp(i,j) = min(k + dp(i,k - 1),dp(k + 1,j));
+    pub fn get_money_amount(n: i32) -> i32 {
+        let mut dp = vec![vec![0; (n + 2) as usize]; (n + 2) as usize];
+        for i in 1..n as usize {
+            for j in 1..=n as usize - i {
+                dp[j][j + i] = i32::MAX;
+                for k in j..=j + i {
+                    let max = dp[j][k - 1].max(dp[k + 1][j + i]);
+                    if max as usize + k < dp[j][j + i] as usize {
+                        dp[j][j + i] = max + k as i32;
+                    }
+                }
+            }
+        }
+        // println!("{:?}",dp);
+        dp[1][n as usize]
+    }
+
+    //376
+    pub fn wiggle_max_length(nums: Vec<i32>) -> i32 {
+        let mut x = vec![];
+        for i in 1..nums.len() {
+            if nums[i] > nums[i - 1] {
+                x.push(1);
+            } else if nums[i] < nums[i - 1] {
+                x.push(0);
+            }
+        }
+        println!("x{:?}", x);
+
+        let mut dp = vec![1; x.len()];
+        for i in 1..dp.len() {
+            for j in (0..=i - 1).rev() {
+                if x[j] != x[i] {
+                    dp[i] += dp[j];
+                    break;
+                }
+            }
+        }
+        println!("x{:?}", dp);
+        if let Some(last) = dp.last() {
+            *last + 1
+        } else {
+            1
+        }
+    }
 }
