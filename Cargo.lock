@@ -1950,6 +1950,7 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "log",
+ "rand 0.9.1",
 ]
 
 [[package]]

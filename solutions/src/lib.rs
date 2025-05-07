@@ -1,18 +1,18 @@
-use core::{num, str};
 use std::{
     cell::RefCell,
     cmp::{Ordering, max},
-    collections::{HashMap, HashSet, LinkedList, VecDeque},
-    default,
-    hash::RandomState,
+    collections::{HashMap, HashSet, VecDeque},
     i32,
-    ops::Index,
     rc::Rc,
     vec,
 };
 
 use log::info;
-
+#[derive(Debug, PartialEq, Eq)]
+pub enum NestedInteger {
+  Int(i32),
+  List(Vec<NestedInteger>)
+}
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
     let mut digits = digits;
     let mut x;
@@ -4287,4 +4287,188 @@ impl A {
             1
         }
     }
+
+    //377
+    pub fn combination_sum4(nums: Vec<i32>, target: i32) -> i32 {
+        // let mut nums = nums;
+        // let mut res = 0;
+        // nums.sort();
+        // fn dfs(res: &mut i32, nums: &Vec<i32>, target: i32, current: i32) {
+        //     for num in nums {
+        //         let c = current + *num;
+        //         if c > target {
+        //             break;
+        //         }
+        //         if c == target {
+        //             *res += 1;
+        //             break;
+        //         }
+        //         dfs(res, nums, target, c);
+        //     }
+        // }
+        // dfs(&mut res, &nums, target, 0);
+        // res
+        let mut dp = vec![0; (target + 1) as usize];
+        dp[0] = 1;
+        for i in 0..dp.len() {
+            for ele in nums.iter() {
+                if *ele as usize <= i {
+                    dp[i] += dp[i - *ele as usize]
+                }
+            }
+        }
+        *dp.last().unwrap()
+    }
+    //378
+    pub fn kth_smallest_2(matrix: Vec<Vec<i32>>, k: i32) -> i32 {
+        let mut nums = Vec::with_capacity(matrix.len() * matrix[0].len());
+        for mut m in matrix {
+            nums.append(&mut m);
+        }
+        nums.sort();
+        nums[k as usize]
+    }
+    //380
+    pub fn solution_380() {
+        use std::collections;
+        struct RandomizedSet {
+            set: HashSet<i32>,
+            list: VecDeque<i32>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl RandomizedSet {
+            fn new() -> Self {
+                Self {
+                    set: HashSet::new(),
+                    list: VecDeque::new(),
+                }
+            }
+
+            fn insert(&mut self, val: i32) -> bool {
+                self.list.push_back(val);
+                self.set.insert(val)
+            }
+
+            fn remove(&mut self, val: i32) -> bool {
+                self.set.remove(&val)
+            }
+
+            fn get_random(&mut self) -> i32 {
+                use rand::Rng;
+
+                self.list = self
+                    .list
+                    .iter()
+                    .filter(|x| self.set.contains(x))
+                    .map(|x| *x)
+                    .collect::<VecDeque<i32>>();
+                let mut rng = rand::thread_rng();
+                let idx = rng.gen_range(0..(self.list.len()));
+                self.list[idx]
+            }
+        }
+    }
+    //382
+    fn solution_382() {
+        struct Solution {
+            list: VecDeque<i32>,
+        }
+        impl Solution {
+            fn new(mut head: Option<Box<ListNode>>) -> Self {
+                let mut list = VecDeque::new();
+                loop {
+                    if head.is_none() {
+                        break;
+                    } else {
+                        let mut h = head.unwrap();
+                        list.push_back(h.val);
+                        head = h.next.take();
+                    }
+                }
+                Self { list }
+            }
+
+            fn get_random(&mut self) -> i32 {
+                let next = self.list.pop_back().unwrap();
+                self.list.push_front(next);
+                next
+            }
+        }
+    }
+
+    //383
+    pub fn can_construct(ransom_note: String, magazine: String) -> bool {
+        use std::collections::HashMap;
+        let mut map1 = HashMap::new();
+        let mut map2 = HashMap::new();
+        for c in ransom_note.chars() {
+            if let Some(e) = map1.get_mut(&c) {
+                *e += 1;
+            } else {
+                map1.insert(c, 1);
+            }
+        }
+
+        for c in magazine.chars() {
+            if let Some(e) = map2.get_mut(&c) {
+                *e += 1;
+            } else {
+                map2.insert(c, 1);
+            }
+        }
+        for (k, v) in map1 {
+            if let Some(v2) = map2.get(&k) {
+                if *v2 < v {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        true
+    }
+
+    //384
+    pub fn solution_384() {
+        struct Solution {
+            list:Vec<i32>
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(nums: Vec<i32>) -> Self {
+                Self { list: nums }
+            }
+
+            fn reset(&self) -> Vec<i32> {
+                self.list.clone()
+            }
+
+            fn shuffle(&self) -> Vec<i32> {
+                use rand;
+                use rand::Rng;
+                let mut list = self.list.clone();
+                let mut rng = rand::thread_rng();
+                let mut res = vec![];
+                while res.len() < self.list.len() {
+                    let current_len = res.len();
+                    let next_idx = rng.gen_range(0..self.list.len() - current_len);
+                    let next = list[next_idx];
+                    list[next_idx] = *list.last().unwrap();
+                    list.pop();
+                    res.push(next);
+                }
+                res
+            }
+        }
+    }
+
+    //385
 }
