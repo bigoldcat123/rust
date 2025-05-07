@@ -87,10 +87,8 @@ fn sort() {
 
 #[test]
 fn e() {
-    let a = vec![1,2,3,4,5,6,7,8,9];
-    let mut b = HashSet::new();
-    b.insert(2);
-    b.insert(3);
-    b.insert(5);
-    a.iter().filter(|x| b.contains(x)).for_each(|x| print!("{:?}",x));
+   
+    println!("{:?}", A::length_longest_path("a\n\tb\n\t\tc.txt".to_string()));
+  
+
 }

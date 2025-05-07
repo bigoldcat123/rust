@@ -3,6 +3,7 @@ use std::{
     cmp::{Ordering, max},
     collections::{HashMap, HashSet, VecDeque},
     i32,
+    ops::Index,
     rc::Rc,
     vec,
 };
@@ -10,8 +11,8 @@ use std::{
 use log::info;
 #[derive(Debug, PartialEq, Eq)]
 pub enum NestedInteger {
-  Int(i32),
-  List(Vec<NestedInteger>)
+    Int(i32),
+    List(Vec<NestedInteger>),
 }
 pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
     let mut digits = digits;
@@ -4435,7 +4436,7 @@ impl A {
     //384
     pub fn solution_384() {
         struct Solution {
-            list:Vec<i32>
+            list: Vec<i32>,
         }
 
         /**
@@ -4471,4 +4472,159 @@ impl A {
     }
 
     //385
+
+    pub fn deserialize(s: String) -> NestedInteger {
+        fn dfs(nested: &mut NestedInteger, mut start_idx: usize, s: &[u8]) -> usize {
+            match nested {
+                NestedInteger::List(l) => {
+                    let mut cache = String::new();
+                    while start_idx < s.len() {
+                        let c = s[start_idx] as char;
+                        if c.is_numeric() || c == '-' {
+                            cache.push(c);
+                        } else if c == ',' {
+                            if cache.len() != 0 {
+                                let next = cache.parse::<i32>().expect("convert fails");
+                                l.push(NestedInteger::Int(next));
+                                cache.clear();
+                            }
+                        } else if c == ']' {
+                            if cache.len() != 0 {
+                                let next = cache.parse::<i32>().expect("convert fails");
+                                l.push(NestedInteger::Int(next));
+                            }
+                            return start_idx + 1;
+                        } else if c == '[' {
+                            let mut new_list = NestedInteger::List(vec![]);
+                            start_idx = dfs(&mut new_list, start_idx + 1, s);
+                            l.push(new_list);
+                            continue;
+                        }
+                        start_idx += 1;
+                    }
+                    start_idx
+                }
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
+
+        if s.starts_with('[') {
+            let mut res = NestedInteger::List(vec![]);
+            dfs(&mut res, 1, s.as_bytes());
+            res
+        } else {
+            NestedInteger::Int(s.parse::<i32>().unwrap())
+        }
+    }
+    //386
+    pub fn lexical_order(n: i32) -> Vec<i32> {
+        let mut x = 1;
+        (0..n as usize).fold(vec![0; n as usize], |mut res, i| {
+            res[i] = x;
+            x *= 10;
+            if x > n {
+                while x % 10 == 9 || x + 1 > n {
+                    x /= 10;
+                }
+                x += 1;
+            }
+            res
+        })
+    }
+
+    //387
+    pub fn first_uniq_char(s: String) -> i32 {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        for ele in s.as_bytes() {
+            if let Some(v) = map.get_mut(ele) {
+                *v += 1;
+            } else {
+                map.insert(*ele, 1);
+            }
+        }
+        for (idx, ele) in s.as_bytes().iter().enumerate() {
+            if let Some(v) = map.get(&ele) {
+                if *v == 1 {
+                    return idx as i32;
+                }
+            }
+        }
+        -1
+    }
+    //388
+    pub fn length_longest_path(input: String) -> i32 {
+        let mut stack = vec![];
+        let mut cache = String::new();
+        let mut i = 0;
+        let mut res = 0;
+        let input = input.as_bytes();
+        let mut expect = 2;
+        let mut real = 1;
+        let mut in_world = false;
+        while i < input.len() {
+            let c = input[i] as char;
+
+            if c.is_alphanumeric() || c == '.' || c == ' ' {
+                if c == ' ' && in_world {
+                    cache.push(c);
+                } else {
+                    cache.push(c);
+                }
+                in_world = true;
+            } else if c == '\n' {
+                in_world = false;
+                // println!("{:?}", cache);
+                loop {
+                    if input[i + 1] == b'\t' || input[i + 1] == b' ' {
+                        if input[i + 1] == b' ' {
+                            i += 1;
+                            continue;
+                        }
+                        i += 1;
+                        real += 1;
+                    } else {
+                        break;
+                    }
+                }
+                stack.push(cache.clone());
+                if cache.contains('.') {
+                    println!("{:?}", stack.join("/"));
+                    let len = stack.join("/").len();
+                    if len > res {
+                        res = len;
+                    }
+                }
+
+                cache.clear();
+
+                if expect > real {
+                    let pop_num = (expect - real) as usize;
+                    for _ in 0..pop_num {
+                        stack.pop();
+                    }
+                    expect = real + 1;
+                } else if real > expect {
+                    expect = real + 1;
+                } else {
+                    expect += 1;
+                }
+                real = 1;
+            }
+
+            i += 1;
+        }
+        if cache.contains('.') {
+            println!("{}", "eeeeeee");
+            stack.push(cache);
+            println!("{:?}", stack.join("/"));
+            let len = stack.join("/").len();
+            if len > res {
+                res = len;
+            }
+        }
+        res as i32
+    }
 }
