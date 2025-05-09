@@ -87,8 +87,6 @@ fn sort() {
 
 #[test]
 fn e() {
-   
-    println!("{:?}", A::length_longest_path("a\n\tb\n\t\tc.txt".to_string()));
-  
-
+    let x: f64 = 1.0 / 3.0;
+    println!("{:?}",2.0 / x);
 }

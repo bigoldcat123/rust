@@ -9,6 +9,7 @@ use std::{
 };
 
 use log::info;
+use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
 pub enum NestedInteger {
     Int(i32),
@@ -4626,5 +4627,404 @@ impl A {
             }
         }
         res as i32
+    }
+
+    //389
+    pub fn find_the_difference(s: String, t: String) -> char {
+        use std::collections::HashMap;
+        let mut map1 = HashMap::new();
+        let mut map2 = HashMap::new();
+        for c in s.chars() {
+            if let Some(v) = map1.get_mut(&c) {
+                *v += 1;
+            } else {
+                map1.insert(c, 1);
+            }
+        }
+        for c in t.chars() {
+            if let Some(v) = map2.get_mut(&c) {
+                *v += 1;
+            } else {
+                map2.insert(c, 1);
+            }
+        }
+        for (k, v) in map2.into_iter() {
+            if let Some(x) = map1.remove(&k) {
+                if x != v {
+                    return k;
+                }
+            } else {
+                return k;
+            }
+        }
+        unreachable!();
+    }
+    //390
+    pub fn last_remaining(n: i32) -> i32 {
+        fn search(a1: i32, n: i32, step: i32, k: i32) -> i32 {
+            if n == 1 {
+                a1
+            } else {
+                match k % 2 {
+                    0 => match n % 2 {
+                        0 => search(a1 + step, n / 2, step * 2, k + 1),
+                        _ => search(a1 + step, n / 2, step * 2, k + 1),
+                    },
+                    _ => match n % 2 {
+                        0 => search(a1, n / 2, step * 2, k + 1),
+                        _ => search(a1 + step, n / 2, step * 2, k + 1),
+                    },
+                }
+            }
+        }
+        search(1, n, 1, 0)
+    }
+    //393
+    pub fn valid_utf8(data: Vec<i32>) -> bool {
+        fn is_followed(d: i32) -> bool {
+            d >= 128 && d < 192
+        }
+        fn is_one(d: i32) -> bool {
+            d < 128
+        }
+        fn is_two(d: i32) -> bool {
+            d >= 192 && d < 224
+        }
+        fn is_three(d: i32) -> bool {
+            d >= 224 && d < 240
+        }
+        fn is_four(d: i32) -> bool {
+            d >= 240 && d < 248
+        }
+        #[derive(PartialEq, Eq)]
+        enum Type {
+            Fore,
+            Three,
+            Two,
+            One,
+            Follow,
+            Invalid,
+        }
+        fn parse(d: i32) -> Type {
+            if is_followed(d) {
+                Type::Follow
+            } else if is_four(d) {
+                Type::Fore
+            } else if is_three(d) {
+                Type::Three
+            } else if is_two(d) {
+                Type::Two
+            } else if is_one(d) {
+                Type::One
+            } else {
+                Type::Invalid
+            }
+        }
+        let mut idx = 0;
+        while idx < data.len() {
+            let ele = data[idx];
+            match parse(ele) {
+                Type::Follow => {
+                    return false;
+                }
+                Type::Fore => {
+                    for _ in 0..3 {
+                        idx += 1;
+                        if idx >= data.len() {
+                            return false;
+                        }
+                        if parse(data[idx]) != Type::Follow {
+                            return false;
+                        }
+                    }
+                }
+                Type::Three => {
+                    for _ in 0..2 {
+                        idx += 1;
+                        if idx >= data.len() {
+                            return false;
+                        }
+                        if parse(data[idx]) != Type::Follow {
+                            return false;
+                        }
+                    }
+                }
+                Type::Two => {
+                    for _ in 0..1 {
+                        idx += 1;
+                        if idx >= data.len() {
+                            return false;
+                        }
+                        if parse(data[idx]) != Type::Follow {
+                            return false;
+                        }
+                    }
+                }
+                Type::One => {}
+                Type::Invalid => {
+                    return false;
+                }
+            }
+            idx += 1;
+        }
+        true
+    }
+
+    //394
+    pub fn decode_string(s: String) -> String {
+        fn decode(s: &[u8], mut idx: usize, r: &mut String) -> usize {
+            let mut repeat_times = String::new();
+            while idx < s.len() {
+                let c = s[idx] as char;
+                if c == ']' {
+                    return idx;
+                } else if c.is_alphabetic() {
+                    r.push(c);
+                } else if c.is_numeric() {
+                    repeat_times.push(c);
+                } else if c == '[' {
+                    let times = repeat_times.parse::<usize>().unwrap();
+                    let mut res = String::new();
+                    idx = decode(s, idx + 1, &mut res);
+                    r.push_str(&res.repeat(times));
+                    repeat_times.clear();
+                }
+                idx += 1;
+            }
+            unreachable!()
+        }
+        let s = s.as_bytes();
+        let mut idx = 0;
+        let mut res = String::new();
+        let mut nums = String::new();
+        while idx < s.len() {
+            let c = s[idx] as char;
+            if c.is_alphabetic() {
+                res.push(c);
+            } else if c.is_numeric() {
+                nums.push(c);
+            } else if c == '[' {
+                let repeat_times = nums.parse::<usize>().unwrap();
+                let mut r = String::new();
+                let i = decode(s, idx + 1, &mut r);
+                res.push_str(&r.repeat(repeat_times));
+                idx = i;
+                nums.clear();
+            }
+            idx += 1;
+        }
+        res
+    }
+    //395 divide and conqur
+    pub fn longest_substring(s: String, k: i32) -> i32 {
+        use std::collections::HashMap;
+        let mut res = 0;
+        fn search(s: &[u8], k: i32, r: &mut usize) {
+            if s.len() < k as usize {
+                return;
+            }
+            let mut map = HashMap::new();
+            for i in 0..s.len() {
+                if let Some(v) = map.get_mut(&s[i]) {
+                    *v += 1;
+                } else {
+                    map.insert(s[i], 1);
+                }
+            }
+            let map = map
+                .into_iter()
+                .filter(|(_, v)| *v < k)
+                .collect::<HashMap<u8, i32>>();
+            let res = s.split(|x| map.contains_key(x)).collect::<Vec<&[u8]>>();
+            if res.len() == 1 {
+                if *r < res[0].len() {
+                    *r = res[0].len();
+                }
+            } else {
+                for e in res {
+                    search(e, k, r);
+                }
+            }
+        }
+        search(s.as_bytes(), k, &mut res);
+        res as i32
+    }
+    //369
+    pub fn max_rotate_function(nums: Vec<i32>) -> i32 {
+        let sum = nums.iter().sum::<i32>();
+
+        let mut res = 0;
+        fn calc(nums: &Vec<i32>, n: usize, sum: i32, max: &mut i32) -> i32 {
+            if n == 0 {
+                let mut r = 0;
+                for i in 0..nums.len() {
+                    r += i as i32 * nums[i];
+                }
+
+                *max = r.max(*max);
+                r
+            } else {
+                let r =
+                    calc(nums, n - 1, sum, max) + (nums.len() as i32 + 1) * nums[nums.len() - n];
+                *max = r.max(*max);
+                r
+            }
+        }
+        let r = calc(&nums, nums.len() - 1, sum, &mut res);
+        res = res.max(r);
+        res
+    }
+
+    //397
+    pub fn integer_replacement(n: i32) -> i32 {
+        use std::collections::HashMap;
+        let mut dp = HashMap::new();
+        fn search(dp: &mut HashMap<usize, i32>, n: usize) -> i32 {
+            if n == 1 {
+                return 0;
+            }
+            if let Some(v) = dp.get(&n) {
+                return *v;
+            }
+            if n % 2 == 0 {
+                let res = search(dp, n / 2) + 1;
+
+                dp.insert(n, res);
+                res
+            } else {
+                if !dp.contains_key(&(n + 1)) {
+                    search(dp, n + 1);
+                }
+                if !dp.contains_key(&(n - 1)) {
+                    search(dp, n - 1);
+                }
+                let min = *dp.get(&(n + 1)).unwrap().min(dp.get(&(n - 1)).unwrap()) + 1;
+                dp.insert(n, min);
+                min
+            }
+        }
+
+        search(&mut dp, n as usize)
+    }
+
+    //398
+    fn solution_398() {
+        use rand::rngs::ThreadRng;
+        use std::collections::HashMap;
+        struct Solution {
+            map: HashMap<i32, Vec<usize>>,
+            r: ThreadRng,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(nums: Vec<i32>) -> Self {
+                let mut map: HashMap<i32, Vec<usize>> = HashMap::new();
+                for (idx, v) in nums.into_iter().enumerate() {
+                    if let Some(v) = map.get_mut(&v) {
+                        v.push(idx);
+                    } else {
+                        map.insert(v, vec![idx]);
+                    }
+                }
+                let r = rand::thread_rng();
+                Self { map, r }
+            }
+
+            fn pick(&mut self, target: i32) -> i32 {
+                if let Some(vec) = self.map.get(&target) {
+                    let e = self.r.gen_range(0..vec.len());
+                    return vec[e] as i32;
+                }
+                unreachable!()
+            }
+        }
+    }
+
+    //399
+
+    pub fn calc_equation(
+        equations: Vec<Vec<String>>,
+        values: Vec<f64>,
+        queries: Vec<Vec<String>>,
+    ) -> Vec<f64> {
+        use std::collections::{HashMap, HashSet};
+        let mut map: HashMap<String, Vec<(String, f64)>> = HashMap::new();
+        for (idx, eq) in equations.into_iter().enumerate() {
+            if let Some(vals) = map.get_mut(&eq[0]) {
+                vals.push((eq[1].clone(), values[idx]));
+            } else {
+                map.insert(eq[0].clone(), vec![(eq[1].clone(), values[idx])]);
+            }
+
+            if let Some(vals) = map.get_mut(&eq[1]) {
+                vals.push((eq[0].clone(), 1.0 / values[idx]));
+            } else {
+                map.insert(eq[1].clone(), vec![(eq[0].clone(), 1.0 / values[idx])]);
+            }
+        }
+        println!("{:?}", map);
+        let mut res = vec![];
+
+        fn search(
+            current: f64,
+            query: &String,
+            final_: &String,
+            map: &HashMap<String, Vec<(String, f64)>>,
+            set: &mut HashSet<String>,
+        ) -> f64 {
+            if let Some(e) = map.get(query) {
+                for (right, value) in e {
+                    if set.contains(right) {
+                        continue;
+                    }
+                    // search(current * *value, right, final_, map);
+                    if right == final_ {
+                        return current * *value;
+                    } else {
+                        set.insert(right.clone());
+                        let search_res = search(current * *value, right, final_, map, set);
+
+                        set.remove(right);
+                        if search_res != -1.0 {
+                            return search_res;
+                        };
+                    }
+                }
+                -1.0
+            } else {
+                -1.0
+            }
+        }
+
+        let mut set = HashSet::new();
+        for q in queries {
+            if q[0] == q[1] && map.contains_key(&q[0]) {
+                res.push(1.0);
+                continue;
+            }
+            set.insert(q[0].clone());
+
+            res.push(search(1.0, &q[0], &q[1], &map, &mut set));
+            set.remove(&q[0]);
+        }
+
+        res
+    }
+
+    //400
+    pub fn find_nth_digit(n: i32) -> i32 {
+        let mut v = String::new();
+        for i in 1..n {
+            v.push_str(&i.to_string());
+            if v.len() >= n as usize {
+                break;
+            }
+        }
+
+        v.as_bytes()[n as usize - 1] as i32 - 48
     }
 }
