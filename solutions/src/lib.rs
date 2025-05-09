@@ -5017,14 +5017,30 @@ impl A {
 
     //400
     pub fn find_nth_digit(n: i32) -> i32 {
-        let mut v = String::new();
-        for i in 1..n {
-            v.push_str(&i.to_string());
-            if v.len() >= n as usize {
+        let n = n as usize;
+        let mut step = 1;
+        let mut digit = 0;
+        let mut start = 0;
+        let mut len = 0;
+        for i in 1 as usize.. {
+            let next = digit + i * 9 * step;
+            if next > n {
+                start = step;
+                len = i;
                 break;
             }
+            digit = next;
+            step *= 10;
         }
+        for i in start.. {
+            digit += len;
+            if digit >= n {
+                let offset = digit - n;
+                let i = i.to_string();
 
-        v.as_bytes()[n as usize - 1] as i32 - 48
+                return i.as_bytes()[i.len() - offset] as i32 - 48;
+            }
+        }
+        0
     }
 }
