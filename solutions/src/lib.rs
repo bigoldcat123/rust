@@ -3,11 +3,10 @@ use std::{
     cmp::{Ordering, max},
     collections::{HashMap, HashSet, VecDeque},
     i32,
-    ops::Index,
     rc::Rc,
     vec,
 };
-
+pub mod four;
 use log::info;
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
@@ -3760,10 +3759,10 @@ impl A {
          * If you need a mutable reference, change it to `&mut self` instead.
          */
         impl NestedIterator {
-            fn new(nestedList: Vec<NestedInteger>) -> Self {
-                fn dfs(nestedList: Vec<NestedInteger>) -> Vec<i32> {
+            fn new(nested_list: Vec<NestedInteger>) -> Self {
+                fn dfs(nested_list: Vec<NestedInteger>) -> Vec<i32> {
                     let mut r = vec![];
-                    for ele in nestedList {
+                    for ele in nested_list {
                         match ele {
                             NestedInteger::Int(i) => {
                                 r.push(i);
@@ -3775,7 +3774,7 @@ impl A {
                     }
                     r
                 }
-                let list = dfs(nestedList);
+                let list = dfs(nested_list);
                 Self {
                     list,
                     current_idx: 0,
