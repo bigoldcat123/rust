@@ -70,7 +70,6 @@ impl Solution {
         }
         let mut res = String::new();
         let mut opt_times = 0;
-        let a = &num[..];
         let num = num.as_bytes();
         let mut start = num.len();
 
@@ -151,7 +150,7 @@ impl Solution {
         }
         if origin < 0 {
             let left = 32 - b_vec.len();
-            for i in 1..left {
+            for _ in 1..left {
                 b_vec.push_front(0);
             }
             b_vec.push_front(1);
