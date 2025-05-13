@@ -231,4 +231,91 @@ impl Solution {
         }
         res
     }
+    //406
+    pub fn reconstruct_queue(people: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+        let mut people = people;
+        people.sort_by(|p1, p2| {
+            if p1[0] != p2[0] {
+                p1[0].cmp(&p2[0])
+            } else {
+                p2[1].cmp(&p1[1])
+            }
+        });
+        let mut res = vec![vec![]; people.len()];
+
+        for p in people {
+            let mut space = p[1] + 1;
+            for i in 0..res.len() {
+                if res[i].is_empty() {
+                    space -= 1;
+                    if space == 0 {
+                        res[i] = p;
+                        break;
+                    }
+                }
+            }
+        }
+        res
+    }
+    //409
+    pub fn longest_palindrome(s: String) -> i32 {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let s = s.as_bytes();
+        for b in s {
+            if let Some(v) = map.get_mut(b) {
+                *v += 1;
+            } else {
+                map.insert(*b, 1);
+            }
+        }
+        let mut res = 0;
+        let mut max_odd = 0;
+        for (_, v) in map {
+            if v % 2 != 0 {
+                if v > max_odd {
+                    res += max_odd - 1;
+                    max_odd = v;
+                } else {
+                    res += v - 1;
+                }
+            } else {
+                res += v;
+            }
+        }
+        res + max_odd
+    }
+    //413
+    pub fn number_of_arithmetic_slices(nums: Vec<i32>) -> i32 {
+        let mut dp = vec![vec![true; nums.len()]; nums.len()];
+        let mut res = 0;
+        for i in 2..nums.len() {
+            for j in 0..nums.len() - i {
+                dp[j][j + i] = if dp[j][j + i - 1]
+                    && nums[j + i] - nums[j + i - 1] == nums[j + i - 1] - nums[j + i - 2]
+                {
+                    res += 1;
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        res
+    }
+    //414
+    pub fn third_max(nums: Vec<i32>) -> i32 {
+        let mut nums = nums;
+
+        nums.sort();
+        nums.dedup();
+        if nums.len() < 3 {
+            *nums.last().unwrap()
+        } else {
+            nums[nums.len() - 3]
+        }
+    }
+
+    //415
+    pub fn add_strings(num1: String, num2: String) -> String {}
 }
