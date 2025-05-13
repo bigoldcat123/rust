@@ -91,11 +91,17 @@ fn sort() {
 
 #[test]
 fn e() {
-    let a = vec![1, 1, 0, 1, 1, 0, 1, 0];
-    for i in (0..a.len()).step_by(4) {
-        match &a[i..i + 4] {
-            [1, 2, 3, 4] => {}
-            _ => {}
+    fn muti(a:i32,mut b:i32) -> i32 {
+        let mut res = 0;
+        let mut step = a;
+        while b > 0 {
+            if b % 2 != 0 {
+                res += step;
+            }
+            step += step;
+            b /= 2;
         }
+        res
     }
+    println!("{:?}",muti(3, 2310));
 }

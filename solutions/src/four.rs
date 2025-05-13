@@ -317,5 +317,44 @@ impl Solution {
     }
 
     //415
-    pub fn add_strings(num1: String, num2: String) -> String {}
+    // pub fn add_strings(num1: String, num2: String) -> String {}
+    //29
+    pub fn divide(mut dividend: i32, mut divisor: i32) -> i32 {
+        if dividend == i32::MIN {
+            if divisor == -1 {
+                return i32::MAX;
+            }
+        }
+        if divisor == i32::MAX {
+            if dividend == i32::MAX {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        let mut obs = false;
+        if dividend > 0 {
+            dividend = -dividend;
+            obs = !obs;
+        }
+        if divisor > 0 {
+            divisor = -divisor;
+            obs = !obs;
+        }
+        let mut left = 1;
+        let mut right = i32::MAX;
+
+        let mut res = 1;
+        while left < right {
+            let mid = (left + right) / 2;
+            if mid * divisor >= dividend {
+                res = mid;
+                left = mid + 1;
+            } else if mid * divisor < dividend {
+                right = mid - 1;
+            }
+        }
+
+        if obs { -res } else { res }
+    }
 }
