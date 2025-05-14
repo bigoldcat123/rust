@@ -1,3 +1,5 @@
+use rand::rand_core::le;
+
 pub struct Solution {}
 
 impl Solution {
@@ -317,7 +319,37 @@ impl Solution {
     }
 
     //415
-    // pub fn add_strings(num1: String, num2: String) -> String {}
+    pub fn add_strings(num1: String, num2: String) -> String {
+        let num1 = num1.as_bytes();
+        let num2 = num2.as_bytes();
+        let mut res = vec![];
+
+        let mut idx_1 = num1.len() - 1;
+        let mut idx_2 = num2.len() - 1;
+        let mut carry = 0;
+
+        while idx_1 < num1.len() || idx_2 < num2.len() {
+            let mut left = 0;
+            let mut right = 0;
+
+            if idx_1 < num1.len() {
+                left = num1[idx_1] - 48;
+            }
+            if idx_2 < num2.len() {
+                right = num2[idx_2] - 48;
+            }
+            let r = right + left + carry;
+            res.push(r % 10 + 48);
+            carry = r / 10;
+            idx_1 -= 1;
+            idx_2 -= 1;
+        }
+        if carry != 0 {
+            res.push(carry);
+        };
+        res.reverse();
+        String::from_utf8(res).unwrap()
+    }
     //29
     pub fn divide(mut dividend: i32, mut divisor: i32) -> i32 {
         if dividend == i32::MIN {
@@ -356,5 +388,286 @@ impl Solution {
         }
 
         if obs { -res } else { res }
+    }
+    //416
+    pub fn can_partition(nums: Vec<i32>) -> bool {
+        let sum = nums.iter().sum::<i32>();
+        if sum % 2 != 0 {
+            return false;
+        }
+        let amount = sum as usize / 2;
+        let mut dp = vec![vec![true; nums.len()]; amount + 1];
+        for i in 1..amount + 1 {
+            dp[i][0] = nums[0] == i as i32;
+        }
+        for i in 1..amount + 1 {
+            for j in 0..nums.len() {
+                if dp[i][j - 1] {
+                    dp[i][j] = true;
+                } else {
+                    if nums[j] as usize > i {
+                        dp[i][j] = false;
+                    } else {
+                        dp[i][j] = dp[i - nums[j] as usize][j - 1];
+                    }
+                }
+            }
+        }
+        dp.last().unwrap().contains(&true)
+    }
+    //417
+    pub fn pacific_atlantic(heights: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+        #[derive(Clone, Copy, Debug)]
+        struct Node {
+            visited_p: bool,
+            visited_a: bool,
+            paciific: bool,
+            atlantic: bool,
+        }
+        impl Node {
+            fn new() -> Self {
+                Self {
+                    visited_p: false,
+                    visited_a: false,
+                    paciific: false,
+                    atlantic: false,
+                }
+            }
+        }
+        let mut h = vec![vec![Node::new(); heights[0].len()]; heights.len()];
+        let mut r = vec![];
+
+        fn search(
+            c: (usize, usize),
+            from: (usize, usize),
+            t: i32,
+            heights: &Vec<Vec<i32>>,
+            h: &mut Vec<Vec<Node>>,
+        ) -> bool {
+            if (c.0 == 0 || c.1 == 0) && t == 1 {
+                return true;
+            }
+            if (c.0 == heights.len() - 1 || c.1 == heights[0].len() - 1) && t == 2 {
+                return true;
+            }
+            // println!("search {:?}",c);
+            let node = &mut h[c.0][c.1];
+            if t == 1 && node.visited_p {
+                node.paciific
+            } else if t == 2 && node.visited_a {
+                node.atlantic
+            } else {
+                let current_height = heights[c.0][c.1];
+
+                if c.1 != 0 {
+                    let left = (c.0, c.1 - 1);
+                    if c.1 != 0 && heights[left.0][left.1] <= current_height {
+                        let current_node = &mut h[c.0][c.1];
+
+                        if t == 1 {
+                            current_node.visited_p = true;
+                        } else {
+                            current_node.visited_a = true;
+                        }
+
+                        let r = search(left, c, t, heights, h);
+                        let left_node = &mut h[left.0][left.1];
+                        if t == 1 {
+                            left_node.paciific = r;
+                            left_node.visited_p = true;
+                        } else {
+                            left_node.atlantic = r;
+                            left_node.visited_a = true;
+                        }
+                        if r {
+                            return true;
+                        }
+                    }
+                }
+                if c.1 != heights[0].len() - 1 {
+                    let right = (c.0, c.1 + 1);
+
+                    if heights[right.0][right.1] <= current_height {
+                        let current_node = &mut h[c.0][c.1];
+                        if t == 1 {
+                            current_node.visited_p = true;
+                        } else {
+                            current_node.visited_a = true;
+                        }
+                        let r = search(right, c, t, heights, h);
+                        let right_node = &mut h[right.0][right.1];
+                        if t == 1 {
+                            right_node.paciific = r;
+                            right_node.visited_p = true;
+                        } else {
+                            right_node.atlantic = r;
+                            right_node.visited_a = true;
+                        }
+                        if r {
+                            return true;
+                        }
+                    }
+                }
+                if c.0 != 0 {
+                    let top = (c.0 - 1, c.1);
+
+                    if heights[top.0][top.1] <= current_height {
+                        let current_node = &mut h[c.0][c.1];
+                        if t == 1 {
+                            current_node.visited_p = true;
+                        } else {
+                            current_node.visited_a = true;
+                        }
+                        let r = search(top, c, t, heights, h);
+                        let top_node = &mut h[top.0][top.1];
+                        if t == 1 {
+                            top_node.paciific = r;
+                            top_node.visited_p = true;
+                        } else {
+                            top_node.atlantic = r;
+                            top_node.visited_a = true;
+                        }
+                        if r {
+                            return true;
+                        }
+                    }
+                }
+                if c.0 != heights.len() - 1 {
+                    let down = (c.0 + 1, c.1);
+
+                    if heights[down.0][down.1] <= current_height {
+                        let current_node = &mut h[c.0][c.1];
+                        if t == 1 {
+                            current_node.visited_p = true;
+                        } else {
+                            current_node.visited_a = true;
+                        }
+                        let r = search(down, c, t, heights, h);
+                        let down_node = &mut h[down.0][down.1];
+                        if t == 1 {
+                            down_node.paciific = r;
+                            down_node.visited_p = true;
+                        } else {
+                            down_node.atlantic = r;
+                            down_node.visited_a = true;
+                        }
+                        if r {
+                            return true;
+                        }
+                    }
+                }
+                false
+            }
+        }
+        for i in 0..heights.len() {
+            for j in 0..heights[0].len() {
+                h[i][j].visited_p = false;
+                h[i][j].visited_a = false;
+                let res = search((i, j), (i, j), 1, &heights, &mut h);
+                h[i][j].paciific = res;
+                h[i][j].visited_p = true;
+
+                let res = search((i, j), (i, j), 2, &heights, &mut h);
+                h[i][j].atlantic = res;
+                h[i][j].visited_a = true;
+                if i == 35 {
+                    println!("{:?} {:?}", h[i][j], heights[i][j]);
+                }
+                if h[i][j].paciific && h[i][j].atlantic {
+                    r.push(vec![i as i32, j as i32]);
+                }
+            }
+        }
+        r
+    }
+
+    //419
+    pub fn count_battleships(board: Vec<Vec<char>>) -> i32 {
+        let mut res = 0;
+        let mut board_mark = vec![vec![false; board[0].len()]; board.len()];
+        fn mark(
+            board: &Vec<Vec<char>>,
+            board_mark: &mut Vec<Vec<bool>>,
+            dir_left: bool,
+            mut c: (usize, usize),
+        ) {
+            if dir_left {
+                while board[c.0][c.1] != '.' {
+                    board_mark[c.0][c.1] = true;
+                    c.1 += 1;
+                    if c.1 == board[0].len() {
+                        break;
+                    }
+                }
+            } else {
+                while board[c.0][c.1] != '.' {
+                    board_mark[c.0][c.1] = true;
+                    c.0 += 1;
+                    if c.0 == board.len() {
+                        break;
+                    }
+                }
+            }
+        }
+        for i in 0..board.len() {
+            for j in 0..board.len() {
+                if board[i][j] == 'X' && !board_mark[i][j] {
+                    res += 1;
+                    mark(&board, &mut board_mark, true, (i, j));
+                    mark(&board, &mut board_mark, false, (i, j));
+                }
+            }
+        }
+
+        res
+    }
+    //421
+    pub fn find_maximum_xor(mut nums: Vec<i32>) -> i32 {
+        let mut res = 0;
+        if nums.len() < 100 {
+                        for i in 0..nums.len() - 1 {
+                for j in i + 1..nums.len() {
+                    if nums[i] ^ nums[j] > res {
+                        res = nums[i] ^ nums[j];
+                    }
+                }
+            }
+            return res;
+        }
+        nums.sort();
+        let max = nums.pop().unwrap();
+        let mut maxes = vec![max];
+        let mut step = 1;
+        while step <= max {
+            step *= 2;
+        }
+        step /= 2;
+        while let Some(m) = nums.pop() {
+            if m >= step {
+                maxes.push(m);
+            } else {
+                nums.push(m);
+                break;
+            }
+        }
+        if nums.len() != 0 {
+            for i in 0..maxes.len() {
+                for j in 0..nums.len() {
+                    if maxes[i] ^ nums[j] > res {
+                        res = maxes[i] ^ nums[j];
+                    }
+                }
+            }
+        } else {
+            for i in 0..maxes.len() - 1 {
+                for j in i + 1..maxes.len() {
+                    if maxes[i] ^ maxes[j] > res {
+                        res = maxes[i] ^ maxes[j];
+                    }
+                }
+            }
+        }
+
+        res
     }
 }

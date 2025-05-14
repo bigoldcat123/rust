@@ -8,7 +8,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use solutions::{A, TreeNode};
+use solutions::{A, TreeNode, four::Solution};
 
 #[test]
 fn test_function() {
@@ -91,17 +91,7 @@ fn sort() {
 
 #[test]
 fn e() {
-    fn muti(a:i32,mut b:i32) -> i32 {
-        let mut res = 0;
-        let mut step = a;
-        while b > 0 {
-            if b % 2 != 0 {
-                res += step;
-            }
-            step += step;
-            b /= 2;
-        }
-        res
-    }
-    println!("{:?}",muti(3, 2310));
+    let a = 128;
+    let b = 1;
+    println!("{:?}",a ^ b);
 }
