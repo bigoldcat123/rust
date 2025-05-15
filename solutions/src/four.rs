@@ -687,7 +687,6 @@ impl Solution {
     }
 
     //424
-
     pub fn character_replacement(s: String, k: i32) -> i32 {
         let mut res = 0;
 

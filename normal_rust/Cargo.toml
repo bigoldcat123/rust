@@ -1,7 +1,0 @@
-[package]
-name = "normal_rust"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-encoding = "0.2.33"
