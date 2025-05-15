@@ -91,7 +91,11 @@ fn sort() {
 
 #[test]
 fn e() {
-    let a = 128;
-    let b = 1;
-    println!("{:?}",a ^ b);
+    let a = 100;
+    println!("{:?}",25 ^ 1);
+    let mut a = 0;
+    for i in 0..10 {
+        a = (a << 1) + 1;
+        println!("{:?}",a);
+    }
 }

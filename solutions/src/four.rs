@@ -1,3 +1,5 @@
+use std::process::id;
+
 use rand::rand_core::le;
 
 pub struct Solution {}
@@ -622,52 +624,119 @@ impl Solution {
         res
     }
     //421
-    pub fn find_maximum_xor(mut nums: Vec<i32>) -> i32 {
+    pub fn find_maximum_xor(nums: Vec<i32>) -> i32 {
+        use std::collections::HashSet;
         let mut res = 0;
-        if nums.len() < 100 {
-                        for i in 0..nums.len() - 1 {
-                for j in i + 1..nums.len() {
-                    if nums[i] ^ nums[j] > res {
-                        res = nums[i] ^ nums[j];
-                    }
+        for i in (0..=31).rev() {
+            let mut set = HashSet::new();
+            for n in nums.iter() {
+                set.insert(*n >> i);
+            }
+
+            let next = (res << 1) + 1;
+
+            let mut found = false;
+
+            for n in nums.iter() {
+                if set.contains(&((*n >> i) ^ next)) {
+                    found = true;
+                    break;
                 }
             }
-            return res;
-        }
-        nums.sort();
-        let max = nums.pop().unwrap();
-        let mut maxes = vec![max];
-        let mut step = 1;
-        while step <= max {
-            step *= 2;
-        }
-        step /= 2;
-        while let Some(m) = nums.pop() {
-            if m >= step {
-                maxes.push(m);
+            if found {
+                res = next;
             } else {
-                nums.push(m);
-                break;
-            }
-        }
-        if nums.len() != 0 {
-            for i in 0..maxes.len() {
-                for j in 0..nums.len() {
-                    if maxes[i] ^ nums[j] > res {
-                        res = maxes[i] ^ nums[j];
-                    }
-                }
-            }
-        } else {
-            for i in 0..maxes.len() - 1 {
-                for j in i + 1..maxes.len() {
-                    if maxes[i] ^ maxes[j] > res {
-                        res = maxes[i] ^ maxes[j];
-                    }
-                }
+                res = next - 1;
             }
         }
 
+        res
+    }
+
+    //423
+    pub fn original_digits(s: String) -> String {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let mut res = vec![0; 10];
+        for i in s.into_bytes() {
+            if let Some(v) = map.get_mut(&i) {
+                *v += 1;
+            } else {
+                map.insert(i, 1);
+            }
+        }
+        res[0] = map.remove(&b'z').unwrap_or(0);
+        res[2] = map.remove(&b'w').unwrap_or(0);
+        res[4] = map.remove(&b'u').unwrap_or(0);
+        res[6] = map.remove(&b'x').unwrap_or(0);
+        res[8] = map.remove(&b'g').unwrap_or(0);
+
+        res[3] = map.remove(&b'h').unwrap_or(0) - res[8];
+        res[5] = map.remove(&b'f').unwrap_or(0) - res[4];
+        res[7] = map.remove(&b's').unwrap_or(0) - res[6];
+
+        res[1] = map.remove(&b'o').unwrap_or(0) - res[0] - res[2] - res[4];
+        res[9] = map.remove(&b'i').unwrap_or(0) - res[6] - res[5] - res[8];
+        let mut r = String::new();
+        for (idx, v) in res.into_iter().enumerate() {
+            for _ in 0..v {
+                r.push((idx as u8 + 48) as char);
+            }
+        }
+        r
+    }
+
+    //424
+
+    pub fn character_replacement(s: String, k: i32) -> i32 {
+        let mut res = 0;
+        let mut ss = String::new();
+        ss.push(*s.as_bytes().last().unwrap() as char);
+        ss.push_str(&s);
+        ss.push(s.as_bytes()[0] as char);
+
+        let mut start = 0;
+        let mut end = 0;
+        let s = ss.as_bytes();
+        for slow in 0..s.len() - 1 {
+            let mut left = k;
+            let x = s[slow];
+            let mut len = 1;
+            let mut p_end = 0;
+            for fast in slow + 1..s.len() {
+                p_end += 1;
+                println!("{} {}", s[fast], s[slow]);
+                if s[fast] == s[slow] {
+                    len += 1
+                } else if left > 0 {
+                    left -= 1;
+                    len += 1;
+                } else {
+                    p_end -= 1;
+                    break;
+                }
+            }
+            if len > res {
+                start = slow;
+                end = slow + p_end;
+                res = len;
+                println!("{} {}", start, end);
+            }
+        }
+        if start == end {
+            return 1;
+        }
+        if end - start == 1 {
+            return 2;
+        }
+        if start == 0 {
+            res -= 1;
+        }
+        if end == s.len() - 1 && start == 1 {
+            res -= 1;
+        }
+
+        println!("{} {}", start, end);
         res
     }
 }
