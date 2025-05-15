@@ -690,53 +690,30 @@ impl Solution {
 
     pub fn character_replacement(s: String, k: i32) -> i32 {
         let mut res = 0;
-        let mut ss = String::new();
-        ss.push(*s.as_bytes().last().unwrap() as char);
-        ss.push_str(&s);
-        ss.push(s.as_bytes()[0] as char);
 
-        let mut start = 0;
-        let mut end = 0;
-        let s = ss.as_bytes();
-        for slow in 0..s.len() - 1 {
-            let mut left = k;
-            let x = s[slow];
-            let mut len = 1;
-            let mut p_end = 0;
-            for fast in slow + 1..s.len() {
-                p_end += 1;
-                println!("{} {}", s[fast], s[slow]);
-                if s[fast] == s[slow] {
-                    len += 1
-                } else if left > 0 {
-                    left -= 1;
-                    len += 1;
-                } else {
-                    p_end -= 1;
-                    break;
-                }
+        let k = k as usize;
+        let mut left = 0;
+        let mut right = 0;
+
+        let s = s.as_bytes();
+        let mut max_count = 0;
+        let mut map = [0; 26];
+        while right < s.len() {
+            let idx = (s[right] - b'A') as usize;
+            map[idx] += 1;
+            max_count = max_count.max(map[idx]);
+            right += 1;
+
+            if right - left > max_count + k {
+                let idx = (s[left] - b'A') as usize;
+                map[idx] -= 1;
+
+                left += 1;
             }
-            if len > res {
-                start = slow;
-                end = slow + p_end;
-                res = len;
-                println!("{} {}", start, end);
-            }
-        }
-        if start == end {
-            return 1;
-        }
-        if end - start == 1 {
-            return 2;
-        }
-        if start == 0 {
-            res -= 1;
-        }
-        if end == s.len() - 1 && start == 1 {
-            res -= 1;
+
+            res = res.max(right - left);
         }
 
-        println!("{} {}", start, end);
-        res
+        res as i32
     }
 }
