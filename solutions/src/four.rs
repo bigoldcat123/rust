@@ -715,4 +715,50 @@ impl Solution {
 
         res as i32
     }
+    //433
+    pub fn min_mutation(start_gene: String, end_gene: String, bank: Vec<String>) -> i32 {
+        use std::collections::{HashMap, HashSet};
+        if bank.is_empty() {
+            return -1;
+        }
+        if !bank.iter().any(|x| x == &end_gene) {
+            return -1;
+        }
+
+        fn can_convert(from: &[u8], to: &[u8]) -> bool {
+            let mut diff = 0;
+            for i in 0..8 {
+                if from[i] != to[i] {
+                    diff += 1
+                }
+            }
+            diff == 1
+        }
+        fn dfs_search<'a>(
+            bank: &'a Vec<String>,
+            selected: &mut HashSet<&'a String>,
+            current_gent: &String,
+            start_gene: &String,
+            res: &mut i32,
+        ) {
+            if can_convert(current_gent.as_bytes(), start_gene.as_bytes()) {
+                println!("{:?}", selected);
+                let len = selected.len() as i32;
+                *res = (*res).min(len + 1);
+                return;
+            }
+            for b in bank {
+                if dbg!(can_convert(current_gent.as_bytes(), b.as_bytes())) && !selected.contains(b)
+                {
+                    selected.insert(&b);
+                    dfs_search(bank, selected, b, start_gene, res);
+                    selected.remove(&b);
+                }
+            }
+        }
+        let mut selected = HashSet::new();
+        let mut res = i32::MAX;
+        dfs_search(&bank, &mut selected, &end_gene, &start_gene, &mut res);
+        if res == i32::MAX { -1 } else { res }
+    }
 }
