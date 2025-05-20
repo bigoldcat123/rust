@@ -1,6 +1,8 @@
-use std::process::id;
+use std::{cell::RefCell, process::id, rc::Rc};
 
 use rand::rand_core::le;
+
+use crate::TreeNode;
 
 pub struct Solution {}
 
@@ -760,5 +762,105 @@ impl Solution {
         let mut res = i32::MAX;
         dfs_search(&bank, &mut selected, &end_gene, &start_gene, &mut res);
         if res == i32::MAX { -1 } else { res }
+    }
+    //434
+    pub fn count_segments(s: String) -> i32 {
+        s.split_whitespace().count() as i32
+    }
+    //435
+    pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
+        // let mut intervals = intervals;
+        // intervals.sort_by(|a, b| a[0].cmp(&b[0]));
+        // let mut dp = vec![1; intervals.len()];
+        // for i in 1..intervals.len() {
+        //     for j in 0..i {
+        //         if intervals[j][1] <= intervals[i][0] {
+        //             dp[i] = dp[i].max(dp[j] + 1);
+        //         }
+        //     }
+        // }
+        // (intervals.len() - *dp.last().unwrap()) as i32
+
+        let mut intervals = intervals;
+        intervals.sort_by(|a, b| a[1].cmp(&b[1]));
+        let mut right = intervals[0][1];
+        let mut res = 1;
+        for i in 1..intervals.len() {
+            if intervals[i][0] >= right {
+                right = intervals[i][1];
+                res += 1;
+            }
+        }
+        intervals.len() as i32 - res
+    }
+    //436
+    pub fn find_right_interval(intervals: Vec<Vec<i32>>) -> Vec<i32> {
+        use std::collections::HashMap;
+        let mut sorted_intervals = intervals.clone();
+        sorted_intervals.sort_by(|a, b| a[0].cmp(b.first().unwrap()));
+        let mut map = HashMap::new();
+        for (idx, value) in intervals.iter().enumerate() {
+            map.insert(value, idx);
+        }
+
+        let mut dp = HashMap::new();
+        for i in 0..sorted_intervals.len() {
+            let right = sorted_intervals[i][1];
+            for j in i..sorted_intervals.len() {
+                if sorted_intervals[j][0] >= right {
+                    dp.insert(&sorted_intervals[i], &sorted_intervals[j]);
+                    break;
+                }
+            }
+        }
+        let mut res = vec![0; sorted_intervals.len()];
+        for i in 0..sorted_intervals.len() {
+            let origin_iterval = &intervals[i];
+            let target_interval = dp.remove(origin_iterval);
+            match target_interval {
+                None => {
+                    res[i] = -1;
+                }
+                Some(target) => {
+                    res[i] = *map.get(target).unwrap() as i32;
+                }
+            }
+        }
+        res
+    }
+
+    //437
+    pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
+        match root {
+            Some(root) => {
+                let mut res = 0;
+                // if root.borrow().val == target_sum {
+                //     res += 1;
+                // }
+                res += Self::path_sum(root.borrow().left.clone(), target_sum);
+                res += Self::path_sum(root.borrow().right.clone(), target_sum);
+                res += Self::path_sum_dfs(Some(root), target_sum as usize, 0);
+
+                res
+            }
+            None => 0,
+        }
+    }
+    pub fn path_sum_dfs(root: Option<Rc<RefCell<TreeNode>>>, target_sum: usize, current: usize) -> i32 {
+        match root {
+            None => 0,
+            Some(root) => {
+                let mut plus = 0;
+                let root = root.borrow();
+                let current = root.val as usize + current;
+
+                if current == target_sum {
+                    plus += 1;
+                }
+                let left_sum = Self::path_sum_dfs(root.left.clone(), target_sum, current);
+                let right_sum = Self::path_sum_dfs(root.right.clone(), target_sum, current);
+                left_sum + right_sum + plus
+            }
+        }
     }
 }
