@@ -846,7 +846,11 @@ impl Solution {
             None => 0,
         }
     }
-    pub fn path_sum_dfs(root: Option<Rc<RefCell<TreeNode>>>, target_sum: usize, current: usize) -> i32 {
+    pub fn path_sum_dfs(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        target_sum: usize,
+        current: usize,
+    ) -> i32 {
         match root {
             None => 0,
             Some(root) => {
@@ -862,5 +866,59 @@ impl Solution {
                 left_sum + right_sum + plus
             }
         }
+    }
+    //438
+    pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+        let mut res = vec![];
+        if s.len() < p.len() {
+            return res;
+        }
+        let s = s.as_bytes();
+        let p = p.as_bytes();
+        let mut s_number = [0; 26];
+        let mut p_number = [0; 26];
+        for i in 0..p.len() {
+            let s_char = s[i];
+            let p_char = p[i];
+            s_number[(s_char - b'a') as usize] += 1;
+            p_number[(p_char - b'a') as usize] += 1;
+        }
+        if s_number == p_number {
+            res.push(0);
+        }
+        for i in 1..s.len() - p.len() + 1 {
+            s_number[(s[i - 1] - b'a') as usize] -= 1;
+            s_number[(s[i + p.len() - 1] - b'a') as usize] += 1;
+            if s_number == p_number {
+                res.push(i as i32);
+            }
+        }
+
+        res
+    }
+    //442
+    pub fn find_duplicates(nums: Vec<i32>) -> Vec<i32> {
+        let len = nums.len();
+        let mut nums = nums;
+        let mut i = 0;
+        loop {
+            if i == len {
+                break;
+            }
+            while nums[i] != nums[nums[i] as usize - 1] {
+                let p = nums[i];
+                let next_idx = nums[i] as usize - 1;
+                nums[i] = nums[next_idx];
+                nums[next_idx] = p;
+            }
+            i += 1;
+        }
+        let mut res = vec![];
+        for i in 0..len {
+            if nums[i] == i as i32 + 1 {
+                res.push(nums[i]);
+            }
+        }
+        res
     }
 }
