@@ -2,7 +2,7 @@ use std::{cell::RefCell, process::id, rc::Rc};
 
 use rand::rand_core::le;
 
-use crate::TreeNode;
+use crate::{ListNode, TreeNode};
 
 pub struct Solution {}
 
@@ -920,5 +920,111 @@ impl Solution {
             }
         }
         res
+    }
+
+    // 443
+    pub fn compress(chars: &mut Vec<char>) -> i32 {
+        let mut left = 0;
+        let mut right = 0;
+        let mut current_len = 0;
+        let mut res_char = vec![];
+        while right < chars.len() {
+            if chars[left] == chars[right] {
+                current_len += 1;
+            } else {
+                res_char.push(chars[left]);
+                if current_len > 1 {
+                    for e in current_len.to_string().chars() {
+                        res_char.push(e);
+                    }
+                }
+
+                left = right;
+                current_len = 0;
+                continue;
+            }
+            right += 1;
+        }
+        *chars = res_char;
+        chars.len() as i32
+    }
+    //445
+    pub fn add_two_numbers(
+        l1: Option<Box<ListNode>>,
+        l2: Option<Box<ListNode>>,
+    ) -> Option<Box<ListNode>> {
+        fn list_len(l: Option<&Box<ListNode>>, len: &mut i32) {
+            match l {
+                Some(l) => {
+                    *len += 1;
+                    list_len(l.next.as_ref(), len);
+                }
+                _ => {}
+            }
+        }
+        let mut len1 = 0;
+        let mut len2 = 0;
+        let mut res = Some(Box::new(ListNode::new(0)));
+        list_len(l1.as_ref(), &mut len1);
+        list_len(l2.as_ref(), &mut len2);
+        if len1 != len2 {
+            let l_need_append;
+            let another;
+            if len1 > len2 {
+                l_need_append = l2;
+                another = l1;
+            } else {
+                l_need_append = l1;
+                another = l2;
+            }
+            let dif = (len1 - len2).abs();
+            let mut new_h = ListNode::new(0);
+            let mut x = &mut new_h;
+            for _ in 1..dif {
+                // let a = &mut new_node;
+                x.next = Some(Box::new(ListNode::new(0)));
+                x = x.next.as_mut().unwrap();
+            }
+            x.next = l_need_append;
+
+            let carry = dfs_build(
+                another.as_ref(),
+                Some(Box::new(new_h)).as_ref(),
+                res.as_mut(),
+            );
+            if carry != 0 {
+                res.as_mut().unwrap().val = carry;
+                return res;
+            }
+            return res.unwrap().next;
+        } else {
+            let mut res = Some(Box::new(ListNode::new(0)));
+            let carry = dfs_build(l2.as_ref(), l1.as_ref(), res.as_mut());
+            if carry != 0 {
+                res.as_mut().unwrap().val = carry;
+                return res;
+            }
+            return res.unwrap().next;
+        }
+        fn dfs_build(
+            l1: Option<&Box<ListNode>>,
+            l2: Option<&Box<ListNode>>,
+            res: Option<&mut Box<ListNode>>,
+        ) -> i32 {
+            match (l1, l2) {
+                (Some(l1), Some(l2)) => {
+                    let mut node = Some(Box::new(ListNode::new(0)));
+                    let carry = dfs_build(l1.next.as_ref(), l2.next.as_ref(), node.as_mut());
+                    let r = l1.val + l2.val + carry;
+                    node.as_mut().unwrap().val = r % 10;
+                    res.unwrap().next = node;
+                    r / 10
+                }
+                (None, None) => 0,
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
     }
 }
