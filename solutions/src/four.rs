@@ -1,6 +1,9 @@
-use std::process::id;
+#![allow(dead_code, unused)]
+use std::{cell::RefCell, process::id, rc::Rc};
 
 use rand::rand_core::le;
+
+use crate::TreeNode;
 
 pub struct Solution {}
 
@@ -714,5 +717,141 @@ impl Solution {
         }
 
         res as i32
+    }
+    //2942
+    pub fn find_words_containing(words: Vec<String>, x: char) -> Vec<i32> {
+        let mut res = vec![];
+        for (i, word) in words.into_iter().enumerate() {
+            if word.contains(x) {
+                res.push(i as i32);
+            }
+        }
+        res
+    }
+
+    //449
+    fn solution_449() {
+        struct Codec {}
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Codec {
+            fn new() -> Self {
+                Self {}
+            }
+
+            fn serialize(&self, root: Option<Rc<RefCell<TreeNode>>>) -> String {
+                let mut pre_order = vec![];
+                let mut mid_order = vec![];
+                fn build_pre_order(
+                    root: Option<Rc<RefCell<TreeNode>>>,
+                    pre_order: &mut Vec<String>,
+                ) {
+                    if let Some(root) = root {
+                        let root = root.borrow();
+                        pre_order.push(root.val.to_string());
+                        build_pre_order(root.left.clone(), pre_order);
+                        build_pre_order(root.right.clone(), pre_order);
+                    }
+                }
+                fn build_mid_order(
+                    root: Option<Rc<RefCell<TreeNode>>>,
+                    mid_order: &mut Vec<String>,
+                ) {
+                    if let Some(root) = root {
+                        let root = root.borrow();
+                        build_mid_order(root.left.clone(), mid_order);
+                        mid_order.push(root.val.to_string());
+                        build_mid_order(root.right.clone(), mid_order);
+                    }
+                }
+                build_mid_order(root.clone(), &mut mid_order);
+                build_pre_order(root, &mut pre_order);
+                let pre_order = pre_order.join(",");
+                let mid_order = mid_order.join(",");
+                format!("{}#{}", pre_order, mid_order)
+            }
+
+            fn deserialize(&self, data: String) -> Option<Rc<RefCell<TreeNode>>> {
+                let (pre, mid) = data.split_once("#").unwrap();
+                let pre_order = pre
+                    .split(",")
+                    .map(|x| x.parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>();
+                let mid_order = mid
+                    .split(",")
+                    .map(|x| x.parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>();
+
+                fn build_tree(
+                    pre_order: &[i32],
+                    mid_order: &[i32],
+                ) -> Option<Rc<RefCell<TreeNode>>> {
+                    if pre_order.len() != 0 {
+                        let mut root = TreeNode::new(pre_order[0]);
+                        let idx = mid_order.binary_search(&pre_order[0]).unwrap();
+
+                        root.left = build_tree(&pre_order[1..idx + 1], &mid_order[..idx]);
+                        root.right = build_tree(&pre_order[idx + 1..], &mid_order[idx + 1..]);
+                        Some(Rc::new(RefCell::new(root)))
+                    } else {
+                        None
+                    }
+                }
+                build_tree(&pre_order, &mid_order)
+            }
+        }
+    }
+    //450
+    pub fn delete_node(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        key: i32,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        fn dfs_tree(root: &mut Option<Rc<RefCell<TreeNode>>>, k: i32) {
+            let inner = root.take();
+            if let Some(inner) = inner {
+                if inner.borrow().val == k {
+                    let left = inner.borrow_mut().left.take();
+                    let right = inner.borrow_mut().right.take();
+                    match (left, right) {
+                        (None, None) => {
+                            *root = None;
+                        }
+                        (Some(left), None) => {
+                            *root = Some(left);
+                        }
+                        (None, Some(right)) => {
+                            *root = Some(right);
+                        }
+
+                        (Some(left), Some(right)) => {
+                            let mut l = left.clone();
+                            loop {
+                                if l.borrow_mut().right.is_none() {
+                                    l.borrow_mut().right = Some(right);
+                                    break;
+                                } else {
+                                    let e = l.borrow_mut().right.clone();
+                                    l = e.unwrap();
+                                }
+                            }
+                            *root = Some(left);
+                        }
+                    }
+                } else {
+                    if inner.borrow().val > k {
+                        dfs_tree(&mut inner.borrow_mut().left, k);
+                    } else {
+                        dfs_tree(&mut inner.borrow_mut().right, k);
+                    }
+                    *root = Some(inner);
+                }
+            }
+        }
+        let mut root = root;
+        dfs_tree(&mut root, key);
+        root
     }
 }
