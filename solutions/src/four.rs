@@ -1,8 +1,9 @@
-use std::{cell::RefCell, process::id, rc::Rc};
+#![allow(dead_code, unused)]
+use std::{cell::RefCell, collections, process::id, rc::Rc};
 
 use rand::rand_core::le;
 
-use crate::{ListNode, TreeNode};
+use crate::TreeNode;
 
 pub struct Solution {}
 
@@ -717,315 +718,218 @@ impl Solution {
 
         res as i32
     }
-    //433
-    pub fn min_mutation(start_gene: String, end_gene: String, bank: Vec<String>) -> i32 {
-        use std::collections::{HashMap, HashSet};
-        if bank.is_empty() {
-            return -1;
-        }
-        if !bank.iter().any(|x| x == &end_gene) {
-            return -1;
-        }
-
-        fn can_convert(from: &[u8], to: &[u8]) -> bool {
-            let mut diff = 0;
-            for i in 0..8 {
-                if from[i] != to[i] {
-                    diff += 1
-                }
-            }
-            diff == 1
-        }
-        fn dfs_search<'a>(
-            bank: &'a Vec<String>,
-            selected: &mut HashSet<&'a String>,
-            current_gent: &String,
-            start_gene: &String,
-            res: &mut i32,
-        ) {
-            if can_convert(current_gent.as_bytes(), start_gene.as_bytes()) {
-                println!("{:?}", selected);
-                let len = selected.len() as i32;
-                *res = (*res).min(len + 1);
-                return;
-            }
-            for b in bank {
-                if dbg!(can_convert(current_gent.as_bytes(), b.as_bytes())) && !selected.contains(b)
-                {
-                    selected.insert(&b);
-                    dfs_search(bank, selected, b, start_gene, res);
-                    selected.remove(&b);
-                }
-            }
-        }
-        let mut selected = HashSet::new();
-        let mut res = i32::MAX;
-        dfs_search(&bank, &mut selected, &end_gene, &start_gene, &mut res);
-        if res == i32::MAX { -1 } else { res }
-    }
-    //434
-    pub fn count_segments(s: String) -> i32 {
-        s.split_whitespace().count() as i32
-    }
-    //435
-    pub fn erase_overlap_intervals(intervals: Vec<Vec<i32>>) -> i32 {
-        // let mut intervals = intervals;
-        // intervals.sort_by(|a, b| a[0].cmp(&b[0]));
-        // let mut dp = vec![1; intervals.len()];
-        // for i in 1..intervals.len() {
-        //     for j in 0..i {
-        //         if intervals[j][1] <= intervals[i][0] {
-        //             dp[i] = dp[i].max(dp[j] + 1);
-        //         }
-        //     }
-        // }
-        // (intervals.len() - *dp.last().unwrap()) as i32
-
-        let mut intervals = intervals;
-        intervals.sort_by(|a, b| a[1].cmp(&b[1]));
-        let mut right = intervals[0][1];
-        let mut res = 1;
-        for i in 1..intervals.len() {
-            if intervals[i][0] >= right {
-                right = intervals[i][1];
-                res += 1;
-            }
-        }
-        intervals.len() as i32 - res
-    }
-    //436
-    pub fn find_right_interval(intervals: Vec<Vec<i32>>) -> Vec<i32> {
-        use std::collections::HashMap;
-        let mut sorted_intervals = intervals.clone();
-        sorted_intervals.sort_by(|a, b| a[0].cmp(b.first().unwrap()));
-        let mut map = HashMap::new();
-        for (idx, value) in intervals.iter().enumerate() {
-            map.insert(value, idx);
-        }
-
-        let mut dp = HashMap::new();
-        for i in 0..sorted_intervals.len() {
-            let right = sorted_intervals[i][1];
-            for j in i..sorted_intervals.len() {
-                if sorted_intervals[j][0] >= right {
-                    dp.insert(&sorted_intervals[i], &sorted_intervals[j]);
-                    break;
-                }
-            }
-        }
-        let mut res = vec![0; sorted_intervals.len()];
-        for i in 0..sorted_intervals.len() {
-            let origin_iterval = &intervals[i];
-            let target_interval = dp.remove(origin_iterval);
-            match target_interval {
-                None => {
-                    res[i] = -1;
-                }
-                Some(target) => {
-                    res[i] = *map.get(target).unwrap() as i32;
-                }
-            }
-        }
-        res
-    }
-
-    //437
-    pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
-        match root {
-            Some(root) => {
-                let mut res = 0;
-                // if root.borrow().val == target_sum {
-                //     res += 1;
-                // }
-                res += Self::path_sum(root.borrow().left.clone(), target_sum);
-                res += Self::path_sum(root.borrow().right.clone(), target_sum);
-                res += Self::path_sum_dfs(Some(root), target_sum as usize, 0);
-
-                res
-            }
-            None => 0,
-        }
-    }
-    pub fn path_sum_dfs(
-        root: Option<Rc<RefCell<TreeNode>>>,
-        target_sum: usize,
-        current: usize,
-    ) -> i32 {
-        match root {
-            None => 0,
-            Some(root) => {
-                let mut plus = 0;
-                let root = root.borrow();
-                let current = root.val as usize + current;
-
-                if current == target_sum {
-                    plus += 1;
-                }
-                let left_sum = Self::path_sum_dfs(root.left.clone(), target_sum, current);
-                let right_sum = Self::path_sum_dfs(root.right.clone(), target_sum, current);
-                left_sum + right_sum + plus
-            }
-        }
-    }
-    //438
-    pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+    //2942
+    pub fn find_words_containing(words: Vec<String>, x: char) -> Vec<i32> {
         let mut res = vec![];
-        if s.len() < p.len() {
-            return res;
-        }
-        let s = s.as_bytes();
-        let p = p.as_bytes();
-        let mut s_number = [0; 26];
-        let mut p_number = [0; 26];
-        for i in 0..p.len() {
-            let s_char = s[i];
-            let p_char = p[i];
-            s_number[(s_char - b'a') as usize] += 1;
-            p_number[(p_char - b'a') as usize] += 1;
-        }
-        if s_number == p_number {
-            res.push(0);
-        }
-        for i in 1..s.len() - p.len() + 1 {
-            s_number[(s[i - 1] - b'a') as usize] -= 1;
-            s_number[(s[i + p.len() - 1] - b'a') as usize] += 1;
-            if s_number == p_number {
+        for (i, word) in words.into_iter().enumerate() {
+            if word.contains(x) {
                 res.push(i as i32);
             }
         }
-
-        res
-    }
-    //442
-    pub fn find_duplicates(nums: Vec<i32>) -> Vec<i32> {
-        let len = nums.len();
-        let mut nums = nums;
-        let mut i = 0;
-        loop {
-            if i == len {
-                break;
-            }
-            while nums[i] != nums[nums[i] as usize - 1] {
-                let p = nums[i];
-                let next_idx = nums[i] as usize - 1;
-                nums[i] = nums[next_idx];
-                nums[next_idx] = p;
-            }
-            i += 1;
-        }
-        let mut res = vec![];
-        for i in 0..len {
-            if nums[i] == i as i32 + 1 {
-                res.push(nums[i]);
-            }
-        }
         res
     }
 
-    // 443
-    pub fn compress(chars: &mut Vec<char>) -> i32 {
-        let mut left = 0;
-        let mut right = 0;
-        let mut current_len = 0;
-        let mut res_char = vec![];
-        while right < chars.len() {
-            if chars[left] == chars[right] {
-                current_len += 1;
-            } else {
-                res_char.push(chars[left]);
-                if current_len > 1 {
-                    for e in current_len.to_string().chars() {
-                        res_char.push(e);
+    //449
+    fn solution_449() {
+        struct Codec {}
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Codec {
+            fn new() -> Self {
+                Self {}
+            }
+
+            fn serialize(&self, root: Option<Rc<RefCell<TreeNode>>>) -> String {
+                let mut pre_order = vec![];
+                let mut mid_order = vec![];
+                fn build_pre_order(
+                    root: Option<Rc<RefCell<TreeNode>>>,
+                    pre_order: &mut Vec<String>,
+                ) {
+                    if let Some(root) = root {
+                        let root = root.borrow();
+                        pre_order.push(root.val.to_string());
+                        build_pre_order(root.left.clone(), pre_order);
+                        build_pre_order(root.right.clone(), pre_order);
                     }
                 }
-
-                left = right;
-                current_len = 0;
-                continue;
+                fn build_mid_order(
+                    root: Option<Rc<RefCell<TreeNode>>>,
+                    mid_order: &mut Vec<String>,
+                ) {
+                    if let Some(root) = root {
+                        let root = root.borrow();
+                        build_mid_order(root.left.clone(), mid_order);
+                        mid_order.push(root.val.to_string());
+                        build_mid_order(root.right.clone(), mid_order);
+                    }
+                }
+                build_mid_order(root.clone(), &mut mid_order);
+                build_pre_order(root, &mut pre_order);
+                let pre_order = pre_order.join(",");
+                let mid_order = mid_order.join(",");
+                format!("{}#{}", pre_order, mid_order)
             }
-            right += 1;
+
+            fn deserialize(&self, data: String) -> Option<Rc<RefCell<TreeNode>>> {
+                let (pre, mid) = data.split_once("#").unwrap();
+                let pre_order = pre
+                    .split(",")
+                    .map(|x| x.parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>();
+                let mid_order = mid
+                    .split(",")
+                    .map(|x| x.parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>();
+
+                fn build_tree(
+                    pre_order: &[i32],
+                    mid_order: &[i32],
+                ) -> Option<Rc<RefCell<TreeNode>>> {
+                    if pre_order.len() != 0 {
+                        let mut root = TreeNode::new(pre_order[0]);
+                        let idx = mid_order.binary_search(&pre_order[0]).unwrap();
+
+                        root.left = build_tree(&pre_order[1..idx + 1], &mid_order[..idx]);
+                        root.right = build_tree(&pre_order[idx + 1..], &mid_order[idx + 1..]);
+                        Some(Rc::new(RefCell::new(root)))
+                    } else {
+                        None
+                    }
+                }
+                build_tree(&pre_order, &mid_order)
+            }
         }
-        *chars = res_char;
-        chars.len() as i32
     }
-    //445
-    pub fn add_two_numbers(
-        l1: Option<Box<ListNode>>,
-        l2: Option<Box<ListNode>>,
-    ) -> Option<Box<ListNode>> {
-        fn list_len(l: Option<&Box<ListNode>>, len: &mut i32) {
-            match l {
-                Some(l) => {
-                    *len += 1;
-                    list_len(l.next.as_ref(), len);
-                }
-                _ => {}
-            }
-        }
-        let mut len1 = 0;
-        let mut len2 = 0;
-        let mut res = Some(Box::new(ListNode::new(0)));
-        list_len(l1.as_ref(), &mut len1);
-        list_len(l2.as_ref(), &mut len2);
-        if len1 != len2 {
-            let l_need_append;
-            let another;
-            if len1 > len2 {
-                l_need_append = l2;
-                another = l1;
-            } else {
-                l_need_append = l1;
-                another = l2;
-            }
-            let dif = (len1 - len2).abs();
-            let mut new_h = ListNode::new(0);
-            let mut x = &mut new_h;
-            for _ in 1..dif {
-                // let a = &mut new_node;
-                x.next = Some(Box::new(ListNode::new(0)));
-                x = x.next.as_mut().unwrap();
-            }
-            x.next = l_need_append;
+    //450
+    pub fn delete_node(
+        root: Option<Rc<RefCell<TreeNode>>>,
+        key: i32,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        fn dfs_tree(root: &mut Option<Rc<RefCell<TreeNode>>>, k: i32) {
+            let inner = root.take();
+            if let Some(inner) = inner {
+                if inner.borrow().val == k {
+                    let left = inner.borrow_mut().left.take();
+                    let right = inner.borrow_mut().right.take();
+                    match (left, right) {
+                        (None, None) => {
+                            *root = None;
+                        }
+                        (Some(left), None) => {
+                            *root = Some(left);
+                        }
+                        (None, Some(right)) => {
+                            *root = Some(right);
+                        }
 
-            let carry = dfs_build(
-                another.as_ref(),
-                Some(Box::new(new_h)).as_ref(),
-                res.as_mut(),
-            );
-            if carry != 0 {
-                res.as_mut().unwrap().val = carry;
-                return res;
-            }
-            return res.unwrap().next;
-        } else {
-            let mut res = Some(Box::new(ListNode::new(0)));
-            let carry = dfs_build(l2.as_ref(), l1.as_ref(), res.as_mut());
-            if carry != 0 {
-                res.as_mut().unwrap().val = carry;
-                return res;
-            }
-            return res.unwrap().next;
-        }
-        fn dfs_build(
-            l1: Option<&Box<ListNode>>,
-            l2: Option<&Box<ListNode>>,
-            res: Option<&mut Box<ListNode>>,
-        ) -> i32 {
-            match (l1, l2) {
-                (Some(l1), Some(l2)) => {
-                    let mut node = Some(Box::new(ListNode::new(0)));
-                    let carry = dfs_build(l1.next.as_ref(), l2.next.as_ref(), node.as_mut());
-                    let r = l1.val + l2.val + carry;
-                    node.as_mut().unwrap().val = r % 10;
-                    res.unwrap().next = node;
-                    r / 10
-                }
-                (None, None) => 0,
-                _ => {
-                    unreachable!()
+                        (Some(left), Some(right)) => {
+                            let mut l = left.clone();
+                            loop {
+                                if l.borrow_mut().right.is_none() {
+                                    l.borrow_mut().right = Some(right);
+                                    break;
+                                } else {
+                                    let e = l.borrow_mut().right.clone();
+                                    l = e.unwrap();
+                                }
+                            }
+                            *root = Some(left);
+                        }
+                    }
+                } else {
+                    if inner.borrow().val > k {
+                        dfs_tree(&mut inner.borrow_mut().left, k);
+                    } else {
+                        dfs_tree(&mut inner.borrow_mut().right, k);
+                    }
+                    *root = Some(inner);
                 }
             }
         }
+        let mut root = root;
+        dfs_tree(&mut root, key);
+        root
+    }
+    //2131
+    pub fn longest_palindrome_2131(words: Vec<String>) -> i32 {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let mut res = 0;
+        let mut middle = false;
+        for w in words.iter() {
+            if let Some(v) = map.get_mut(w.as_bytes()) {
+                *v += 1;
+            } else {
+                map.insert(w.as_bytes(), 1);
+            }
+        }
+        for word in words.iter() {
+            let word = word.as_bytes();
+            if let Some(v) = map.get_mut(&[word[1], word[0]] as &[u8]) {
+                if *v > 1 && word[0] != word[1] {
+                    *v -= 1;
+                    res += 4;
+                } else if *v == 1 && word[0] == word[1] {
+                    middle = true;
+                } else if *v >= 2 && word[0] == word[1] {
+                    *v -= 1;
+                    res += 4;
+                }
+            }
+            *map.get_mut(word).unwrap() -= 1;
+        }
+        if middle {
+            res += 2;
+        }
+        res
+    }
+
+    //451
+    pub fn frequency_sort(s: String) -> String {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let mut res = String::new();
+        for i in s.as_bytes() {
+            if let Some(v) = map.get_mut(i) {
+                *v += 1;
+            } else {
+                map.insert(*i, 1);
+            }
+        }
+        let mut arr: Vec<(u8, i32)> = map.into_iter().map(|x| x).collect();
+        arr.sort_by(|x, y| y.1.cmp(&x.1));
+        for w in arr {
+            res.push_str(&format!("{}", w.0 as char).repeat(w.1 as usize));
+        }
+        res
+    }
+
+    //452
+    pub fn find_min_arrow_shots(points: Vec<Vec<i32>>) -> i32 {
+        let mut points = points;
+        points.sort_by(|x, y| x[0].cmp(&y[0]));
+        let mut res = 0;
+        let mut left = 0;
+        let mut right = 1;
+        let mut max = points[0][1];
+        while right < points.len() {
+            if points[right][0] <= max {
+                max = max.max(points[right][1]);
+            } else {
+                res += 1;
+                left = right;
+                right = right + 1;
+                max = points[left][1];
+            }
+        }
+        res
+    }
+    fn asd() {
+        
     }
     //447
     pub fn number_of_boomerangs(points: Vec<Vec<i32>>) -> i32 {
