@@ -91,10 +91,5 @@ fn sort() {
 
 #[test]
 fn e() {
-    let mut map_1: HashMap<i32,i32> = HashMap::new();
-    map_1.insert(1, 2);
-    let mut map_2: HashMap<i32, i32> = HashMap::new();
-    map_2.insert(1, 3);
-     map_2.insert(2, 3);
-    println!("{:?}",map_1 == map_2);
+
 }

@@ -1027,4 +1027,51 @@ impl Solution {
             }
         }
     }
+    //447
+    pub fn number_of_boomerangs(points: Vec<Vec<i32>>) -> i32 {
+        use std::collections::HashMap;
+        let mut res = 0;
+        for i in 0..points.len() {
+            let left = (points[i][0], points[i][1]);
+            let mut map = HashMap::new();
+            for j in 0..points.len() {
+                let right = (points[j][0], points[j][1]);
+                let dist = (right.0 - left.0) * (right.0 - left.0)
+                    + (right.1 - left.1) * (right.1 - left.1);
+                if let Some(v) = map.get_mut(&dist) {
+                    *v += 1;
+                } else {
+                    map.insert(dist, 1);
+                }
+            }
+            for (k, v) in map {
+                res += v * (v - 1)
+            }
+        }
+        res
+    }
+    //448
+    pub fn find_disappeared_numbers(nums: Vec<i32>) -> Vec<i32> {
+        let mut nums = nums;
+        let len = nums.len();
+        for i in 0..len {
+            while nums[i] as usize != i + 1 {
+                let target = nums[i] as usize - 1;
+                if nums[target] == nums[i] {
+                    break;
+                }
+                let t = nums[i];
+                nums[i] = nums[target];
+                nums[target] = t;
+            }
+        }
+        let mut res = vec![];
+        for i in 0..len {
+            if nums[i] as usize != i + 1 {
+                res.push(i as i32 + 1);
+            }
+        }
+
+        res
+    }
 }
