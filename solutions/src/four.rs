@@ -1,5 +1,5 @@
 #![allow(dead_code, unused)]
-use std::{cell::RefCell, process::id, rc::Rc};
+use std::{cell::RefCell, collections, process::id, rc::Rc};
 
 use rand::rand_core::le;
 
@@ -853,5 +853,79 @@ impl Solution {
         let mut root = root;
         dfs_tree(&mut root, key);
         root
+    }
+    //2131
+    pub fn longest_palindrome_2131(words: Vec<String>) -> i32 {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let mut res = 0;
+        let mut middle = false;
+        for w in words.iter() {
+            if let Some(v) = map.get_mut(w.as_bytes()) {
+                *v += 1;
+            } else {
+                map.insert(w.as_bytes(), 1);
+            }
+        }
+        for word in words.iter() {
+            let word = word.as_bytes();
+            if let Some(v) = map.get_mut(&[word[1], word[0]] as &[u8]) {
+                if *v > 1 && word[0] != word[1] {
+                    *v -= 1;
+                    res += 4;
+                } else if *v == 1 && word[0] == word[1] {
+                    middle = true;
+                } else if *v >= 2 && word[0] == word[1] {
+                    *v -= 1;
+                    res += 4;
+                }
+            }
+            *map.get_mut(word).unwrap() -= 1;
+        }
+        if middle {
+            res += 2;
+        }
+        res
+    }
+
+    //451
+    pub fn frequency_sort(s: String) -> String {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        let mut res = String::new();
+        for i in s.as_bytes() {
+            if let Some(v) = map.get_mut(i) {
+                *v += 1;
+            } else {
+                map.insert(*i, 1);
+            }
+        }
+        let mut arr: Vec<(u8, i32)> = map.into_iter().map(|x| x).collect();
+        arr.sort_by(|x, y| y.1.cmp(&x.1));
+        for w in arr {
+            res.push_str(&format!("{}", w.0 as char).repeat(w.1 as usize));
+        }
+        res
+    }
+
+    //452
+    pub fn find_min_arrow_shots(points: Vec<Vec<i32>>) -> i32 {
+        let mut points = points;
+        points.sort_by(|x, y| x[0].cmp(&y[0]));
+        let mut res = 0;
+        let mut left = 0;
+        let mut right = 1;
+        let mut max = points[0][1];
+        while right < points.len() {
+            if points[right][0] <= max {
+                max = max.max(points[right][1]);
+            } else {
+                res += 1;
+                left = right;
+                right = right + 1;
+                max = points[left][1];
+            }
+        }
+        res
     }
 }
