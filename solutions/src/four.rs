@@ -928,9 +928,7 @@ impl Solution {
         }
         res
     }
-    fn asd() {
-        
-    }
+    fn asd() {}
     //447
     pub fn number_of_boomerangs(points: Vec<Vec<i32>>) -> i32 {
         use std::collections::HashMap;
@@ -974,6 +972,56 @@ impl Solution {
             if nums[i] as usize != i + 1 {
                 res.push(i as i32 + 1);
             }
+        }
+
+        res
+    }
+
+    //1857
+    /// dp[u][c], n as the end node, the max colors of c;
+    /// dp[u][c] = max(dp[v][c]) -- v as the pre_nodes to u
+    /// 
+    pub fn largest_path_value(colors: String, edges: Vec<Vec<i32>>) -> i32 {
+        use std::collections::VecDeque;
+        let colors = colors.as_bytes();
+        let node_num = colors.len();
+        let mut in_edge = vec![0; node_num];
+        let mut g = vec![vec![]; node_num];
+        for edge in edges {
+            in_edge[edge[1] as usize] += 1;
+            g[edge[0] as usize].push(edge[1] as usize);
+        }
+        let mut start_nodes = VecDeque::new();
+        let mut dp = vec![vec![0; 26]; node_num];
+        for (idx, in_num) in in_edge.iter().enumerate() {
+            if *in_num == 0 {
+                start_nodes.push_back(idx);
+            }
+        }
+        let mut found = 0;
+
+        while let Some(next) = start_nodes.pop_front() {
+            dp[next][colors[next] as usize - 97] += 1;
+            found += 1;
+            for n in g[next].iter() {
+                in_edge[*n] -= 1;
+
+                for i in 0..26 {
+                    dp[*n][i] = dp[*n][i].max(dp[next][i]);
+                }
+
+                if in_edge[*n] == 0 {
+                    start_nodes.push_back(*n);
+                }
+            }
+        }
+        if found != node_num {
+            return -1;
+        }
+        let mut res = 0;
+
+        for e in dp {
+            res = res.max(*e.iter().max().unwrap());
         }
 
         res

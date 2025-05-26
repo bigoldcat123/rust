@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     f32::consts::PI,
     future, mem,
     rc::Rc,
@@ -97,4 +97,23 @@ fn e() {
     map_2.insert(1, 3);
      map_2.insert(2, 3);
     println!("{:?}",map_1 == map_2);
+
+    fn show_all_t_sort(node_num:usize,map:Vec<(usize,usize)>) {
+        let mut in_num = vec![0;node_num];
+        let mut g = vec![vec![];node_num];
+        for (f,t) in map {
+            in_num[t as usize] += 1;
+            g[f as usize].push(t);
+        }
+        let mut start = VecDeque::new();
+        for i in in_num.iter().enumerate() {
+            if *i.1 == 0 {
+                start.push_back(i.0);
+            }
+        }
+
+        while let Some(node) = start.pop_front() {
+            
+        }
+    }
 }
