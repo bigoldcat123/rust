@@ -980,7 +980,7 @@ impl Solution {
     //1857
     /// dp[u][c], n as the end node, the max colors of c;
     /// dp[u][c] = max(dp[v][c]) -- v as the pre_nodes to u
-    /// 
+    ///
     pub fn largest_path_value(colors: String, edges: Vec<Vec<i32>>) -> i32 {
         use std::collections::VecDeque;
         let colors = colors.as_bytes();
@@ -1022,6 +1022,165 @@ impl Solution {
 
         for e in dp {
             res = res.max(*e.iter().max().unwrap());
+        }
+
+        res
+    }
+
+    //2894
+    pub fn difference_of_sums(n: i32, m: i32) -> i32 {
+        let mut num1 = 0;
+        let mut num2 = 0;
+        for i in 1..=n {
+            if i % m != 0 {
+                num1 += i;
+            } else {
+                num2 += i;
+            }
+        }
+        num1 - num2
+    }
+    //454
+    pub fn four_sum_count(
+        nums1: Vec<i32>,
+        nums2: Vec<i32>,
+        nums3: Vec<i32>,
+        nums4: Vec<i32>,
+    ) -> i32 {
+        let mut res = 0;
+        // let mut num_1_2 = vec![];
+        // let mut num_3_4 = vec![];
+        // for i in nums1 {
+        //     for j in &nums2 {
+        //         num_1_2.push(i + *j);
+        //     }
+        // }
+
+        // for i in nums3 {
+        //     for j in &nums4 {
+        //         num_3_4.push(i + *j);
+        //     }
+        // }
+
+        // let mut neg_num_1_2 = num_1_2.iter().filter(|x| **x < 0).collect::<Vec<&i32>>();
+        // let mut post_num_3_4 = num_3_4.iter().filter(|x| **x > 0).collect::<Vec<&i32>>();
+        // post_num_3_4.sort_by(|a, b| b.cmp(a));
+        // neg_num_1_2.sort();
+
+        // let mut i = 0;
+        // let mut j = 0;
+
+        // loop {
+        //     if i >= post_num_3_4.len() || j >= neg_num_1_2.len() {
+        //         break;
+        //     }
+        //     let post_number = post_num_3_4[i];
+        //     let neg_number = neg_num_1_2[j];
+        //     if *post_number == -*neg_number {
+
+        //         let mut x = 0;
+        //         while i < post_num_3_4.len() && *post_num_3_4[i] == -*neg_number {
+        //             x += 1;
+        //             i += 1;
+        //         }
+        //         let mut y = 0;
+        //         while j < neg_num_1_2.len() && *post_number == -*neg_num_1_2[j] {
+        //             y += 1;
+        //             j += 1;
+        //         }
+        //         res += y * x;
+        //         //10 > --9
+        //     } else if *post_number > -*neg_number {
+        //         i += 1;
+        //     } else {
+        //         //10 < --11
+        //         j += 1
+        //     }
+        // }
+
+        // let mut neg_num_1_2 = num_3_4.iter().filter(|x| **x < 0).collect::<Vec<&i32>>();
+        // let mut post_num_3_4 = num_1_2.iter().filter(|x| **x > 0).collect::<Vec<&i32>>();
+        // post_num_3_4.sort_by(|a, b| b.cmp(a));
+        // neg_num_1_2.sort();
+
+        // let mut i = 0;
+        // let mut j = 0;
+
+        // loop {
+        //     if i >= post_num_3_4.len() || j >= neg_num_1_2.len() {
+        //         break;
+        //     }
+        //     let post_number = post_num_3_4[i];
+        //     let neg_number = neg_num_1_2[j];
+        //     if *post_number == -*neg_number {
+        //         let mut x = 0;
+        //         while i < post_num_3_4.len() && *post_num_3_4[i] == -*neg_number {
+        //             x += 1;
+        //             i += 1;
+        //         }
+        //         let mut y = 0;
+        //         while j < neg_num_1_2.len() && *post_number == -*neg_num_1_2[j] {
+        //             y += 1;
+        //             j += 1;
+        //         }
+        //         res += y * x;
+        //         //10 > --9
+        //     } else if *post_number > -*neg_number {
+        //         i += 1;
+        //     } else {
+        //         //10 < --11
+        //         j += 1
+        //     }
+        // }
+
+        // let mut neg_num_1_2 = num_3_4.iter().filter(|x| **x == 0).collect::<Vec<&i32>>();
+        // let mut post_num_3_4 = num_1_2.iter().filter(|x| **x == 0).collect::<Vec<&i32>>();
+        // res += neg_num_1_2.len() as i32 * post_num_3_4.len() as i32;
+
+        use std::collections::HashMap;
+        let mut res = 0;
+        let mut map = HashMap::new();
+        for i in nums1.iter() {
+            for j in nums2.iter() {
+                if let Some(v) = map.get_mut(&(*j + *i)) {
+                    *v += 1;
+                } else {
+                    map.insert(*j + *i, 1);
+                }
+            }
+        }
+
+        for i in nums3.iter() {
+            for j in nums4.iter() {
+                let key = *j * -*j;
+                if let Some(v) = map.get_mut(&key) {
+                    if *v >= 1 {
+                        res += 1;
+                        *v -= 1;
+                    }
+                }
+            }
+        }
+        res
+    }
+
+    //455
+    pub fn find_content_children(g: Vec<i32>, s: Vec<i32>) -> i32 {
+        let mut g = g;
+        let mut s = s;
+        g.sort();;
+        s.sort();;
+        let mut i = 0;
+        let mut j = 0;
+        let mut res = 0;
+        while j < g.len() && i < s.len() {
+            if s[i] >= g[j] {
+                j += 1;
+                i += 1;
+                res += 1;
+            }else if s[i] < g[j] {
+                i += 1;
+            }
         }
 
         res
