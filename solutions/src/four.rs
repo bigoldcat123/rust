@@ -1296,4 +1296,47 @@ impl Solution {
         }
         false
     }
+
+    //dp 139
+    // dp[i] the first i item can be constructed by the word dict
+    // dp[i] = true if dict contains s[0..i]
+    // check preceding dp
+    pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
+        let mut dp = vec![false; s.len()];
+        let s = s.as_str();
+        for i in 0..s.len() {
+            if word_dict.contains(&format!("{}", &s[0..=i])) {
+                dp[i] = true;
+            } else {
+                for j in 0..i {
+                    if dp[j] && word_dict.contains(&format!("{}", &s[j + 1..=i])) {
+                        dp[i] = true
+                    }
+                }
+            }
+        }
+        dp.pop().unwrap()
+    }
+    //516
+    pub fn longest_palindrome_subseq(s: String) -> i32 {
+        let mut dp = vec![vec![1; s.len()]; s.len()];
+        let s = s.as_bytes();
+        for i in 0..s.len() - 1 {
+            if s[i] == s[i + 1] {
+                dp[i][i + 1] = 2
+            }
+        }
+        for i in 2..s.len() {
+            for j in 0..s.len() - i {
+                // println!("{} {}",j,j+ i);
+                if s[j] == s[j + i] {
+                    dp[j][j + i] = dp[j + 1][j + i - 1] + 2;
+                } else {
+                    dp[j][j + i] = dp[j + 1][j + i].max(dp[j][j + i - 1]);
+                }
+            }
+        }
+        // println!("{:?}",dp);
+        *dp[0].last().unwrap()
+    }
 }
