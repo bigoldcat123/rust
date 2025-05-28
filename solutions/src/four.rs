@@ -1168,8 +1168,8 @@ impl Solution {
     pub fn find_content_children(g: Vec<i32>, s: Vec<i32>) -> i32 {
         let mut g = g;
         let mut s = s;
-        g.sort();;
-        s.sort();;
+        g.sort();
+        s.sort();
         let mut i = 0;
         let mut j = 0;
         let mut res = 0;
@@ -1178,11 +1178,122 @@ impl Solution {
                 j += 1;
                 i += 1;
                 res += 1;
-            }else if s[i] < g[j] {
+            } else if s[i] < g[j] {
                 i += 1;
             }
         }
 
         res
+    }
+
+    //3372
+    pub fn max_target_nodes(edges1: Vec<Vec<i32>>, edges2: Vec<Vec<i32>>, k: i32) -> Vec<i32> {
+        use std::collections::VecDeque;
+        let mut tree1 = vec![vec![]; edges1.len() + 1];
+        let mut tree2 = vec![vec![]; edges2.len() + 1];
+        let mut asw = vec![0; edges1.len() + 1];
+        for edge in edges1 {
+            let p = edge[0] as usize;
+            let c = edge[1] as usize;
+            tree1[p].push(c);
+            tree1[c].push(p);
+        }
+
+        for edge in edges2 {
+            let p = edge[0] as usize;
+            let c = edge[1] as usize;
+            tree2[p].push(c);
+            tree2[c].push(p);
+        }
+
+        let mut max_tree2 = 0;
+        let mut q = VecDeque::new();
+        let mut selected = vec![false; tree2.len()];
+        for i in 0..tree2.len() {
+            selected.fill(false);
+            q.push_back(i);
+            selected[i] = true;
+            let mut m = 1;
+            let mut current_layer = 1;
+            if k == 0 {
+                max_tree2 = 0;
+                break;
+            }
+            while !q.is_empty() {
+                if current_layer >= k {
+                    q.clear();
+                    break;
+                }
+                current_layer += 1;
+                let mut s = q.split_off(0);
+
+                while let Some(parent) = s.pop_front() {
+                    for i in &tree2[parent] {
+                        if !selected[*i] {
+                            m += 1;
+                            q.push_back(*i);
+                            selected[*i] = true;
+                        }
+                    }
+                }
+            }
+            max_tree2 = max_tree2.max(m);
+        }
+
+        let mut q = VecDeque::new();
+        let mut selected = vec![false; asw.len()];
+        for i in 0..asw.len() {
+            selected.fill(false);
+            let mut max = 0;
+            q.push_back(i);
+            selected[i] = true;
+            let mut layer = 0;
+
+            while !q.is_empty() {
+                if layer > k {
+                    q.clear();
+                    break;
+                }
+                layer += 1;
+                let mut qq = q.split_off(0);
+                while let Some(p) = qq.pop_front() {
+                    max += 1;
+
+                    for c in &tree1[p] {
+                        if !selected[*c] {
+                            q.push_back(*c);
+                            selected[*c] = true;
+                        }
+                    }
+                }
+            }
+            asw[i] = max + max_tree2;
+        }
+
+        asw
+    }
+
+    //456
+    pub fn find132pattern(mut nums: Vec<i32>) -> bool {
+        use std::collections::BTreeMap;
+        let mut left_min = nums[0];
+        let mut tree_map = BTreeMap::new();
+        for i in 2..nums.len() {
+            tree_map.insert(nums[i], *tree_map.get(&nums[i]).unwrap_or(&0) + 1);
+        }
+        for i in 1..nums.len() - 1 {
+            if left_min < nums[i] {
+                if tree_map.range(left_min + 1..nums[i]).count() != 0 {
+                    return true;
+                }
+            } else {
+                left_min = left_min.min(nums[i]);
+            }
+            tree_map.insert(nums[i + 1], *tree_map.get(&nums[i + 1]).unwrap() - 1);
+            if *tree_map.get(&nums[i + 1]).unwrap() == 0 {
+                tree_map.remove(&nums[i + 1]).unwrap();
+            }
+        }
+        false
     }
 }
