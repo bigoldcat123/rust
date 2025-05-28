@@ -1,5 +1,5 @@
 #![allow(dead_code, unused)]
-use std::{cell::RefCell, collections, process::id, rc::Rc};
+use std::{cell::RefCell, collections, process::id, rc::Rc, usize, vec};
 
 use rand::rand_core::le;
 
@@ -1318,6 +1318,9 @@ impl Solution {
         dp.pop().unwrap()
     }
     //516
+    // dp[i,j] max count from i to j
+    // dp[i,j] = max( dp[i + 1,j], dp[i,j - 1] )
+    // dp[i,j] = dp[i + 1,j -1] + 2 , if s[i] == s[j]
     pub fn longest_palindrome_subseq(s: String) -> i32 {
         let mut dp = vec![vec![1; s.len()]; s.len()];
         let s = s.as_bytes();
@@ -1338,5 +1341,85 @@ impl Solution {
         }
         // println!("{:?}",dp);
         *dp[0].last().unwrap()
+    }
+    // dp[i,j]
+    pub fn min_distance(word1: String, word2: String) -> i32 {
+        let word1 = word1.as_bytes();
+        let word2 = word2.as_bytes();
+        let mut dp = vec![vec![0; word1.len() + 1]; word2.len() + 1];
+        for i in 1..dp.len() {
+            dp[i][0] = dp[i - 1][0] + 1;
+        }
+        for i in 1..dp[0].len() {
+            dp[0][i] = dp[0][i - 1] + 1;
+        }
+
+        for i in 1..dp.len() {
+            for j in 1..dp[0].len() {
+                if word1[i - 1] == word2[j - 1] {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = dp[i - 1][j].max(dp[i][j - 1]).max(dp[i - 1][j - 1]) + 1;
+                }
+            }
+        }
+
+        *dp.last().unwrap().last().unwrap()
+    }
+    //
+    pub fn find_number_of_lis(nums: Vec<i32>) -> i32 {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+
+        let mut dp = vec![1; nums.len()];
+        map.insert(1, vec![0]);
+        let mut max = 1;
+        for i in 1..nums.len() {
+            for j in 0..i {
+                if nums[i] > nums[j] {
+                    dp[i] = dp[i].max(dp[j] + 1);
+                }
+            }
+            max = max.max(dp[i]);
+            if let Some(v) = map.get_mut(&dp[i]) {
+                v.push(i);
+            } else {
+                map.insert(dp[i], vec![i]);
+            }
+        }
+        let mut res = 0;
+        let mut mem: HashMap<usize, i32> = HashMap::new();
+        fn dfs_find(
+            search: i32,
+            map: &HashMap<i32, Vec<usize>>,
+            nums: &Vec<i32>,
+            // res: &mut i32,
+            lax_idx: usize,
+            mem: &mut HashMap<usize, i32>,
+        ) -> i32 {
+            if search == 0 {
+                return 1;
+            }
+            let mut res = 0;
+            let nodes = map.get(&search).unwrap();
+            for n in nodes {
+                if lax_idx == usize::MAX {
+                    if let Some(r) = mem.get(&lax_idx) {
+                        return *r;
+                    } else {
+                        res += dfs_find(search - 1, map, nums, *n, mem);
+                    }
+                } else if *n < lax_idx && nums[*n] < nums[lax_idx] {
+                    if let Some(r) = mem.get(&lax_idx) {
+                        return *r;
+                    } else {
+                        res += dfs_find(search - 1, map, nums, *n, mem);
+                    }
+                }
+            }
+            mem.insert(lax_idx, res);
+            res
+        }
+        dfs_find(max, &map, &nums, usize::MAX, &mut mem)
     }
 }
