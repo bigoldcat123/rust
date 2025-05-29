@@ -5,7 +5,7 @@ use std::{
     future, mem,
     rc::Rc,
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant}, vec,
 };
 
 use solutions::{A, TreeNode, four::Solution};
@@ -116,4 +116,15 @@ fn e() {
             
         }
     }
+}
+
+
+#[test]
+fn test_function2() {
+    let nums = vec![1,-1,5,1,4];
+    let x = 1;
+    let mut next = ((nums[x] + x as i32 + nums.len() as i32) % nums.len() as i32) as usize;
+    println!("{:?}",    (-1 + 1 + 5) % 5
+);
+println!("{:?}",next);
 }

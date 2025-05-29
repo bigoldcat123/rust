@@ -1,5 +1,6 @@
 #![allow(dead_code, unused)]
-use std::{cell::RefCell, collections, process::id, rc::Rc, usize, vec};
+use core::num;
+use std::{cell::RefCell, rc::Rc, usize, vec};
 
 use rand::rand_core::le;
 
@@ -1421,5 +1422,210 @@ impl Solution {
             res
         }
         dfs_find(max, &map, &nums, usize::MAX, &mut mem)
+    }
+
+    //3373
+    pub fn max_target_nodes_v2(edges1: Vec<Vec<i32>>, edges2: Vec<Vec<i32>>) -> Vec<i32> {
+        use std::collections::{HashSet, VecDeque};
+        let mut tree1 = vec![vec![]; edges1.len() + 1];
+        let mut tree2 = vec![vec![]; edges2.len() + 1];
+        let mut res = vec![0; edges1.len() + 1];
+        // construct tree1 by edges 1
+        for edge in edges1 {
+            tree1[edge[0] as usize].push(edge[1] as usize);
+            tree1[edge[1] as usize].push(edge[0] as usize);
+        }
+
+        for edge in edges2 {
+            tree2[edge[0] as usize].push(edge[1] as usize);
+            tree2[edge[1] as usize].push(edge[0] as usize);
+        }
+        let mut set_tree2 = HashSet::new();
+        for i in 0..tree2.len() {
+            set_tree2.insert(i);
+        }
+        let mut max_target_num_on_tree2 = 0;
+
+        let mut q = VecDeque::new();
+        let mut is_selected_tree2 = vec![false; tree2.len()];
+        let mut target_nodes_tree2_set = HashSet::new();
+        q.push_back(0);
+        is_selected_tree2[0] = true;
+        let mut layer = 0;
+        while !q.is_empty() {
+            let parents = q.split_off(0);
+
+            for parent in parents {
+                for child in tree2[parent].iter() {
+                    if layer % 2 == 0 {
+                        target_nodes_tree2_set.insert(*child);
+                    }
+                    if !is_selected_tree2[*child] {
+                        q.push_back(*child);
+                        is_selected_tree2[*child] = true;
+                    }
+                }
+            }
+            layer += 1;
+        }
+
+        let a = set_tree2.difference(&target_nodes_tree2_set).count();
+
+        max_target_num_on_tree2 = a.max(target_nodes_tree2_set.len()) as i32;
+
+        let mut q = VecDeque::new();
+        let mut selected_tree1 = vec![false; tree1.len()];
+        let mut tree1_set = HashSet::new();
+        for i in 0..tree1.len() {
+            tree1_set.insert(i);
+        }
+        q.push_back(0);
+        layer = 0;
+        let mut target_nodes_set = HashSet::new();
+        while !q.is_empty() {
+            let mut parents = q.split_off(0);
+            for parent in parents {
+                if layer % 2 == 0 {
+                    target_nodes_set.insert(parent);
+                }
+                for c in &tree1[parent] {
+                    if !selected_tree1[*c] {
+                        q.push_back(*c);
+                        selected_tree1[*c] = true;
+                    }
+                }
+            }
+            layer += 1;
+        }
+
+        let b = tree1_set.difference(&target_nodes_set).count() as i32;
+        target_nodes_set.iter().for_each(|x| {
+            res[*x] = target_nodes_set.len() as i32 + max_target_num_on_tree2;
+        });
+        tree1_set.difference(&target_nodes_set).for_each(|x| {
+            res[*x] = b + max_target_num_on_tree2;
+        });
+        res
+    }
+    //457
+    pub fn circular_array_loop(nums: Vec<i32>) -> bool {
+        fn cal_idx(step: i32, len: usize, current: usize) -> usize {
+            ((step % len as i32 + current as i32 + len as i32) % len as i32) as usize
+        }
+        fn in_the_same_direction(num: i32, dir: bool) -> bool {
+            if dir { num > 0 } else { num < 0 }
+        }
+        let mut fast = 0;
+        let mut slow = 0;
+        let mut dir;
+        for i in 0..nums.len() - 1 {
+            fast = i;
+            slow = i;
+            dir = nums[fast] > 0;
+            loop {
+                let next1_fast = cal_idx(nums[fast], nums.len(), fast);
+                if !in_the_same_direction(nums[next1_fast], dir) {
+                    break;
+                }
+                if fast == next1_fast {
+                    break;
+                }
+                fast = cal_idx(nums[next1_fast], nums.len(), next1_fast);
+                if !in_the_same_direction(nums[fast], dir) {
+                    break;
+                }
+                if fast == slow {
+                    return true;
+                }
+                slow = cal_idx(nums[slow], nums.len(), slow);
+                if !in_the_same_direction(nums[slow], dir) {
+                    break;
+                }
+            }
+        }
+        false
+    }
+
+    //89 finally!!!!!
+    pub fn gray_code(n: i32) -> Vec<i32> {
+        if n == 1 {
+            vec![0, 1]
+        } else {
+            let mut res = vec![];
+            let next = Self::gray_code(n - 1);
+            let x = 1 << n;
+            let y = 0 << n;
+            for i in 0..next.len() {
+                res.push(next[i] & y);
+            }
+            for i in (0..next.len()).rev() {
+                res.push(next[i] & x);
+            }
+            res
+        }
+    }
+    //241 finally!
+    pub fn diff_ways_to_compute(expression: String) -> Vec<i32> {
+        use std::collections::HashMap;
+        let mut dp = HashMap::new();
+
+        let mut ops = vec![];
+        let mut temp = String::new();
+        for i in expression.chars() {
+            if i.is_numeric() {
+                temp.push(i);
+            } else {
+                ops.push(temp.parse::<i32>().unwrap());
+                ops.push(match i {
+                    '+' => -1,
+                    '-' => -2,
+                    '*' => -3,
+                    _ => {
+                        unreachable!()
+                    }
+                });
+                temp.clear();
+            }
+        }
+
+        fn cal(l: i32, o: i32, r: i32) -> i32 {
+            match o {
+                -1 => l + o,
+                -2 => l - o,
+                -3 => l * o,
+                _ => unreachable!(),
+            }
+        }
+        fn dfs(
+            ops: &[i32],
+            start: usize,
+            end: usize,
+            dp: &mut HashMap<(usize, usize), Vec<i32>>,
+        ) -> Vec<i32> {
+            println!("{:?}",(start,end));
+            if let Some(cache) = dp.get(&(start, end)) {
+                return cache.clone();
+            }
+
+            if end - start == 1 {
+                return vec![ops[0]];
+            }
+            if end - start == 3 {
+                return vec![cal(ops[start], ops[start + 1], ops[start + 2])];
+            }
+            let mut res = vec![];
+            for i in (start + 1..end).step_by(2) {
+                let left = dfs(&ops, start, i, dp);
+                let right = dfs(&ops, i + 1, end, dp);
+                for l in left {
+                    for r in &right {
+                        res.push(cal(l, ops[i], *r));
+                    }
+                }
+            }
+            dp.insert((start, end), res.clone());
+            res
+        }
+        dfs(&ops, 0, ops.len(), &mut dp)
     }
 }
