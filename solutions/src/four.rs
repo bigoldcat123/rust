@@ -1,6 +1,6 @@
 #![allow(dead_code, unused)]
 use core::num;
-use std::{cell::RefCell, rc::Rc, usize, vec};
+use std::{cell::RefCell, i32, rc::Rc, usize, vec};
 
 use rand::rand_core::le;
 
@@ -1602,7 +1602,7 @@ impl Solution {
             end: usize,
             dp: &mut HashMap<(usize, usize), Vec<i32>>,
         ) -> Vec<i32> {
-            println!("{:?}",(start,end));
+            println!("{:?}", (start, end));
             if let Some(cache) = dp.get(&(start, end)) {
                 return cache.clone();
             }
@@ -1627,5 +1627,183 @@ impl Solution {
             res
         }
         dfs(&ops, 0, ops.len(), &mut dp)
+    }
+    //2359
+    pub fn closest_meeting_node(edges: Vec<i32>, node1: i32, node2: i32) -> i32 {
+        use std::collections::VecDeque;
+        let mut nodes = vec![vec![]; edges.len()];
+        let mut res = usize::MAX;
+        let mut dest_from_node1 = vec![nodes.len(); edges.len()];
+        let mut dest_from_node2 = vec![nodes.len(); edges.len()];
+
+        for (idx, value) in edges.into_iter().enumerate() {
+            if value >= 0 {
+                nodes[idx].push(value as usize);
+            }
+        }
+
+        dest_from_node1[node1 as usize] = 0;
+        dest_from_node2[node2 as usize] = 0;
+
+        fn dest_(dest: &mut Vec<usize>, node: usize, nodes: &Vec<Vec<usize>>) {
+            let mut q = VecDeque::new();
+            let mut selected = vec![false; nodes.len()];
+
+            for i in &nodes[node] {
+                q.push_back(*i);
+                selected[*i] = true;
+            }
+
+            let mut path_len = 1;
+            while !q.is_empty() {
+                let nexts = q.split_off(0);
+                for n in nexts {
+                    dest[n] = dest[n].min(path_len);
+                    for nn in &nodes[n] {
+                        if !selected[*nn] {
+                            q.push_back(*nn);
+                            selected[*nn] = true;
+                        }
+                    }
+                }
+                path_len += 1;
+            }
+        }
+
+        dest_(&mut dest_from_node1, node1 as usize, &nodes);
+        dest_(&mut dest_from_node2, node2 as usize, &nodes);
+        println!("{:?}", dest_from_node1);
+        println!("{:?}", dest_from_node2);
+        let mut min = usize::MAX;
+        for i in 0..dest_from_node1.len() {
+            if dest_from_node1[i] != nodes.len() && dest_from_node2[i] != nodes.len() {
+                if min > dest_from_node1[i].max(dest_from_node2[i]) {
+                    min = dest_from_node1[i].max(dest_from_node2[i]);
+                    res = i;
+                }
+            }
+        }
+        if res == usize::MAX { -1 } else { res as i32 }
+    }
+
+    //459
+    pub fn repeated_substring_pattern(s: String) -> bool {
+        let s = s.as_str();
+        if s.len() == 1 {
+            return false;
+        }
+        for len in 1..s.len() / 2 {
+            let m = &s[..len];
+            for i in (0..s.len()).step_by(len) {
+                if &s[i..(i + len)] != m {
+                    break;
+                }
+                if &s[i..(i + len)] == m && i + len == s.len() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    //461
+    pub fn hamming_distance(x: i32, y: i32) -> i32 {
+        let mut res = 0;
+        for i in 0..=31 {
+            if x & (1 << i) != y & (1 << i) {
+                res += 1;
+            }
+        }
+        res
+    }
+    //462
+    pub fn min_moves2(nums: Vec<i32>) -> i32 {
+        let mut nums = nums;
+        nums.sort();
+        let mid = nums[nums.len() / 2];
+        let mut res = 0;
+        for i in nums {
+            res += (i - mid).abs();
+        }
+        res
+    }
+
+    //463
+    pub fn island_perimeter(grid: Vec<Vec<i32>>) -> i32 {
+        fn search(grid: &Vec<Vec<i32>>, mark: &mut Vec<Vec<bool>>, row: usize, col: usize) -> i32 {
+            if mark[row][col] {
+                return 0;
+            }
+            if grid[row][col] == 0 {
+                return 1;
+            }
+            let mut res = 0;
+            mark[row][col] = true;
+            if row == 0 {
+                //top
+                res += 1;
+            } else {
+                res += search(grid, mark, row - 1, col);
+            }
+            if col == 0 {
+                //left
+                res += 1;
+            } else {
+                res += search(grid, mark, row, col - 1);
+            }
+            if row == grid.len() - 1 {
+                //bottom
+                res += 1;
+            } else {
+                res += search(grid, mark, row + 1, col);
+            }
+            if col == grid[0].len() - 1 {
+                res += 1;
+            } else {
+                res += search(grid, mark, row, col + 1);
+            }
+
+            res
+        }
+        let mut mark: Vec<Vec<bool>> = vec![vec![false; grid[0].len()]; grid.len()];
+        for i in 0..grid.len() {
+            for j in 0..grid[0].len() {
+                if grid[i][j] == 1 {
+                    return search(&grid, &mut mark, i, j);
+                }
+            }
+        }
+        unreachable!()
+    }
+
+    //464
+    pub fn can_i_win(max_choosable_integer: i32, desired_total: i32) -> bool {
+        if max_choosable_integer >= desired_total {
+            return true;
+        }
+        let mut number_availible = vec![true; max_choosable_integer as usize];
+        fn dfs_search(
+            number_availible: &mut Vec<bool>,
+            current_total: i32,
+            desired_total: i32,
+            current_turn: i32,
+        ) -> bool {
+            if current_total % 2 == 0 && current_total > desired_total {
+                return true;
+            }
+            if current_total % 2 == 1 && current_total > desired_total {
+                return false;
+            }
+            for i in 0..number_availible.len() {
+                let res = dfs_search(
+                    number_availible,
+                    current_total + i as i32 + 1,
+                    desired_total,
+                    current_turn + 1,
+                );
+                
+            }
+            true
+        }
+        dfs_search(&mut number_availible, 0, desired_total, 1)
     }
 }
