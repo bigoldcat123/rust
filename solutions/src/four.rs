@@ -1,5 +1,5 @@
 #![allow(dead_code, unused)]
-use core::num;
+use core::{num, time};
 use std::{cell::RefCell, i32, rc::Rc, usize, vec};
 
 use rand::rand_core::le;
@@ -1775,35 +1775,89 @@ impl Solution {
         unreachable!()
     }
 
-    //464
+    //464 the fuck!
     pub fn can_i_win(max_choosable_integer: i32, desired_total: i32) -> bool {
-        if max_choosable_integer >= desired_total {
-            return true;
-        }
-        let mut number_availible = vec![true; max_choosable_integer as usize];
-        fn dfs_search(
-            number_availible: &mut Vec<bool>,
-            current_total: i32,
-            desired_total: i32,
-            current_turn: i32,
-        ) -> bool {
-            if current_total % 2 == 0 && current_total > desired_total {
+        let mut numbers = vec![false; max_choosable_integer as usize];
+
+        fn dfs(selected: &mut Vec<bool>, current: i32, is_my_own: bool, target: i32) -> bool {
+            if current >= target {
                 return true;
             }
-            if current_total % 2 == 1 && current_total > desired_total {
-                return false;
+            for i in 0..selected.len() {
+                if !selected[i] {
+                    selected[i] = true;
+                    let r = dfs(selected, current + i as i32 + 1, !is_my_own, target);
+                    selected[i] = false;
+                    if r {
+                        return r;
+                    }
+                }
             }
-            for i in 0..number_availible.len() {
-                let res = dfs_search(
-                    number_availible,
-                    current_total + i as i32 + 1,
-                    desired_total,
-                    current_turn + 1,
-                );
-                
-            }
-            true
+            false
         }
-        dfs_search(&mut number_availible, 0, desired_total, 1)
+
+        for i in 0..max_choosable_integer as usize {
+            numbers[i] = true;
+            if dfs(&mut numbers, i as i32 + 1, true, desired_total) {
+                return true;
+            }
+            numbers[i] = false;
+        }
+
+        false
+    }
+
+    //909
+    pub fn snakes_and_ladders(board: Vec<Vec<i32>>) -> i32 {
+        use std::collections::VecDeque;
+        let mut b = vec![];
+        let mut board = board;
+        board.reverse();
+        for row in 0..board.len() {
+            if row % 2 == 1 {
+                board[row].reverse();
+            }
+            b.append(&mut board[row]);
+        }
+        let mut selected = vec![false; b.len()];
+        let mut q = VecDeque::new();
+        q.push_back(0);
+        selected[0] = true;
+        let mut times = 0;
+        while !q.is_empty() {
+            let pq = q.split_off(0);
+            times += 1;
+            for next in pq {
+                for i in 1..=6 {
+                    if next + i >= b.len() - 1 {
+                        return times;
+                    }
+                    if next + i < selected.len() && !selected[next + i] {
+                        if b[next + i] == -1 {
+                            q.push_back(next + i);
+                        } else {
+                            q.push_back(b[next + i] as usize - 1);
+                        }
+                        selected[next + i] = true;
+                    }
+                }
+            }
+        }
+        -1
+    }
+    //467 dp[i], a-z; 以i 结尾的个数 最长的！
+    pub fn find_substring_in_wrapround_string(s: String) -> i32 {
+        let mut dp = vec![0; 26];
+        let s = s.as_bytes();
+        let mut k = 1;
+        for i in 0..s.len() {
+            if i > 0 && s[i] - b'a' == (s[i - 1] - b'a' + 1) % 26 {
+                k += 1;
+            } else {
+                k = 1;
+            }
+            dp[(s[i] - b'a') as usize] = dp[(s[i] - b'a') as usize].max(k);
+        }
+        dp.into_iter().sum()
     }
 }
