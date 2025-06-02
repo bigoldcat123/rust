@@ -1,7 +1,8 @@
 #![allow(dead_code, unused)]
 use core::{num, time};
-use std::{cell::RefCell, i32, rc::Rc, usize, vec};
+use std::{cell::RefCell, collections::HashSet, i32, rc::Rc, str::FromStr, usize, vec};
 
+use log::log_enabled;
 use rand::rand_core::le;
 
 use crate::TreeNode;
@@ -1859,5 +1860,246 @@ impl Solution {
             dp[(s[i] - b'a') as usize] = dp[(s[i] - b'a') as usize].max(k);
         }
         dp.into_iter().sum()
+    }
+
+    pub fn check_equal_partitions(mut nums: Vec<i32>, target: i64) -> bool {
+        use std::collections::HashSet;
+        fn dfs_search(
+            size: usize,
+            nums: &Vec<i32>,
+            target: i64,
+            current: &mut HashSet<i32>,
+            start: usize,
+            current_value: i64,
+        ) -> bool {
+            // println!("{:?}",current );
+            if current.len() == size {
+                // println!("{:?}",current );
+                if current_value == target {
+                    let mut c = 1;
+                    for i in nums.iter().filter(|x| !current.contains(x)) {
+                        c *= *i as i64;
+                    }
+                    if c == target {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+            for i in start..nums.len() {
+                let x = current_value * nums[i] as i64;
+                if x > target {
+                    break;
+                }
+                current.insert(nums[i]);
+                if dfs_search(size, nums, target, current, start + 1, x) {
+                    return true;
+                }
+                current.remove(&nums[i]);
+            }
+            false
+        }
+        let mut nums = nums;
+        nums.sort();
+        let mut current = HashSet::new();
+        for i in 1..=nums.len() / 2 {
+            if dfs_search(i, &nums, target, &mut current, 0, 1) {
+                return true;
+            }
+        }
+        false
+    }
+
+    // c31: n: 3,x: 1;
+    pub fn conbination(n: Vec<i32>, x: usize) {
+        let mut selected = vec![false; n.len()];
+
+        fn find(
+            nums: &Vec<i32>,
+            current: &mut Vec<i32>,
+            seleted: &mut Vec<bool>,
+            x: usize,
+            start: usize,
+        ) {
+            if x == 0 {
+                println!("{:?}", current);
+                return;
+            }
+            for i in start..nums.len() {
+                current.push(nums[i]);
+                find(nums, current, seleted, x - 1, i + 1);
+                current.pop();
+            }
+        }
+
+        let mut s = vec![];
+        find(&n, &mut s, &mut selected, x, 0);
+    }
+
+    //q2
+    pub fn min_abs_diff(grid: Vec<Vec<i32>>, k: i32) -> Vec<Vec<i32>> {
+        let k = k as usize;
+        let mut res = vec![vec![0; grid[0].len() - k + 1]; grid.len() - k + 1];
+        for i in 0..=grid.len() - k {
+            for j in 0..=grid[0].len() - k {
+                let mut s = vec![];
+                for row in i + 0..i + k {
+                    for col in j + 0..j + k {
+                        s.push(grid[row][col]);
+                    }
+                }
+                s.sort();
+                s.dedup();
+                let mut min = i32::MAX;
+                for i in 1..s.len() {
+                    if (s[i] - s[i - 1]).abs() < min {
+                        min = (s[i] - s[i - 1]).abs();
+                    }
+                }
+                res[i][j] = min;
+            }
+        }
+        res
+    }
+
+    //468
+    pub fn valid_ip_address(query_ip: String) -> String {
+        use std::collections::HashSet;
+        let mut set = HashSet::new();
+        for i in 0..9 {
+            set.insert(b'0' + i);
+        }
+        for i in 0..6 {
+            set.insert(b'a' + i);
+        }
+        for i in 0..6 {
+            set.insert(b'A' + i);
+        }
+        if query_ip.contains(".") {
+            let mut q = query_ip.split(".");
+            if q.clone().count() != 4 {
+                return "Neither".to_string();
+            }
+
+            if q.all(|x| {
+                if x.len() != 1 && x.starts_with("0") || x.len() == 0 {
+                    return false;
+                } else {
+                    if let Ok(p) = x.parse::<i32>() {
+                        if p < 0 || p > 255 {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }) {
+                return "IPv4".to_string();
+            } else {
+                return "Neither".to_string();
+            }
+        } else {
+            if query_ip.split(":").count() != 8 {
+                return "Neither".to_string();
+            }
+            if query_ip.split(":").all(|x| {
+                if x.len() > 4 || x.len() == 0 {
+                    return false;
+                }
+                if x.chars().any(|xx| !set.contains(&(xx as u8))) {
+                    return false;
+                }
+                true
+            }) {
+                return "IPv6".to_string();
+            } else {
+                "Neither".to_string()
+            }
+        }
+    }
+    //473
+    pub fn makesquare(mut matchsticks: Vec<i32>) -> bool {
+        let mut matchsticks = matchsticks;
+
+        let sum = matchsticks.iter().sum::<i32>();
+
+        if sum % 4 != 0 {
+            return false;
+        }
+
+        matchsticks.sort_by(|a, b| b.cmp(a));
+        let mut edges = vec![0; 4];
+
+        fn dfs(edges: &mut Vec<i32>, matchsticks: &Vec<i32>, index: usize, n: i32) -> bool {
+            if index == matchsticks.len() {
+                return true;
+            }
+            for i in 0..edges.len() {
+                edges[i] += matchsticks[index];
+                if edges[i] <= n && dfs(edges, matchsticks, index + 1, n) {
+                    return true;
+                }
+                edges[i] -= matchsticks[index];
+            }
+            false
+        }
+        dfs(&mut edges, &matchsticks, 0, sum / 4)
+    }
+
+    //e135
+    pub fn candy(mut ratings: Vec<i32>) -> i32 {
+        let mut i = 1;
+        let mut r = vec![i32::MAX];
+        r.append(&mut ratings);
+        let ratings = r;
+        let mut res = vec![0; ratings.len()];
+
+        loop {
+            if ratings[i] > ratings[i - 1] && ratings[i] <= ratings[i + 1] {
+                res[i] = res[i - 1] + 1;
+            } else {
+                let mut times = 1;
+                let mut p_i = i;
+                while p_i < ratings.len() - 1 && ratings[p_i] > ratings[p_i + 1] {
+                    times += 1;
+                    p_i += 1;
+                }
+                // println!("{} {} ",res[i - 1],times);
+                if times < res[i - 1] + 1 && ratings[i] != ratings[i - 1] {
+                    res[i] = res[i - 1] + 1;
+                    i += 1;
+                    times -= 1;
+                    while i <= p_i {
+                        res[i] = times;
+                        i += 1;
+                        times -= 1;
+                    }
+                } else {
+                    while i <= p_i {
+                        res[i] = times;
+                        i += 1;
+                        times -= 1;
+                    }
+                }
+
+                i -= 1;
+            }
+            i += 1;
+            if i >= res.len() - 1 {
+                break;
+            }
+        }
+        if ratings[ratings.len() - 1] > ratings[ratings.len() - 2] {
+            res[ratings.len() - 1] = res[res.len() - 2] + 1;
+        } else {
+            res[ratings.len() - 1] = 1;
+        }
+        let res = res.iter().sum::<i32>();
+        res
     }
 }

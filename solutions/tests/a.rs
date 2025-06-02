@@ -3,7 +3,9 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     f32::consts::PI,
     future, mem,
+    net::{Ipv4Addr, Ipv6Addr},
     rc::Rc,
+    str::FromStr,
     thread,
     time::{Duration, Instant},
     vec,
@@ -144,5 +146,19 @@ fn adsad() {
         vec![-1, -1, -1, -1, -1, 72, 46, -1, 92, 6],
     ];
     let res = four::Solution::snakes_and_ladders(a);
-    println!("{:?}",res);
+    println!("{:?}", res);
+}
+
+#[test]
+fn adsada() {
+    Solution::conbination(vec![1, 2, 3, 4], 3);
+}
+
+#[test]
+fn asdstr() {
+    let s:i32 = vec![13,11,1,8,6,7,8,8,6,7,8,9,8].iter().sum();
+    println!("{:?}",s);
+    let mut s = vec![13,11,1,8,6,7,8,8,6,7,8,9,8];
+    s.sort();
+    println!("{:?}",s);
 }
