@@ -2157,6 +2157,81 @@ impl Solution {
 
     //518
     pub fn change(amount: i32, coins: Vec<i32>) -> i32 {
-        
+        let mut dp = vec![vec![amount as usize + 1]; coins.len()];
+        for i in 0..dp.len() {
+            dp[i][0] = 1;
+        }
+        for i in 1..dp[0].len() {
+            if i >= coins[0] as usize && i % coins[0] as usize == 0 {
+                dp[0][i] = 1;
+            }
+        }
+        for i in 1..dp.len() {
+            for j in 1..dp[0].len() {
+                if j < coins[i] as usize {
+                    dp[i][j] = dp[i - 1][j];
+                } else {
+                    dp[i][j] = dp[i - 1][j] + dp[i][j - coins[i] as usize];
+                }
+            }
+        }
+        *dp.last().unwrap().last().unwrap() as i32
+    }
+    //377 review
+    pub fn combination_sum4(nums: Vec<i32>, target: i32) -> i32 {
+        let mut res = 0;
+        let mut nums = nums;
+        nums.sort();
+        fn dfs(target: i32, nums: &Vec<i32>, current: i32, res: &mut i32) {
+            for i in 0..nums.len() {
+                let mut next = current + nums[i];
+                if next == target {
+                    *res += 1;
+                    break;
+                }
+                if next > target {
+                    break;
+                }
+                dfs(target, nums, next, res);
+            }
+        }
+        dfs(target, &nums, 0, &mut res);
+        res
+    }
+
+    //474
+    pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
+        let x: Vec<(usize, usize)> = strs
+            .iter()
+            .map(|x| {
+                let one = x.chars().filter(|y| *y == '1').count();
+                (one, x.len() - one)
+            })
+            .collect();
+        let mut dp = vec![vec![vec![0; m as usize + 1]; n as usize + 1]; strs.len()];
+        // for i in 0..strs.len() {
+        //     dp[i][0][0] = 0;
+        // }
+        for i in 0..m as usize + 1 {
+            for j in 0..n as usize + 1 {
+                dp[0][j][i] = if x[0].0 > j || x[0].1 > i { 0 } else { 1 };
+            }
+        }
+        for i in 1..strs.len() {
+            for j in 0..n as usize + 1 {
+                for k in 0..m as usize + 1 {
+                    if x[i].0 > j || x[i].1 > k {
+                        if i == 1 {}
+                        dp[i][j][k] = dp[i - 1][j][k];
+                    } else {
+                        if i == 1 {}
+                        dp[i][j][k] = dp[i - 1][j][k].max(dp[i - 1][j - x[i].0][k - x[i].1] + 1);
+                    }
+                }
+            }
+        }
+        // for i in &dp {
+        // }
+        *dp.last().unwrap().last().unwrap().last().unwrap()
     }
 }
