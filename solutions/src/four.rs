@@ -2102,4 +2102,61 @@ impl Solution {
         let res = res.iter().sum::<i32>();
         res
     }
+    //337 dp
+    pub fn rob(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs(root: Option<Rc<RefCell<TreeNode>>>) -> (i32, i32) {
+            if let Some(r) = root {
+                let root = r.borrow();
+                if root.left.is_none() && root.right.is_none() {
+                    return (root.val, 0);
+                }
+                let left = dfs(root.left.clone());
+                let right = dfs(root.right.clone());
+                let v = root.val;
+                (
+                    (left.0 + right.0).max(left.1 + right.1 + v),
+                    (left.0 + right.0).max(left.1 + right.1),
+                )
+            } else {
+                (0, 0)
+            }
+        }
+        let res = dfs(root);
+        res.0.max(res.1)
+    }
+
+    //dp
+    pub fn num_squares(n: i32) -> i32 {
+        let mut factors = vec![];
+        for i in 1.. {
+            if i * i <= n {
+                factors.push((i * i) as usize);
+            } else {
+                break;
+            }
+        }
+        let mut dp = vec![vec![0; factors.len()]; n as usize + 1];
+        for i in 0..dp.len() {
+            dp[i][0] = 0;
+        }
+        for i in 1..dp[0].len() {
+            dp[0][i] = dp[0][i - 1] + 1;
+        }
+        for i in 1..dp.len() {
+            for j in 1..dp[0].len() {
+                if j > factors[i] {
+                    dp[i][j] = dp[i - 1][j]
+                } else {
+                    dp[i][j] = (dp[i][j - factors[i]] + 1).min(dp[i - 1][j]);
+                }
+            }
+        }
+
+        *dp.last().unwrap().last().unwrap()
+    }
+
+    //518
+    pub fn change(amount: i32, coins: Vec<i32>) -> i32 {
+        
+    }
 }
