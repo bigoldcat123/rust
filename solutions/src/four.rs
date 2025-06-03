@@ -2234,4 +2234,63 @@ impl Solution {
         // }
         *dp.last().unwrap().last().unwrap().last().unwrap()
     }
+
+    pub fn max_candies(
+        status: Vec<i32>,
+        candies: Vec<i32>,
+        keys: Vec<Vec<i32>>,
+        contained_boxes: Vec<Vec<i32>>,
+        initial_boxes: Vec<i32>,
+    ) -> i32 {
+        use std::collections::{HashMap, HashSet, VecDeque};
+        let mut locked_boxes = HashSet::new();
+        let mut owned_keys = VecDeque::new();
+        let mut res = 0;
+        let mut opened_boxes = VecDeque::new();
+        for i in 0..1 {}
+        for b in initial_boxes {
+            if status[b as usize] == 1 {
+                //open
+                opened_boxes.push_back(b as usize);
+            } else {
+                locked_boxes.insert(b as usize);
+            }
+        }
+        while !opened_boxes.is_empty() || owned_keys.iter().any(|x| locked_boxes.contains(x)) {
+            let mut p_o_b = opened_boxes.split_off(0);
+            for b in p_o_b {
+                res += candies[b];
+                for k in &keys[b] {
+                    owned_keys.push_back(*k as usize);
+                }
+                for new_b in &contained_boxes[b] {
+                    if status[*new_b as usize] == 1 {
+                        opened_boxes.push_back(*new_b as usize);
+                    } else {
+                        locked_boxes.insert(*new_b as usize);
+                    }
+                }
+            }
+            let mut o_k = owned_keys.split_off(0);
+            for k in o_k {
+                if locked_boxes.remove(&k) {
+                    //get opened!
+                    res += candies[k];
+                    for k in &keys[k] {
+                        owned_keys.push_back(*k as usize);
+                    }
+                    for new_b in &contained_boxes[k] {
+                        if status[*new_b as usize] == 1 {
+                            opened_boxes.push_back(*new_b as usize);
+                        } else {
+                            locked_boxes.insert(*new_b as usize);
+                        }
+                    }
+                } else {
+                    owned_keys.push_back(k);
+                }
+            }
+        }
+        res
+    }
 }
