@@ -2384,7 +2384,7 @@ impl Solution {
     }
     //3403 day
     pub fn answer_string(word: String, num_friends: i32) -> String {
-         if num_friends == 1 {
+        if num_friends == 1 {
             return word;
         }
         //1. find every indices of  max letters.
@@ -2413,9 +2413,47 @@ impl Solution {
         let mut max_strings = vec![];
         for i in indices {
             max_strings.push(&word.as_str()[i..(i + max_len).min(word.len())]);
-
         }
         max_strings.sort();
         String::from(*max_strings.last().unwrap())
+    }
+
+    //482
+    pub fn license_key_formatting(s: String, k: i32) -> String {
+        let mut s = s
+            .chars()
+            .into_iter()
+            .filter(|x| *x != '-')
+            .map(|x| x.to_ascii_uppercase())
+            .collect::<String>();
+        let extra = s.len() % k as usize; //6 %4 = 2; 0 1 2 3 4 5 
+        let mut res = String::new();
+        if extra != 0 {
+            res.push_str(&s[0..extra]);
+            res.push('-');
+        }
+        for i in (extra..s.len()).step_by(k as usize) {
+            res.push_str(&s[i..i + k as usize]);
+            res.push('-');
+        }
+        res.pop();
+
+        res
+    }
+
+    //485
+    pub fn find_max_consecutive_ones(nums: Vec<i32>) -> i32 {
+        let mut res = 0;
+        let mut current = 0;
+        for i in 0..nums.len() {
+            if nums[i] == 1 {
+                current += 1;
+            }else {
+                res = res.max(current);
+                current = 0;
+            }
+        }
+res = res.max(current);
+        res
     }
 }
