@@ -1,9 +1,9 @@
 #![allow(dead_code, unused)]
 use core::{num, time};
-use std::{cell::RefCell, collections::HashSet, i32, rc::Rc, str::FromStr, usize, vec};
+use std::{cell::RefCell, collections::HashSet, f64, i32, rc::Rc, str::FromStr, usize, vec};
 
 use log::log_enabled;
-use rand::rand_core::le;
+use rand::{Rng, rand_core::le, random};
 
 use crate::TreeNode;
 
@@ -2292,5 +2292,130 @@ impl Solution {
             }
         }
         res
+    }
+
+    //476
+    pub fn find_complement(mut num: i32) -> i32 {
+        let mut res = 0;
+        let mut v = vec![];
+        while num != 0 {
+            let n = num % 2;
+            num /= 2;
+            v.push(n);
+        }
+        v.reverse();
+        for i in v {
+            res |= if i == 0 { 1 } else { 0 };
+            res <<= 1;
+        }
+        res >> 1
+    }
+
+    pub fn total_hamming_distance(nums: Vec<i32>) -> i32 {
+        let mut res = 0;
+        for i in 0..31 {
+            let mut c = 0;
+            for n in 0..nums.len() {
+                if nums[n] >> n & 1 == 1 {
+                    c += 1;
+                }
+            }
+            res += c * (nums.len() - c);
+        }
+
+        res as i32
+    }
+    //478
+    fn solution_478() {
+        struct Solution {
+            radius: f64,
+            x_center: f64,
+            y_center: f64,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(radius: f64, x_center: f64, y_center: f64) -> Self {
+                Self {
+                    radius,
+                    x_center,
+                    y_center,
+                }
+            }
+
+            fn rand_point(&self) -> Vec<f64> {
+                use rand;
+                let mut rng = rand::thread_rng();
+                loop {
+                    let x =
+                        rng.gen_range(self.x_center - self.radius..=self.x_center - self.radius);
+                    let y =
+                        rng.gen_range(self.y_center - self.radius..=self.y_center + self.radius);
+                    if x * x + y * y <= self.radius * self.radius {
+                        return vec![x, y];
+                    }
+                }
+            }
+        }
+    }
+
+    //481
+    pub fn magical_string(n: i32) -> i32 {
+        let mut arr1 = vec![1, 2, 2];
+        let mut arr2 = vec![1, 2];
+        loop {
+            let next_times = arr1[arr2.len()];
+            arr2.push(next_times);
+            let ele = if *arr1.last().unwrap() == 1 { 2 } else { 1 };
+            arr1.append(&mut vec![ele; next_times]);
+            if arr1.len() > n as usize {
+                let mut res = 0;
+                for i in 0..n as usize {
+                    if arr1[i] == 1 {
+                        res += 1;
+                    }
+                }
+                return res;
+            }
+        }
+    }
+    //3403 day
+    pub fn answer_string(word: String, num_friends: i32) -> String {
+         if num_friends == 1 {
+            return word;
+        }
+        //1. find every indices of  max letters.
+        //2. compare the words from the start index to index + word.len - (numberfriend - 1)
+        let mut indices = vec![];
+        let mut max = 0;
+        let max_len = word.as_bytes().len() - (num_friends - 1) as usize;
+
+        for i in word.as_bytes() {
+            max = max.max(*i);
+        }
+
+        for i in 0..word.as_bytes().len() {
+            if word.as_bytes()[i] == max {
+                // if let Some(last) = indices.last() {
+                //     if *last + max_len <= i {
+                //         indices.push(i);
+                //     }
+                // } else {
+                //     indices.push(i);
+                // }
+                indices.push(i);
+            }
+        }
+        // println!("{:?}, {}",indices,max_len);
+        let mut max_strings = vec![];
+        for i in indices {
+            max_strings.push(&word.as_str()[i..(i + max_len).min(word.len())]);
+
+        }
+        max_strings.sort();
+        String::from(*max_strings.last().unwrap())
     }
 }

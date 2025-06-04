@@ -162,3 +162,9 @@ fn asdstr() {
     s.sort();
     println!("{:?}",s);
 }
+
+#[test]
+fn adasdasd() {
+    let a: f64 = 2.0 * 3.1415927;
+    println!("{:?}",a.sin());
+}
