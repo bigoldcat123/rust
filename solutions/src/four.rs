@@ -2448,12 +2448,58 @@ impl Solution {
         for i in 0..nums.len() {
             if nums[i] == 1 {
                 current += 1;
-            }else {
+            } else {
                 res = res.max(current);
                 current = 0;
             }
         }
-res = res.max(current);
+        res = res.max(current);
+        res
+    }
+
+    //1061
+    pub fn smallest_equivalent_string(s1: String, s2: String, base_str: String) -> String {
+        use std::collections::{HashMap, HashSet};
+        let mut map: HashMap<u8, u8> = HashMap::new();
+        let s1 = s1.as_bytes();
+        let s2 = s2.as_bytes();
+        let mut map = HashMap::new();
+        fn dfs_min(s1: &[u8], s2: &[u8], c: u8, map: &mut HashMap<u8, u8>) {
+            let mut idxs = HashSet::new();
+            idxs.insert(c);
+            let mut min = c;
+            for i in 0..s1.len() {
+                if idxs.contains(&s1[i]) || idxs.contains(&s2[i]) {
+                    idxs.insert(s1[i]);
+                    idxs.insert(s2[i]);
+                    min = min.min(s1[i].min(s2[i]));
+                }
+            }
+            for i in 0..s1.len() {
+                if idxs.contains(&s1[i]) || idxs.contains(&s2[i]) {
+                    idxs.insert(s1[i]);
+                    idxs.insert(s2[i]);
+                    min = min.min(s1[i].min(s2[i]));
+                }
+            }
+            for i in idxs {
+                if let Some(m) = map.get_mut(&i) {
+                    *m = (*m).min(min);
+                } else {
+                    map.insert(i, min);
+                }
+            }
+        }
+        for i in b'a'..=b'z' {
+            if !map.contains_key(&i) {
+                dfs_min(s1, s2, i, &mut map);
+            }
+        }
+
+        let mut res = String::new();
+        for c in base_str.chars() {
+            res.push(*(map.get(&(c as u8)).unwrap()) as char);
+        }
         res
     }
 }
