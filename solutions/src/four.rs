@@ -2502,4 +2502,90 @@ impl Solution {
         }
         res
     }
+
+    //491
+    pub fn find_subsequences(nums: Vec<i32>) -> Vec<Vec<i32>> {
+        fn conbination(
+            nums: &[i32],
+            current: &mut Vec<i32>,
+            start: usize,
+            size: usize,
+            res: &mut Vec<Vec<i32>>,
+        ) {
+            if current.len() == size {
+                println!("{:?}", current);
+                for i in 0..current.len() - 1 {
+                    if current[i] > current[i + 1] {
+                        return;
+                    }
+                }
+                res.push(current.clone());
+                return;
+            }
+            if start >= nums.len() {
+                return;
+            }
+            for i in start..nums.len() {
+                current.push(nums[i]);
+                conbination(nums, current, i + 1, size, res);
+                current.pop();
+            }
+        }
+        let mut res = vec![];
+        for i in 2..=nums.len() {
+            let mut current = vec![];
+
+            conbination(&nums, &mut current, 0, i, &mut res);
+        }
+        res.sort();
+        res.dedup();
+        res
+    }
+
+    //1392
+    pub fn longest_prefix(s: String) -> String {
+        use std::collections::HashSet;
+        let s = s.as_str();
+        let mut pre = HashSet::new();
+        let mut post = HashSet::new();
+        for i in 0..s.len() {
+            post.insert(&s[i..]);
+            pre.insert(&s[0..i]);
+        }
+        println!("{:?}", pre);
+        println!("{:?}", post);
+        let mut a = pre.intersection(&post).into_iter().collect::<Vec<&&str>>();
+        a.sort_by(|a, b| b.len().cmp(&a.len()));
+        if a.len() > 1 {
+            String::from(*a[0])
+        } else {
+            String::new()
+        }
+    }
+
+    //494
+    pub fn find_target_sum_ways(nums: Vec<i32>, target: i32) -> i32 {
+        let mut op = vec![];
+        fn dfs(nums: &Vec<i32>, op: &mut Vec<i32>, target: i32, res: &mut i32) {
+            if op.len() == nums.len() {
+                let sum = nums
+                    .iter()
+                    .zip(op.iter())
+                    .map(|(a, b)| *a * *b)
+                    .sum::<i32>();
+                if sum == target {
+                    *res += 1;
+                }
+                return;
+            }
+            for i in [1, -1] {
+                op.push(i);
+                dfs(nums, op, target, res);
+                op.pop();
+            }
+        }
+        let mut res = 0;
+        dfs(&nums, &mut op, target, &mut res);
+        res
+    }
 }

@@ -156,15 +156,19 @@ fn adsada() {
 
 #[test]
 fn asdstr() {
-    let s:i32 = vec![13,11,1,8,6,7,8,8,6,7,8,9,8].iter().sum();
-    println!("{:?}",s);
-    let mut s = vec![13,11,1,8,6,7,8,8,6,7,8,9,8];
+    let s: i32 = vec![13, 11, 1, 8, 6, 7, 8, 8, 6, 7, 8, 9, 8].iter().sum();
+    println!("{:?}", s);
+    let mut s = vec![13, 11, 1, 8, 6, 7, 8, 8, 6, 7, 8, 9, 8];
     s.sort();
-    println!("{:?}",s);
+    println!("{:?}", s);
 }
 
 #[test]
 fn adasdasd() {
-    let a: f64 = 2.0 * 3.1415927;
-    println!("{:?}",a.sin());
+    let a = vec![1,2,3];
+    let b = vec![-1,1,1];
+    let sum = a.iter().zip(b.iter()).map(|(a,b)| {
+        *a**b
+    }).sum::<i32>();
+    println!("{:?}",sum);
 }
