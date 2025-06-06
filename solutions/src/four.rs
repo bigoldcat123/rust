@@ -1,6 +1,8 @@
 #![allow(dead_code, unused)]
 use core::{num, time};
-use std::{cell::RefCell, collections::HashSet, f64, i32, rc::Rc, str::FromStr, usize, vec};
+use std::{
+    cell::RefCell, cmp::Ordering, collections::HashSet, f64, i32, rc::Rc, str::FromStr, usize, vec,
+};
 
 use log::log_enabled;
 use rand::{Rng, rand_core::le, random};
@@ -2587,5 +2589,90 @@ impl Solution {
         let mut res = 0;
         dfs(&nums, &mut op, target, &mut res);
         res
+    }
+
+    //2434
+    pub fn robot_with_string(s: String) -> String {
+        let mut min = b'a';
+        let mut cnt = vec![0; 26];
+        for i in s.as_bytes().as_ref() {
+            cnt[(*i - b'a') as usize] += 1;
+        }
+
+        let mut res = String::new();
+
+        let mut stack = vec![];
+
+        for i in s.as_bytes() {
+            stack.push(*i);
+            cnt[(*i - b'a') as usize] -= 1;
+            while min != b'z' && cnt[min as usize] == 0 {
+                min += 1;
+            }
+            while !stack.is_empty() && stack.last().unwrap() <= &min {
+                res.push(stack.pop().unwrap() as char);
+            }
+        }
+
+        res
+    }
+
+    //497
+    fn solution_497() {
+        use std::collections::HashMap;
+        struct Solution {
+            base: HashMap<((i32, i32), (i32, i32)), f64>,
+            rects: Vec<((i32, i32), (i32, i32), i32, f64)>,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(mut rects: Vec<Vec<i32>>) -> Self {
+                let mut r: Vec<((i32, i32), (i32, i32), i32, f64)> = rects
+                    .into_iter()
+                    .map(|a| {
+                        let l1 = a[2] - a[0];
+                        let w1 = a[3] - a[1];
+                        let area1 = l1 * w1;
+                        ((a[0], a[2]), (a[1], a[3]), area1, 0.0)
+                    })
+                    .collect::<Vec<((i32, i32), (i32, i32), i32, f64)>>();
+
+                r.sort_by(|a, b| b.2.cmp(&a.2));
+                let base = 50.0;
+                let mut map = HashMap::new();
+
+                for i in &r {
+                    map.insert((i.0, i.1), i.2 as f64 / base);
+                }
+                println!("{:?}",r);
+                println!("{:?}",map);
+                Self {
+                    rects: r,
+                    base: map,
+                }
+            }
+
+            fn pick(&mut self) -> Vec<i32> {
+                use rand;
+                self.rects.sort_by(|a, b| {
+                    if a.3 > b.3 {
+                        std::cmp::Ordering::Greater
+                    } else {
+                        std::cmp::Ordering::Less
+                    }
+                });
+                println!("{:?}",self.rects[0].2);
+                self.rects[0].3 += *self.base.get(&(self.rects[0].0, self.rects[0].1)).unwrap();
+                let mut r = rand::thread_rng();
+                println!("{:?}",self.rects[0]);
+                let x = r.gen_range(self.rects[0].0.0..=self.rects[0].0.1);
+                let y = r.gen_range(self.rects[0].1.0..=self.rects[1].0.1);
+                vec![x, y]
+            }
+        }
     }
 }

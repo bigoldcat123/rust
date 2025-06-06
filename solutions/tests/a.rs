@@ -165,10 +165,10 @@ fn asdstr() {
 
 #[test]
 fn adasdasd() {
-    let a = vec![1,2,3];
-    let b = vec![-1,1,1];
-    let sum = a.iter().zip(b.iter()).map(|(a,b)| {
-        *a**b
-    }).sum::<i32>();
-    println!("{:?}",sum);
+    let mut m = std::collections::BinaryHeap::new();
+    m.push(1);
+    m.push(200);
+    m.push(5);
+    println!("{:?}",m.peek());
+
 }
