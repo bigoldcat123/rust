@@ -2648,8 +2648,8 @@ impl Solution {
                 for i in &r {
                     map.insert((i.0, i.1), i.2 as f64 / base);
                 }
-                println!("{:?}",r);
-                println!("{:?}",map);
+                println!("{:?}", r);
+                println!("{:?}", map);
                 Self {
                     rects: r,
                     base: map,
@@ -2665,14 +2665,53 @@ impl Solution {
                         std::cmp::Ordering::Less
                     }
                 });
-                println!("{:?}",self.rects[0].2);
+                println!("{:?}", self.rects[0].2);
                 self.rects[0].3 += *self.base.get(&(self.rects[0].0, self.rects[0].1)).unwrap();
                 let mut r = rand::thread_rng();
-                println!("{:?}",self.rects[0]);
+                println!("{:?}", self.rects[0]);
                 let x = r.gen_range(self.rects[0].0.0..=self.rects[0].0.1);
                 let y = r.gen_range(self.rects[0].1.0..=self.rects[1].0.1);
                 vec![x, y]
             }
         }
+    }
+
+    //day 3170
+    pub fn clear_stars(s: String) -> String {
+        use std::collections::HashSet;
+        let mut deleted = HashSet::new();
+        let mut char_idxes = vec![vec![]; 26];
+        let mut res = String::new();
+        let s = s.as_bytes();
+        let first = (s[0] - b'a') as usize;
+        char_idxes[first].push(0);
+        let mut min = s[0];
+        for i in 1..s.len() {
+            let idx = (s[i] - b'a') as usize;
+            if s[i] == b'*' {
+                // delete the min
+                // println!("{:?}, {}",char_idxes,min as char);
+
+                let del = char_idxes[(min - b'a') as usize].pop().unwrap();
+                deleted.insert(del);
+                min = b'a';
+                while char_idxes[(min - b'a') as usize].is_empty() {
+                    min += 1;
+                    if min > b'z' {
+                        min = 255;
+                        break;
+                    }
+                }
+            } else {
+                min = min.min(s[i]);
+                char_idxes[idx].push(i);
+            }
+        }
+        for i in 0..s.len() {
+            if !deleted.contains(&i) && s[i] != b'*' {
+                res.push(s[i] as char);
+            }
+        }
+        res
     }
 }
