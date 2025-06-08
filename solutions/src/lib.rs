@@ -8,6 +8,7 @@ use std::{
     vec,
 };
 pub mod four;
+pub mod five;
 use log::info;
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]

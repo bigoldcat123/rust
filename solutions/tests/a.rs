@@ -165,10 +165,6 @@ fn asdstr() {
 
 #[test]
 fn adasdasd() {
-    let mut m = std::collections::BinaryHeap::new();
-    m.push(1);
-    m.push(200);
-    m.push(5);
-    println!("{:?}",m.peek());
+    println!("{:?}",28.0_f32.sqrt() as i32);
 
 }
