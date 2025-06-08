@@ -2716,28 +2716,44 @@ impl Solution {
     }
     //386 day
     pub fn lexical_order(n: i32) -> Vec<i32> {
-        fn find(base:i32,target:i32,res:&mut Vec<i32>) {
+        fn find(base: i32, target: i32, res: &mut Vec<i32>) {
             if base > target {
                 return;
             }
             for i in base..=base + 9 {
                 if i <= target {
                     res.push(i);
-                }else {
+                } else {
                     return;
                 }
-                find(i * 10,target,res);
+                find(i * 10, target, res);
             }
         }
         let mut res = vec![];
         for i in 1..=9 {
             if i <= n {
                 res.push(i);
-            }else {
+            } else {
                 break;
             }
-            find(i * 10,n,&mut res);
+            find(i * 10, n, &mut res);
         }
         res
+    }
+
+    //500
+    pub fn find_words(words: Vec<String>) -> Vec<String> {
+        let map = vec![
+            2, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, 2, 3, 3, 1, 1, 1, 1, 2, 1, 1, 3, 1, 3, 1, 3,
+        ];
+        words
+            .into_iter()
+            .filter(|x| {
+                let b = x.to_lowercase();
+                let b = b.as_bytes();
+                let idx = map[(b[0] - b'a') as usize];
+                b.iter().all(|x| map[(*x - b'a') as usize] == idx)
+            })
+            .collect::<Vec<String>>()
     }
 }
