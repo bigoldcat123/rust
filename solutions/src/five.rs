@@ -127,4 +127,57 @@ impl Solution {
 
         res
     }
+    fn solution_519() {
+        use rand::Rng;
+        use rand::rngs::ThreadRng;
+        use std::collections::HashSet;
+        struct Solution {
+            r: ThreadRng,
+            set: HashSet<(i32, i32)>,
+            deleted: HashSet<(i32, i32)>,
+            m: i32,
+            n: i32,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(m: i32, n: i32) -> Self {
+                let r = rand::thread_rng();
+                let set = HashSet::with_capacity((n * m) as usize);
+                let deleted = HashSet::with_capacity((n * m) as usize);
+                let mut x = Self {
+                    r,
+                    set,
+                    m,
+                    n,
+                    deleted,
+                };
+                for i in 0..x.m {
+                    for j in 0..x.n {
+                        x.set.insert((i, j));
+                    }
+                }
+                x
+            }
+
+            fn flip(&mut self) -> Vec<i32> {
+                let x = self.set.iter().map(|x| *x).collect::<Vec<(i32, i32)>>();
+                println!("{:?}",x);
+                let idx = self.r.gen_range(0..x.len());
+                self.set.remove(&x[idx]);
+                self.deleted.insert(x[idx]);
+                vec![x[idx].0, x[idx].1]
+            }
+
+            fn reset(&mut self) {
+                for i in self.deleted.iter() {
+                    self.set.insert(*i);
+                }
+                self.deleted.clear();
+            }
+        }
+    }
 }
