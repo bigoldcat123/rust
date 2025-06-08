@@ -2714,4 +2714,30 @@ impl Solution {
         }
         res
     }
+    //386 day
+    pub fn lexical_order(n: i32) -> Vec<i32> {
+        fn find(base:i32,target:i32,res:&mut Vec<i32>) {
+            if base > target {
+                return;
+            }
+            for i in base..=base + 9 {
+                if i <= target {
+                    res.push(i);
+                }else {
+                    return;
+                }
+                find(i * 10,target,res);
+            }
+        }
+        let mut res = vec![];
+        for i in 1..=9 {
+            if i <= n {
+                res.push(i);
+            }else {
+                break;
+            }
+            find(i * 10,n,&mut res);
+        }
+        res
+    }
 }
