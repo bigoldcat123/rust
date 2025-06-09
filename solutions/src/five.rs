@@ -165,7 +165,7 @@ impl Solution {
 
             fn flip(&mut self) -> Vec<i32> {
                 let x = self.set.iter().map(|x| *x).collect::<Vec<(i32, i32)>>();
-                println!("{:?}",x);
+                println!("{:?}", x);
                 let idx = self.r.gen_range(0..x.len());
                 self.set.remove(&x[idx]);
                 self.deleted.insert(x[idx]);
@@ -179,5 +179,36 @@ impl Solution {
                 self.deleted.clear();
             }
         }
+    }
+
+    //1052
+    pub fn max_satisfied(customers: Vec<i32>, grumpy: Vec<i32>, minutes: i32) -> i32 {
+        let mut sum = customers
+            .iter()
+            .zip(grumpy.iter())
+            .filter(|(x, y)| **y == 0)
+            .map(|(x, y)| x)
+            .sum::<i32>();
+        println!("{:?}", sum);
+        let mut res = sum;
+
+        let mut p = 0;
+
+        for i in 0..minutes as usize {
+            if grumpy[i] == 1 {
+                p += customers[i];
+            }
+        }
+        for i in minutes as usize..=customers.len() - minutes as usize {
+            let mut x = p;
+            if grumpy[i + minutes as usize] == 1 {
+                x += customers[i + minutes as usize];
+            }
+            if grumpy[i - i] == 1 {
+                x -= customers[i + minutes as usize];
+            }
+            p = p.max(x);
+        }
+        res + p
     }
 }

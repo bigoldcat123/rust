@@ -165,6 +165,101 @@ fn asdstr() {
 
 #[test]
 fn adasdasd() {
-    println!("{:?}",28.0_f32.sqrt() as i32);
+    fn cals2(node: usize, max: usize) -> usize {
+        let node = node * 10;
+        if node > max {
+            return 0;
+        }
+        let start = node;
+        let end = max.min(start + 9);
+        let mut res = end - start + 1;
+        for i in start..=end {
+            let s = cals2(i, max);
+            if s == 0 {
+                break;
+            }
+            res += s;
+        }
+        res
+    }
+    fn cals(node: usize, max: usize) -> usize {
+        let mut step2 = 0;
+        let mut f = node * 10;
+        let mut l = node * 10 + 9;
+        while f <= max {
+            step2 += l.min(max) - f + 1;
+            f *= 10;
+            l = l * 10 + 9;
+        }
+        step2
+    }
+    let a = 95707474;
+    let mut d = Duration::new(0, 0);
+    let mut e = Duration::new(0, 0);
+    for i in 1..a {
+        let x = Instant::now();
+        let aa = cals(i, a);
+        d += x.elapsed();
+        let x = Instant::now();
+        let bb = cals2(i, a);
+        e += x.elapsed();
+        assert_eq!(aa, bb);
+    }
+    println!("{:?} my{:?}", d, e);
+    return;
+    let i = Instant::now();
+    // return;
+    fn search(node: usize, k: usize, n: usize, mut current: usize) -> usize {
+        for i in 0..10 {
+            current += 1;
+            let node = i + node;
+            if current == k {
+                return node;
+            }
+            let next = cals(node, n);
+            if current + next < k {
+                println!("--{:?} {} {}", current, next, node);
+                current += next;
+            } else if current + next > k {
+                println!("{:?} {}", current, next);
 
+                return search(node * 10, k, n, current);
+            } else {
+                return node;
+            }
+        }
+        0
+    }
+    let k = 424238336;
+    let n = 957747794;
+    let mut current = 0;
+    for i in 1..=9 {
+        current += 1;
+        let next = cals(i, n);
+        if current == k {
+            println!("ans2 = {:?}", i);
+
+            break;
+        }
+        if current + next < k {
+            current += next;
+        } else if current + next >= k {
+            let res = search(i * 10, k, n, current);
+            println!("ans = {:?}", res);
+            break;
+        } else {
+            println!("ans1 = {:?}", i);
+            break;
+        }
+    }
+    println!("{:?}", i.elapsed());
+    pub fn find_max_average(nums: Vec<i32>, k: i32) -> f64 {
+        let mut res = 0.0_f64;
+        for i in 0..nums.len() - k as usize {
+            println!("{:?}",(&nums[i..i + k as usize]).iter().sum::<i32>() );
+            res =
+                res.max((&nums[i..i + k as usize]).iter().sum::<i32>() as f64 / k as f64);
+        }
+        res
+    }
 }
