@@ -256,10 +256,179 @@ fn adasdasd() {
     pub fn find_max_average(nums: Vec<i32>, k: i32) -> f64 {
         let mut res = 0.0_f64;
         for i in 0..nums.len() - k as usize {
-            println!("{:?}",(&nums[i..i + k as usize]).iter().sum::<i32>() );
-            res =
-                res.max((&nums[i..i + k as usize]).iter().sum::<i32>() as f64 / k as f64);
+            println!("{:?}", (&nums[i..i + k as usize]).iter().sum::<i32>());
+            res = res.max((&nums[i..i + k as usize]).iter().sum::<i32>() as f64 / k as f64);
         }
         res
     }
+}
+
+#[test]
+fn fuckckck() {
+    fn max_difference(s: String, k: i32) -> i32 {
+        let k = k as usize;
+        let mut map = vec![0; 5];
+        let s = s.as_bytes();
+        for i in 0..k - 1 {
+            map[s[i] as usize - 48] += 1;
+        }
+        fn max_dif(map: &[i32]) -> ((i32, usize), (i32, usize), i32) {
+            let mut x = 0;
+            for i in 0..map.len() {
+                if map[i] % 2 == 0 {
+                    x &= !(1 << i)
+                } else {
+                    x |= 1 << i
+                }
+            }
+            if x == 0 || x == 31 {
+                // all even, ||
+                return ((0, 0), (0, 0), x);
+            }
+
+            let mut max_odd = i32::MIN;
+            let mut max_odd_idx = 0;
+            let mut min_even = i32::MAX;
+            let mut min_even_idx = 0;
+            for (idx, v) in map.iter().enumerate() {
+                if *v != 0 {
+                    if *v % 2 == 0 {
+                        if min_even > *v {
+                            min_even = *v;
+                            min_even_idx = idx;
+                        }
+                    } else {
+                        if max_odd < *v {
+                            max_odd = *v;
+                            max_odd_idx = idx;
+                        }
+                    }
+                }
+            }
+            let mut x = 0;
+            for i in 0..map.len() {
+                if map[i] % 2 == 0 {
+                    x &= !(1 << i)
+                } else {
+                    x |= 1 << i
+                }
+            }
+            ((max_odd, max_odd_idx), (min_even, min_even_idx), x)
+        }
+        fn slide(len: usize, mut map: &mut Vec<i32>, s: &[u8]) -> i32 {
+            let mut max = max_dif(&map);
+            // println!("----- {:?}  {:?}",max,map);
+
+            for i in len..s.len() {
+                map[s[i - len] as usize - 48] -= 1;
+                if (max.2 >> (s[i - len] as usize - 48)) & 1 == 1 {
+                    max.2 &= !(1 << (s[i - len] as usize - 48))
+                } else {
+                    max.2 |= 1 << (s[i - len] as usize - 48)
+                }
+                map[s[i] as usize - 48] += 1;
+                if (max.2 >> (s[i] as usize - 48)) & 1 == 1 {
+                    max.2 &= !(1 << (s[i] as usize - 48))
+                } else {
+                    max.2 |= 1 << (s[i] as usize - 48)
+                }
+                if max.2 != 0 && max.2 != 31 {
+                    let max2 = max.max(max_dif(&map));
+                    if max2.0.0 - max2.1.0 > max.0.0 - max.1.0 {
+                        max = max2
+                    }
+                }
+                // println!("{:?}  {:?}",max,map);
+            }
+            max.0.0 - max.1.0
+        }
+        let mut res = i32::MIN;
+        let mut temp = vec![0; 5];
+        for i in k - 1..s.len() {
+            map[s[i] as usize - 48] += 1;
+            for i in 0..map.len() {
+                temp[i] = map[i]
+            }
+            res = res.max(slide(i + 1, &mut map, &s));
+            for i in 0..map.len() {
+                map[i] = temp[i]
+            }
+        }
+        println!("{:?}", res);
+        res
+    }
+    let s = include_str!("../../input.txt");
+    let s = s.to_string();
+    let i = Instant::now();
+    let res = max_difference(s, 2880);
+    println!("{:?}", i.elapsed());
+    println!("re{:?}", res);
+}
+
+#[test]
+fn aaaa() {
+    fn max_dif(map: &[i32]) -> ((i32, usize), (i32, usize), i32) {
+        let mut x = 0;
+        for i in 0..map.len() {
+            if map[i] % 2 == 0 {
+                x &= !(1 << i)
+            } else {
+                x |= 1 << i
+            }
+        }
+        if x == 0 || x == 31 {
+            // all even, ||
+            return ((0, 0), (0, 0), x);
+        }
+        let mut max_odd = i32::MIN;
+        let mut max_odd_idx = 0;
+        let mut min_even = i32::MAX;
+        let mut min_even_idx = 0;
+        for (idx, v) in map.iter().enumerate() {
+            if *v != 0 {
+                if *v % 2 == 0 {
+                    if min_even > *v {
+                        min_even = *v;
+                        min_even_idx = idx;
+                    }
+                } else {
+                    if max_odd < *v {
+                        max_odd = *v;
+                        max_odd_idx = idx;
+                    }
+                }
+            }
+        }
+
+        ((max_odd, max_odd_idx), (min_even, min_even_idx), x)
+    }
+    fn slide(len: usize, mut map: &mut Vec<i32>, s: &[u8]) -> i32 {
+        let mut max = max_dif(&map);
+        // println!("----- {:?}  {:?}",max,map);
+
+        for i in len..s.len() {
+            map[s[i - len] as usize - 48] -= 1;
+            if (max.2 >> (s[i - len] as usize - 48)) & 1 == 1 {
+                max.2 &= !(1 << (s[i - len] as usize - 48))
+            } else {
+                max.2 |= 1 << (s[i - len] as usize - 48)
+            }
+            map[s[i] as usize - 48] += 1;
+            if (max.2 >> (s[i] as usize - 48)) & 1 == 1 {
+                max.2 &= !(1 << (s[i] as usize - 48))
+            } else {
+                max.2 |= 1 << (s[i] as usize - 48)
+            }
+            if max.2 != 0 && max.2 != 31 {
+                let max2 = max.max(max_dif(&map));
+                if max2.0.0 - max2.1.0 > max.0.0 - max.1.0 {
+                    max = max2
+                }
+            }
+            // println!("{:?}  {:?}",max,map);
+        }
+        max.0.0 - max.1.0
+    }
+    let res = max_dif(&[2, 2, 1, 4, 6]);
+    println!("{:?}, {:b}", res, res.2);
 }
