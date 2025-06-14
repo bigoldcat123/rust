@@ -211,4 +211,53 @@ impl Solution {
         }
         res + p
     }
+    fn solution_528() {
+        use rand::Rng;
+        use rand::rngs::ThreadRng;
+        struct Solution {
+            nums: Vec<(usize, i32,i32)>,
+            len: usize,
+            rng: ThreadRng,
+        }
+
+        /**
+         * `&self` means the method takes an immutable reference.
+         * If you need a mutable reference, change it to `&mut self` instead.
+         */
+        impl Solution {
+            fn new(w: Vec<i32>) -> Self {
+                let nums = w
+                    .into_iter()
+                    .enumerate()
+                    .map(|x| (x.0,x.1,x.1))
+                    .collect::<Vec<(usize, i32,i32)>>();
+                let rng = rand::thread_rng();
+                Self {
+                    len: nums.len(),
+                    nums,
+                    rng,
+                }
+            }
+
+            fn pick_index(&mut self) -> i32 {
+                if self.len == 0 {
+                    self.len = self.nums.len();
+                    for i in 0..self.nums.len() {
+                        self.nums[i].1 = self.nums[i].2;
+                    }
+                    return self.pick_index();
+                }
+                let idx = self.rng.gen_range(0..self.len);
+                self.nums[idx].1 -= 1;
+                let res = self.nums[idx].0;
+                if self.nums[idx].1 == 0 {
+                    let p = self.nums[idx];
+                    self.nums[idx] = self.nums[self.len - 1];
+                    self.nums[self.len - 1] = p;
+                    self.len -= 1;
+                }
+                res as i32
+            }
+        }
+    }
 }
