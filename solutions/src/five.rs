@@ -215,7 +215,7 @@ impl Solution {
         use rand::Rng;
         use rand::rngs::ThreadRng;
         struct Solution {
-            nums: Vec<(usize, i32,i32)>,
+            nums: Vec<(usize, i32, i32)>,
             len: usize,
             rng: ThreadRng,
         }
@@ -229,8 +229,8 @@ impl Solution {
                 let nums = w
                     .into_iter()
                     .enumerate()
-                    .map(|x| (x.0,x.1,x.1))
-                    .collect::<Vec<(usize, i32,i32)>>();
+                    .map(|x| (x.0, x.1, x.1))
+                    .collect::<Vec<(usize, i32, i32)>>();
                 let rng = rand::thread_rng();
                 Self {
                     len: nums.len(),
@@ -259,5 +259,24 @@ impl Solution {
                 res as i32
             }
         }
+    }
+
+    //566
+    pub fn matrix_reshape(mat: Vec<Vec<i32>>, r: i32, c: i32) -> Vec<Vec<i32>> {
+        let max = (mat.len() * mat[0].len()) as i32;
+        let target = r * c;
+        if target > max {
+            return mat;
+        }
+        let a = mat.into_iter().flatten().collect::<Vec<i32>>();
+        let mut res = vec![vec![0; c as usize]; r as usize];
+        let mut idx = 0;
+        for i in 0..r as usize {
+            for j in 0..c as usize {
+                res[i][j] = a[idx];
+                idx += 1;
+            }
+        }
+        res
     }
 }

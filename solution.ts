@@ -273,3 +273,122 @@
 //     end: start
 //   }
 // }
+
+// class PeekingIterator {
+//     iter:Iterator
+//     n:number | null
+//     constructor(iterator: Iterator) {
+//         this.iter = iterator
+//         if (iterator.hasNext()) {
+//             this.n = iterator.next();
+//         }else {
+//             this.n = null
+//         }
+//     }
+
+//     peek(): number {
+//         return this.n!
+//     }
+
+//     next(): number {
+//         const n = this.n!;
+//         if (this.iterator.hasNext()) {
+//             this.n = this.iterator.next();
+//         } else {
+//             this.n = null
+//         }
+//         return n!
+//     }
+
+//     hasNext(): boolean {
+//         return this.n != null
+//     }
+// }
+
+
+
+
+// class _Node {
+//     val: boolean
+//     isLeaf: boolean
+//     topLeft: _Node | null
+//     topRight: _Node | null
+//     bottomLeft: _Node | null
+//     bottomRight: _Node | null
+//     constructor(val?: boolean, isLeaf?: boolean, topLeft?: _Node, topRight?: _Node, bottomLeft?: _Node, bottomRight?: _Node) {
+//         this.val = (val === undefined ? false : val)
+//         this.isLeaf = (isLeaf === undefined ? false : isLeaf)
+//         this.topLeft = (topLeft === undefined ? null : topLeft)
+//         this.topRight = (topRight === undefined ? null : topRight)
+//         this.bottomLeft = (bottomLeft === undefined ? null : bottomLeft)
+//         this.bottomRight = (bottomRight === undefined ? null : bottomRight)
+//     }
+// }
+
+
+
+// function dfs(quadTree1: _Node, quadTree2: _Node) {
+//     if (quadTree1.isLeaf) {
+//         if (quadTree1.val != true) {
+//             quadTree1.bottomLeft = quadTree2.bottomLeft
+//             quadTree1.bottomRight = quadTree2.bottomRight
+//             quadTree1.topLeft = quadTree2.topLeft
+//             quadTree1.topRight = quadTree2.topRight
+//         }
+//     } else if (quadTree2.isLeaf) {
+//         if (quadTree2.val == true) {
+//             quadTree1.val = true;
+//             quadTree1.isLeaf = true
+//             quadTree1.bottomLeft = null
+//             quadTree1.bottomRight = null
+//             quadTree1.topLeft = null
+//             quadTree1.topRight = null
+//         }
+//     } else {
+//         quadTree1.val ||= quadTree2.val;
+//         dfs(quadTree1.topLeft!, quadTree2.topLeft!);
+//         dfs(quadTree1.topRight!, quadTree2.topRight!);
+//         dfs(quadTree1.bottomLeft!, quadTree2.bottomLeft!);
+//         dfs(quadTree1.bottomRight!, quadTree2.bottomRight!);
+//         if (quadTree1.topLeft!.isLeaf && quadTree1.topRight!.isLeaf && quadTree1.bottomLeft!.isLeaf && quadTree1.bottomRight!.isLeaf &&
+//             quadTree1.topLeft!.val == quadTree1.topRight!.val && quadTree1.topRight!.val == quadTree1.bottomLeft!.val && quadTree1.bottomLeft!.val == quadTree1.bottomRight!.val) {
+//             quadTree1.val = quadTree1.bottomLeft!.val
+//             quadTree1.isLeaf = true;
+//             quadTree1.bottomLeft = null
+//             quadTree1.bottomRight =null
+//             quadTree1.topLeft = null
+//             quadTree1.topRight = null
+//         }
+//     }
+// }
+
+// function intersect(quadTree1: _Node | null, quadTree2: _Node | null): _Node | null {
+//     dfs(quadTree1!, quadTree2!);
+//     return quadTree1
+// };
+
+
+
+class _Node {
+    val: number
+    children: _Node[]
+
+    constructor(val?: number, children?: _Node[]) {
+        this.val = (val === undefined ? 0 : val)
+        this.children = (children === undefined ? [] : children)
+    }
+}
+
+
+
+function maxDepth(root: _Node | null): number {
+    if (root == null) {
+        return 0
+    }else {
+        let res = 1;
+        for  (const e of root.children) {
+            res = Math.max(res,maxDepth(e) + 1);
+        }
+        return res 
+    }
+};

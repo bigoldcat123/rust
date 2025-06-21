@@ -432,3 +432,31 @@ fn aaaa() {
     let res = max_dif(&[2, 2, 1, 4, 6]);
     println!("{:?}, {:b}", res, res.2);
 }
+
+#[test]
+fn life_time() {
+    struct A<'a> {
+        orign: Vec<String>,
+        map: HashMap<&'a str, usize>,
+    }
+    impl<'a> A<'a> {
+        fn new() -> A<'a> {
+            Self {
+                orign: vec![],
+                map: HashMap::new(),
+            }
+        }
+        fn insert(&'a mut self) {
+            let s = String::new();
+
+            self.orign.push(s);
+            let k = self.orign.last().unwrap();
+            self.map.insert(k, 0);
+        }
+    }
+    let mut a: A<'_> = A::new();
+    a.insert();
+}
+
+fn easdasd() {
+}
