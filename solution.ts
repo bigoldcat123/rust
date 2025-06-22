@@ -392,3 +392,19 @@ function maxDepth(root: _Node | null): number {
         return res 
     }
 };
+
+
+function dfsSearch(root:_Node | null,res:number[]) {
+    if (root) {
+        res.push(root.val)
+        for (const c of root.children) {
+            dfsSearch(c,res)
+        }
+    }
+}
+
+function preorder(root: _Node | null): number[] {
+    const res = []
+    dfsSearch(root,res)
+    return res
+};
