@@ -1,4 +1,6 @@
-#![allow(dead_code,unused)]
+#![allow(deprecated,non_snake_case)]
+
+#![allow(dead_code, unused)]
 use std::{
     cell::RefCell,
     cmp::{Ordering, max},
@@ -7,8 +9,15 @@ use std::{
     rc::Rc,
     vec,
 };
-pub mod four;
+pub mod graph;
+pub mod segment_tree_questions;
+pub mod segment_tree;
+pub mod tree_array;
+pub mod every_day;
 pub mod five;
+pub mod four;
+pub mod tire;
+pub mod dijoint_set;
 use log::info;
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
@@ -5038,7 +5047,6 @@ impl A {
             if digit >= n {
                 let offset = digit - n;
                 let i = i.to_string();
-
                 return i.as_bytes()[i.len() - offset] as i32 - 48;
             }
         }

@@ -1,4 +1,6 @@
 #![allow(dead_code, unused)]
+#![allow(deprecated,non_snake_case)]
+
 use core::{num, time};
 use std::{
     cell::RefCell, cmp::Ordering, collections::HashSet, f64, i32, rc::Rc, str::FromStr, usize, vec,
@@ -2428,7 +2430,7 @@ impl Solution {
             .filter(|x| *x != '-')
             .map(|x| x.to_ascii_uppercase())
             .collect::<String>();
-        let extra = s.len() % k as usize; //6 %4 = 2; 0 1 2 3 4 5 
+        let extra = s.len() % k as usize; //6 %4 = 2; 0 1 2 3 4 5
         let mut res = String::new();
         if extra != 0 {
             res.push_str(&s[0..extra]);
