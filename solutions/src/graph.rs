@@ -1,9 +1,5 @@
 use std::{
     collections::{HashMap, HashSet},
-    hash::Hash,
-    i32,
-    iter::Map,
-    usize,
 };
 
 struct DSet {
@@ -45,32 +41,182 @@ impl DSet {
     }
 }
 
+pub fn num_islands(grid: Vec<Vec<char>>) -> i32 {
+
+}
+
+pub fn max_candies(status: Vec<i32>, candies: Vec<i32>, keys: Vec<Vec<i32>>, contained_boxes: Vec<Vec<i32>>, initial_boxes: Vec<i32>) -> i32 {
+
+    let mut obtained_boxs = HashSet::from_iter(initial_boxes.into_iter().map(|x| x as usize));
+    let mut obtained_keys = HashSet::new();
+    let mut res = 0;
+    dfs_max_candies(obtained_boxs, obtained_keys, &status, &candies, &keys, &contained_boxes, &mut res);
+    res
+}
+fn dfs_max_candies(obtained_boxs:HashSet<usize>, mut obtained_keys: HashSet<usize>, status: &Vec<i32>, candies: &Vec<i32>, keys: &Vec<Vec<i32>>, contained_boxes: &Vec<Vec<i32>>,res:&mut i32) {
+
+    let mut next_boxs = HashSet::new();
+    let mut new_thing = false;
+    for b in obtained_boxs {
+        if status[b] == 1 {
+            *res += candies[b];
+            for &k in keys[b].iter() {
+                obtained_keys.insert(k as usize);
+            }
+            for b in contained_boxes[b].iter() {
+                next_boxs.insert(*b as usize);
+            }
+            new_thing = true;
+        }else {
+            if obtained_keys.contains(&b) {
+                *res += candies[b];
+                for &k in keys[b].iter() {
+                    obtained_keys.insert(k as usize);
+                }
+                for b in contained_boxes[b].iter() {
+                    next_boxs.insert(*b as usize);
+                }
+                new_thing = true;
+            }else {
+                next_boxs.insert(b);
+            }
+        }
+    }
+    if new_thing {
+        dfs_max_candies(next_boxs, obtained_keys, status, candies, keys, contained_boxes, res);
+    }
+}
+
+pub fn num_ways(n: i32, relation: Vec<Vec<i32>>, k: i32) -> i32 {
+    use std::collections::HashMap;
+    let mut map:HashMap<i32,Vec<i32>> = HashMap::new();
+
+    for r in relation {
+        map.entry(r[0]).or_default().push(r[1]);
+    }
+    println!("{:?}",map);
+    let mut res = 0;
+
+    dfs_num_ways(0, k, &map, &mut res, 0, n - 1);
+
+    res
+
+}
+fn dfs_num_ways(current_turn:i32,max_turn:i32,relation:&HashMap<i32,Vec<i32>>,res:&mut i32,current_people:i32,last:i32) {
+
+    println!("{} {}",current_people,last);
+    if current_people == last {
+        *res += 1
+    }
+    if current_turn > max_turn {
+        return;
+    }
+    if let Some(next_people) = relation.get(&current_people) {
+        for &n in next_people {
+            dfs_num_ways(current_turn + 1, max_turn, relation, res, n, last);
+        }
+    }
+
+}
+
+pub fn minimum_cost(n: i32, edges: Vec<Vec<i32>>, query: Vec<Vec<i32>>) -> Vec<i32> {
+    use std::collections::HashMap;
+    let mut d_set = DSet::new(n as usize);
+    for e in edges.iter() {
+        d_set.union(e[0] as usize, e[1] as usize);
+    }
+    let mut map = HashMap::new();
+    for i in 0..n as usize {
+        map.insert(d_set.find(i), i32::MAX);
+    }
+    for e in edges {
+        *map.entry(d_set.find(e[0] as usize)).or_default() &= e[2];
+    }
+    query.into_iter().map(|x| {
+        if d_set.find(x[0] as usize) == d_set.find(x[1] as usize) {
+            let a = map[&d_set.find(x[0] as usize)];
+            a
+        }else{
+            -1
+        }
+    }).collect()
+}
+
+pub fn process_queries(c: i32, connections: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    use std::collections::{BTreeSet, HashMap};
+    let mut d_set = DSet::new(c as usize + 1);
+    let mut is_offline = vec![false; c as usize + 1];
+    for c in connections {
+        d_set.union(c[0] as usize, c[1] as usize);
+    }
+    let mut grid: HashMap<usize, BTreeSet<i32>> = HashMap::new();
+    for i in 1..=c {
+        grid.entry(d_set.find(i as usize)).or_default().insert(i);
+    }
+    let mut res = vec![];
+    for q in queries {
+        let station = q[1];
+        if q[0] == 1 {
+            if is_offline[station as usize] {
+                if let Some(grid_stations) = grid.get(&d_set.find(station as usize)) {
+                    if let Some(s) = grid_stations.first() {
+                        res.push(*s);
+                    } else {
+                        res.push(-1);
+                    }
+                } else {
+                    res.push(-1);
+                }
+            } else {
+                res.push(station);
+            }
+        } else {
+            is_offline[station as usize] = true;
+            if let Some(grid_stations) = grid.get_mut(&d_set.find(station as usize)) {
+                grid_stations.remove(&station);
+            }
+        }
+    }
+    res
+}
+
 pub fn find_all_people(n: i32, meetings: Vec<Vec<i32>>, first_person: i32) -> Vec<i32> {
     use std::collections::{BTreeMap, HashSet};
 
     let mut d_set = DSet::new(n as usize);
     d_set.union(0, first_person as usize);
-    let mut time_meeting_map: BTreeMap<i32, HashMap<i32,Vec<i32>>> = BTreeMap::new();
+    let mut time_meeting_map: BTreeMap<i32, HashMap<i32, Vec<i32>>> = BTreeMap::new();
     for m in meetings {
-        time_meeting_map.entry(m[2]).or_default().entry(m[1]).or_default().push(m[0]);
+        time_meeting_map
+            .entry(m[2])
+            .or_default()
+            .entry(m[1])
+            .or_default()
+            .push(m[0]);
     }
-    let mut res = HashSet::from([0,first_person]);
-    for (_,m) in time_meeting_map {
-        let mut calculated:HashSet<i32> = HashSet::new();
-        for (&p,_) in m.iter() {
+    let mut res = HashSet::from([0, first_person]);
+    for (_, m) in time_meeting_map {
+        let mut calculated: HashSet<i32> = HashSet::new();
+        for (&p, _) in m.iter() {
             let mut people = HashSet::new();
-            if dfs_find_all_people(&m , &mut d_set, &mut calculated, &mut people,p) {
+            if dfs_find_all_people(&m, &mut d_set, &mut calculated, &mut people, p) {
                 for p in people {
                     d_set.union(p as usize, 0);
                     res.insert(p);
                 }
             }
         }
-    };
+    }
     res.into_iter().collect()
 }
 
-fn dfs_find_all_people(meeting:&HashMap<i32,Vec<i32>>,dset:&mut DSet,selected: &mut HashSet<i32>,meeting_prople:&mut HashSet<i32>,current_people:i32) -> bool {
+fn dfs_find_all_people(
+    meeting: &HashMap<i32, Vec<i32>>,
+    dset: &mut DSet,
+    selected: &mut HashSet<i32>,
+    meeting_prople: &mut HashSet<i32>,
+    current_people: i32,
+) -> bool {
     if selected.insert(current_people) {
         meeting_prople.insert(current_people);
         let mut r = dset.find(current_people as usize) == dset.find(0);
@@ -81,11 +227,10 @@ fn dfs_find_all_people(meeting:&HashMap<i32,Vec<i32>>,dset:&mut DSet,selected: &
         }
 
         r
-    }else {
+    } else {
         dset.find(current_people as usize) == dset.find(0)
     }
 }
-
 
 pub fn min_malware_spread2(graph: Vec<Vec<i32>>, initial: Vec<i32>) -> i32 {
     use std::collections::HashSet;
