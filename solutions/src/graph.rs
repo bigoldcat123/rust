@@ -42,6 +42,35 @@ impl DSet {
 }
 
 pub fn num_islands(grid: Vec<Vec<char>>) -> i32 {
+    use std::collections::HashSet;
+    let mut res = 0 ;
+    let mut selected = HashSet::new();
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            if dfs_num_islands(i as i32, j as i32, &mut selected, &grid) {
+                res += 1;
+            }
+        }
+    }
+    res
+}
+fn dfs_num_islands(i:i32,j:i32,selected:&mut HashSet<(i32,i32)>,grid: &Vec<Vec<char>>) -> bool {
+    if (i >=0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() ){
+        if grid[i as usize][j as usize] == '0' {
+            return false;
+        }
+        if selected.insert((i,j)) {
+            let next = [(i + 1,j),(i - 1,j),(i,j + 1),(i,j - 1)];
+            for &(x,y) in next.iter() {
+                dfs_num_islands(x,y,selected,grid);
+            }
+            true
+        }else {
+            false
+        }
+    }else {
+        false
+    }
 
 }
 
