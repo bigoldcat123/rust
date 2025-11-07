@@ -84,7 +84,7 @@ impl BookMyShow {
             }
         }
         if l <= max_row {
-            let res = vec![l as i32 - 1, self.col - self.seat.nodes[l as usize - 1]];
+            let res = vec![l - 1, self.col - self.seat.nodes[l as usize - 1]];
             self.seat
                 .update(l as usize, self.seat.nodes[l as usize - 1] - k);
             self.available_seat.update_delta(l as usize, -k);
@@ -184,7 +184,7 @@ impl Fancy {
 
     fn get_index(&mut self, idx: i32) -> i32 {
         if idx as usize >= self.len {
-            return -1;
+            -1
         } else {
             (self.tree.query_value(idx as usize + 1, idx as usize + 1) % 1_000_000_007) as i32
         }

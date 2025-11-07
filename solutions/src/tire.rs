@@ -29,21 +29,15 @@ impl TireSolutions {
                 self.dfs_search(&word.chars().collect::<Vec<char>>(), 0)
             }
             fn dfs_search(&self, word: &[char], current: usize) -> bool {
-                if current == word.len() && self.is_word {
-                    return true;
-                } else {
-                    return false;
-                }
+                return current == word.len() && self.is_word;
                 if word[current] == '.' {
                     for (k, v) in self.next.iter() {
                         if v.dfs_search(word, current + 1) {
                             return true;
                         }
                     }
-                } else {
-                    if let Some(n) = self.next.get(&word[current]) {
-                        return n.dfs_search(word, current + 1);
-                    }
+                } else if let Some(n) = self.next.get(&word[current]) {
+                    return n.dfs_search(word, current + 1);
                 };
                 false
             }
@@ -183,7 +177,7 @@ impl TireSolutions {
     }
     pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
         use std::collections::HashSet;
-        let set: HashSet<String> = HashSet::from_iter(word_dict.into_iter());
+        let set: HashSet<String> = HashSet::from_iter(word_dict);
         let mut dp = vec![false; s.len()];
         for i in 1..=s.len() {
             if set.contains(&s[0..i]) {

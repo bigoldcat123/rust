@@ -42,8 +42,7 @@ impl DSet {
     }
 }
 fn add(b:i32,a:i32) -> i32 {
-    let a = a + b;
-    a
+    a + b
 }
 
 pub fn color_border(mut grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
@@ -77,12 +76,10 @@ fn dfs_color_border(
             || (next_j as usize) >= grid[0].len()
         {
             grid[i as usize][i as usize] = color;
+        } else if grid[next_i as usize][next_j as usize] != grid[i as usize][j as usize] {
+            grid[i as usize][j as usize] = color;
         } else {
-            if grid[next_i as usize][next_j as usize] != grid[i as usize][j as usize] {
-                grid[i as usize][j as usize] = color;
-            } else {
-                dfs_color_border(grid, next_i, next_j, color, selected);
-            }
+            dfs_color_border(grid, next_i, next_j, color, selected);
         }
     }
 }
@@ -130,14 +127,14 @@ fn dfs_find_max_fish(i: i32, j: i32, grid: &Vec<Vec<i32>>, selected: &mut Vec<Ve
         }
         selected[i_usize][j_usize] = true;
         if grid[i_usize][j_usize] == 0 {
-            return 0;
+            0
         } else {
             let mut ans = grid[i_usize][j_usize];
             let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
             for (i, j) in des {
                 ans += dfs_find_max_fish(i, j, grid, selected)
             }
-            return ans;
+            ans
         }
     } else {
         0
@@ -166,11 +163,8 @@ pub fn island_perimeter(grid: Vec<Vec<i32>>) -> i32 {
                 let j = j as i32;
                 let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
                 for (i, j) in des {
-                    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len()
-                    {
-                        if grid[i as usize][j as usize] == 1 {
-                            ans += 1;
-                        }
+                    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && grid[i as usize][j as usize] == 1 {
+                        ans += 1;
                     }
                 }
             }
@@ -313,19 +307,17 @@ fn dfs_max_candies(
                 next_boxs.insert(*b as usize);
             }
             new_thing = true;
-        } else {
-            if obtained_keys.contains(&b) {
-                *res += candies[b];
-                for &k in keys[b].iter() {
-                    obtained_keys.insert(k as usize);
-                }
-                for b in contained_boxes[b].iter() {
-                    next_boxs.insert(*b as usize);
-                }
-                new_thing = true;
-            } else {
-                next_boxs.insert(b);
+        } else if obtained_keys.contains(&b) {
+            *res += candies[b];
+            for &k in keys[b].iter() {
+                obtained_keys.insert(k as usize);
             }
+            for b in contained_boxes[b].iter() {
+                next_boxs.insert(*b as usize);
+            }
+            new_thing = true;
+        } else {
+            next_boxs.insert(b);
         }
     }
     if new_thing {
@@ -394,8 +386,8 @@ pub fn minimum_cost(n: i32, edges: Vec<Vec<i32>>, query: Vec<Vec<i32>>) -> Vec<i
         .into_iter()
         .map(|x| {
             if d_set.find(x[0] as usize) == d_set.find(x[1] as usize) {
-                let a = map[&d_set.find(x[0] as usize)];
-                a
+
+                map[&d_set.find(x[0] as usize)]
             } else {
                 -1
             }
@@ -515,10 +507,8 @@ pub fn min_malware_spread2(graph: Vec<Vec<i32>>, initial: Vec<i32>) -> i32 {
         let mut effected = 0;
         let mut added = HashSet::new();
         for &i in initial.iter() {
-            if i != remove_idx {
-                if added.insert(d_set.find(i as usize)) {
-                    effected += d_set.get_size(i as usize);
-                }
+            if i != remove_idx && added.insert(d_set.find(i as usize)) {
+                effected += d_set.get_size(i as usize);
             }
         }
         if effected < min {
@@ -629,7 +619,7 @@ fn dfs_eventual_safe_nodes(
         safe_nodes.insert(current_node);
         true
     } else {
-        return false;
+        false
     }
 }
 
@@ -1116,7 +1106,7 @@ pub fn accounts_merge(accounts: Vec<Vec<String>>) -> Vec<Vec<String>> {
     map.into_iter()
         .map(|(name, mails)| {
             let mut r = vec![accounts[name][0].clone()];
-            let mut a: Vec<String> = mails.into_iter().map(|x| x.clone()).collect();
+            let mut a: Vec<String> = mails.into_iter().cloned().collect();
             a.sort();
             r.extend_from_slice(&a[..]);
             r

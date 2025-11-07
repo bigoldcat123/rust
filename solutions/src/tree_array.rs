@@ -24,7 +24,7 @@ impl<T: Copy + Zero + NumAssign> TreeArray4<T> {
         let mut tree: Vec<T> = vec![T::zero(); nums.len() + 1];
         for (i, &n) in nums.iter().enumerate() {
             let j = i + 1;
-            tree[j] = tree[j] + n;
+            tree[j] += n;
             let next_j = j + Self::next_idx(j);
             if next_j < tree.len() {
                 let a = tree[j];
@@ -55,7 +55,7 @@ impl<T: Copy + Zero + NumAssign> TreeArray4<T> {
     pub fn pre_sum(&self, mut idx: usize) -> T {
         let mut res = T::zero();
         while idx > 0 {
-            res = res + self.tree[idx];
+            res += self.tree[idx];
             idx -= Self::next_idx(idx);
         }
         res
@@ -145,7 +145,7 @@ impl TreeArray3 {
         let mut res = 0;
         idx = idx.min(self.nums.len());
         while idx > 0 {
-            res = res + self.tree[idx];
+            res += self.tree[idx];
             idx -= Self::next_idx(idx);
         }
         res
@@ -154,7 +154,7 @@ impl TreeArray3 {
         let mut res = 0;
         idx = idx.min(self.nums.len());
         while idx > 0 {
-            res = res + self.tree[idx] as isize;
+            res += self.tree[idx] as isize;
             idx -= Self::next_idx(idx);
         }
         res
@@ -223,7 +223,7 @@ impl TreeArray3Isize {
         let mut res = 0;
         idx = idx.min(self.nums.len());
         while idx > 0 {
-            res = res + self.tree[idx] as isize;
+            res = res + self.tree[idx];
             idx -= Self::next_idx(idx);
         }
         res
@@ -762,7 +762,7 @@ pub fn popcount_depth(mut nums: Vec<i64>, queries: Vec<Vec<i64>>) -> Vec<i32> {
             res.push(trees[k].query(l + 1, r + 1)); // inclusive
         } else {
             let idx = q[1] as usize;
-            let n = q[2] as i64;
+            let n = q[2];
             let deeps_prew = calc_deeps(nums[idx]);
             if deeps_prew <= 5 {
                 trees[deeps_prew as usize].update_minus(idx + 1);
@@ -813,14 +813,12 @@ pub fn result_array(nums: Vec<i32>) -> Vec<i32> {
         } else if tree1.query(n + 1, current_num) < tree2.query(n + 1, current_num) {
             arr2.push(n);
             tree2.update(n);
+        } else if arr1.len() <= arr2.len() {
+            arr1.push(n);
+            tree1.update(n);
         } else {
-            if arr1.len() <= arr2.len() {
-                arr1.push(n);
-                tree1.update(n);
-            } else {
-                arr2.push(n);
-                tree2.update(n);
-            }
+            arr2.push(n);
+            tree2.update(n);
         }
     }
     let mut arr1: Vec<_> = arr1.into_iter().map(|x| map[x] as i32).collect();

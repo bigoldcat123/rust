@@ -173,7 +173,7 @@ impl Solution {
             }
 
             fn flip(&mut self) -> Vec<i32> {
-                let x = self.set.iter().map(|x| *x).collect::<Vec<(i32, i32)>>();
+                let x = self.set.iter().copied().collect::<Vec<(i32, i32)>>();
                 println!("{:?}", x);
                 let idx = self.r.gen_range(0..x.len());
                 self.set.remove(&x[idx]);
@@ -260,9 +260,7 @@ impl Solution {
                 self.nums[idx].1 -= 1;
                 let res = self.nums[idx].0;
                 if self.nums[idx].1 == 0 {
-                    let p = self.nums[idx];
-                    self.nums[idx] = self.nums[self.len - 1];
-                    self.nums[self.len - 1] = p;
+                    self.nums.swap(idx, self.len - 1);
                     self.len -= 1;
                 }
                 res as i32
@@ -293,7 +291,7 @@ impl Solution {
         use std::collections::LinkedList;
         let l = LinkedList::from_iter([1].iter());
         let mut res = vec![];
-        let mut p = Vec::from_iter(nums[..k as usize].iter().map(|x| *x));
+        let mut p = Vec::from_iter(nums[..k as usize].iter().copied());
         p.sort();
         res.push(p[x as usize - 1].min(0));
         let (mut l, mut r) = (0, k as usize);
@@ -333,40 +331,40 @@ impl Solution {
         let a = a.as_bytes();
         let b = b.as_bytes();
         while l < r && a[l] == b[r] {
-            println!("{} {} {}", "eeeeee1", a[l] as char, b[r] as char);
+            println!("eeeeee1 {} {}", a[l] as char, b[r] as char);
 
             l += 1;
             r -= 1;
         }
         while l < r && b[l] == b[r] {
-            println!("{}", "eeeeee2");
+            println!("eeeeee2");
 
             l += 1;
             r -= 1;
         }
         if l >= r {
-            println!("{}", "eeeeee");
+            println!("eeeeee");
             return true;
         }
-        println!("{}", "e?");
+        println!("e?");
 
         let (mut l, mut r) = (0, a.len() - 1);
         // let a = a.as_bytes();
         // let b = b.as_bytes();
         while l < r && b[l] == a[r] {
-            println!("{}", "eeeeee3");
+            println!("eeeeee3");
 
             l += 1;
             r -= 1;
         }
         while l < r && a[l] == a[r] {
-            println!("{}", "eeeeee5");
+            println!("eeeeee5");
 
             l += 1;
             r -= 1;
         }
         if l >= r {
-            println!("{}", "ee");
+            println!("ee");
 
             return true;
         }
@@ -553,7 +551,7 @@ impl Solution {
         }
         let a = MyFloat(1.2);
         let b = MyFloat(1.2);
-        if a < b {}
+        a < b;
 
         let sum = nums.iter().map(|&x| x as f64).sum::<f64>();
         let target = sum / 2.0;
@@ -689,7 +687,7 @@ impl Solution {
                         let rating = ratings.pop().unwrap();
                         c.entry(cuisine.clone())
                             .or_insert(BTreeSet::new())
-                            .insert((rating.clone(), food.clone()));
+                            .insert((rating, food.clone()));
                         f_c.insert(food.clone(), (cuisine.clone(), rating));
                     }
                     Self {
@@ -819,7 +817,7 @@ impl Solution {
                             self.avaliable.insert(min);
                         } else {
                             self.full.insert(min);
-                            if self.avaliable.len() == 0 {
+                            if self.avaliable.is_empty() {
                                 self.stacks.push(vec![]);
                                 self.avaliable.insert(self.stacks.len() - 1);
                             }
@@ -846,17 +844,15 @@ impl Solution {
                             } else {
                                 return -1;
                             }
-                        } else {
-                            if last.len() == self.len {
-                                let res = last.pop().unwrap();
-                                self.full.remove(&(self.stacks.len() - 1));
-                                self.avaliable.insert((self.stacks.len() - 1));
+                        } else if last.len() == self.len {
+                            let res = last.pop().unwrap();
+                            self.full.remove(&(self.stacks.len() - 1));
+                            self.avaliable.insert((self.stacks.len() - 1));
 
-                                return res;
-                            } else {
-                                let res = last.pop().unwrap();
-                                return res;
-                            }
+                            return res;
+                        } else {
+                            let res = last.pop().unwrap();
+                            return res;
                         }
                     }
                     -1
@@ -864,14 +860,14 @@ impl Solution {
 
                 fn pop_at_stack(&mut self, index: i32) -> i32 {
                     let index = index as usize;
-                    if self.stacks.len() > index as usize {
-                        if self.stacks[index as usize].len() == self.len {
-                            let res = self.stacks[index as usize].pop().unwrap();
+                    if self.stacks.len() > index {
+                        if self.stacks[index].len() == self.len {
+                            let res = self.stacks[index].pop().unwrap();
                             self.full.remove(&index);
                             self.avaliable.insert(index);
                             res
                         } else {
-                            if let Some(res) = self.stacks[index as usize].pop() {
+                            if let Some(res) = self.stacks[index].pop() {
                                 res
                             } else {
                                 -1
@@ -1091,15 +1087,13 @@ impl Solution {
                             self.current_sum += num;
                             self.current_sum -= del.0;
                         }
+                    } else if self.small_set.len() < self.k {
+                        self.small_set.insert((num, self.nums.len()));
+                    } else if self.mid_set.len() < self.m - self.k * 2 {
+                        self.mid_set.insert((num, self.nums.len()));
+                        self.current_sum += num;
                     } else {
-                        if self.small_set.len() < self.k {
-                            self.small_set.insert((num, self.nums.len()));
-                        } else if self.mid_set.len() < self.m - self.k * 2 {
-                            self.mid_set.insert((num, self.nums.len()));
-                            self.current_sum += num;
-                        } else {
-                            self.big_set.insert((num, self.nums.len()));
-                        }
+                        self.big_set.insert((num, self.nums.len()));
                     }
                     let max_small = self.small_set.last().copied().unwrap();
                     if let Some(min_mid) = self.mid_set.first().copied() {

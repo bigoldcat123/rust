@@ -100,7 +100,7 @@ pub fn my_sqrt(x: i32) -> i32 {
             return (i - 1) as i32;
         }
     }
-    return 0;
+    0
 }
 
 pub fn simplify_path(path: String) -> String {
@@ -108,11 +108,11 @@ pub fn simplify_path(path: String) -> String {
     let mut p = String::new();
 
     for ele in path.as_bytes() {
-        if *ele == '/' as u8 {
+        if *ele == b'/' {
             if !p.is_empty() {
                 if p == "." {
                 } else if p == ".." {
-                    if components.len() != 0 {
+                    if !components.is_empty() {
                         components.pop().unwrap();
                     }
                 } else {
@@ -128,7 +128,7 @@ pub fn simplify_path(path: String) -> String {
     if !p.is_empty() {
         if p == "." {
         } else if p == ".." {
-            if components.len() != 0 {
+            if !components.is_empty() {
                 components.pop().unwrap();
             }
         } else {
@@ -206,7 +206,7 @@ impl A {
     ) -> bool {
         if let (Some(l), Some(r)) = (left, right) {
             if l.borrow().val != r.borrow().val {
-                return false;
+                false
             } else {
                 let a = Self::dfs_is_symmetric(l.borrow().left.as_ref(), r.borrow().right.as_ref());
                 if !a {
@@ -216,7 +216,7 @@ impl A {
                 if !b {
                     return false;
                 }
-                return true;
+                true
             }
         } else if let (None, None) = (left, right) {
             return true;
@@ -273,7 +273,7 @@ impl A {
                 res.push(current_nodes);
             }
         }
-        return res;
+        res
     }
     pub fn zigzag_level_order(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Vec<i32>> {
         let mut queue = VecDeque::new();
@@ -304,7 +304,7 @@ impl A {
                 from_left_to_right = !from_left_to_right
             }
         }
-        return res;
+        res
     }
 
     pub fn max_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
@@ -323,7 +323,7 @@ impl A {
     }
 
     pub fn build_tree_with_ref(preorder: &[i32], inorder: &[i32]) -> Option<Rc<RefCell<TreeNode>>> {
-        if preorder.len() == 0 {
+        if preorder.is_empty() {
             return None;
         }
 
@@ -368,7 +368,7 @@ impl A {
     }
 
     fn build_tree_with_ref2(inorder: &[i32], postorder: &[i32]) -> Option<Rc<RefCell<TreeNode>>> {
-        if inorder.len() == 0 {
+        if inorder.is_empty() {
             return None;
         }
 
@@ -423,11 +423,11 @@ impl A {
                 res.push(current_nodes);
             }
         }
-        return res.into_iter().rev().collect();
+        res.into_iter().rev().collect()
         // return res;
     }
     pub fn sorted_array_to_bst_with_ref(nums: &[i32]) -> Option<Rc<RefCell<TreeNode>>> {
-        if nums.len() == 0 {
+        if nums.is_empty() {
             return None;
         }
         let mid_index = nums.len() / 2;
@@ -453,7 +453,7 @@ impl A {
             nums.push(p.val);
             head = p.next.as_ref()
         }
-        return Self::sorted_array_to_bst(nums);
+        Self::sorted_array_to_bst(nums)
     }
 
     //110.
@@ -468,9 +468,9 @@ impl A {
                 if u32::abs_diff(right, left) >= 2 {
                     *res = false;
                 }
-                return 1 + u32::max(left, right);
+                1 + u32::max(left, right)
             } else {
-                return 0;
+                0
             }
         }
         let mut res = true;
@@ -484,7 +484,7 @@ impl A {
     pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
         fn dfs_min_depth(root: Option<&Rc<RefCell<TreeNode>>>, deep: i32, res: &mut i32) {
             if let Some(root) = root {
-                if root.borrow().left == None && root.borrow().right == None {
+                if root.borrow().left.is_none() && root.borrow().right.is_none() {
                     if *res > deep {
                         *res = deep
                     } else {
@@ -496,7 +496,7 @@ impl A {
         }
         let mut res: i32 = i32::MAX;
         dfs_min_depth(root.as_ref(), 0, &mut res);
-        return res;
+        res
     }
     //112.
     pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
@@ -620,8 +620,8 @@ impl A {
         res
     }
     pub fn get_row(row_index: i32) -> Vec<i32> {
-        let e = Self::generate(row_index).pop().unwrap();
-        e
+        
+        Self::generate(row_index).pop().unwrap()
     }
     pub fn max_profit(prices: Vec<i32>) -> i32 {
         let mut dp = vec![vec![0; prices.len()]; 2];
@@ -657,7 +657,7 @@ impl A {
             // not = own + currentPrice , not
             dp[1][i] = i32::max(dp[1][i - 1], dp[0][i - 1] + prices[i])
         }
-        return i32::max(*dp[0].last().unwrap(), *dp[1].last().unwrap());
+        i32::max(*dp[0].last().unwrap(), *dp[1].last().unwrap())
     }
 
     //123
@@ -739,19 +739,17 @@ impl A {
         let mut current = vec![];
         let mut res = vec![];
         dfs_sum_numbers(root.as_ref().unwrap(), &mut current, &mut res);
-        return res.iter().sum();
+        res.iter().sum()
     }
 
     pub fn solve(board: &mut Vec<Vec<char>>) {
         fn dfs_solve(board: &mut Vec<Vec<char>>, i: usize, j: usize) {
-            if i < board.len() && j < board.first().unwrap().len() {
-                if board[i][j] == 'O' {
-                    board[i][j] = 'N';
-                    dfs_solve(board, i - 1, j);
-                    dfs_solve(board, i + 1, j);
-                    dfs_solve(board, i, j + 1);
-                    dfs_solve(board, i, j - 1);
-                }
+            if i < board.len() && j < board.first().unwrap().len() && board[i][j] == 'O' {
+                board[i][j] = 'N';
+                dfs_solve(board, i - 1, j);
+                dfs_solve(board, i + 1, j);
+                dfs_solve(board, i, j + 1);
+                dfs_solve(board, i, j - 1);
             }
         }
         for i in 0..board.len() {
@@ -780,7 +778,7 @@ impl A {
                         return false;
                     }
                 }
-                return true;
+                true
             }
             fn dfs_parition(
                 s: &str,
@@ -805,7 +803,7 @@ impl A {
             let mut current = vec![];
             let mut res = vec![];
             dfs_parition(&s, 0, &mut current, &mut res);
-            return res;
+            res
         }
     }
 
@@ -842,10 +840,8 @@ impl A {
     }
     //134
     pub fn can_complete_circuit(gas: Vec<i32>, cost: Vec<i32>) -> i32 {
-        if gas.len() == 1 {
-            if gas.first().unwrap() >= cost.first().unwrap() {
-                return 0;
-            }
+        if gas.len() == 1 && gas.first().unwrap() >= cost.first().unwrap() {
+            return 0;
         }
         let mut current_gas;
         let mut current_station;
@@ -875,18 +871,18 @@ impl A {
                 return start_station as i32;
             }
         }
-        return -1;
+        -1
     }
 
     //136
     pub fn single_number(nums: Vec<i32>) -> i32 {
         let mut map = HashMap::new();
         for ele in nums {
-            if map.contains_key(&ele) {
+            if let std::collections::hash_map::Entry::Vacant(e) = map.entry(ele) {
+                e.insert(1);
+            } else {
                 let e = map.get_mut(&ele).unwrap();
                 *e += 1;
-            } else {
-                map.insert(ele, 1);
             }
         }
         for (k, v) in map {
@@ -905,7 +901,7 @@ impl A {
                 dp[i] = true;
             } else {
                 for j in 0..i {
-                    if dp[j] == true && word_dict_ref.contains(&&s[j + 1..=i]) {
+                    if dp[j] && word_dict_ref.contains(&&s[j + 1..=i]) {
                         dp[i] = true
                     }
                 }
@@ -922,14 +918,14 @@ impl A {
             if word_dict_ref.contains(&&s[0..=i]) {
                 dp[i] = true;
                 if i > 0 {
-                    if dp[i - 1] == true {
+                    if dp[i - 1] {
                         res.pop().unwrap();
                     }
                 }
                 res.push(s[0..=i].to_string());
             } else {
                 for j in 0..i {
-                    if dp[j] == true && word_dict_ref.contains(&&s[j + 1..=i]) {
+                    if dp[j] && word_dict_ref.contains(&&s[j + 1..=i]) {
                         dp[i] = true;
                         res.push(s[j + 1..=i].to_string());
                         break;
@@ -1022,7 +1018,7 @@ impl A {
             fn new(capacity: i32) -> Self {
                 Self {
                     store: HashMap::with_capacity(capacity as usize),
-                    capacity: capacity,
+                    capacity,
                 }
             }
 
@@ -1033,7 +1029,7 @@ impl A {
                 if let Some(e) = self.store.get_mut(&key) {
                     e.life = 0;
                     //
-                    return e.value;
+                    e.value
                 } else {
                     -1
                 }
@@ -1043,8 +1039,8 @@ impl A {
                 for x in self.store.values_mut() {
                     x.life -= 1;
                 }
-                if self.store.contains_key(&key) {
-                    self.store.insert(key, CacheValue { value, life: 0 });
+                if let std::collections::hash_map::Entry::Occupied(mut e) = self.store.entry(key) {
+                    e.insert(CacheValue { value, life: 0 });
                     return;
                 }
                 if self.store.len() >= self.capacity as usize {
@@ -1068,9 +1064,7 @@ impl A {
     }
     //149
     pub fn insertion_sort_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
-        if head.is_none() {
-            return None;
-        }
+        head.as_ref()?;
         let mut res = Box::new(ListNode::new(9));
         fn dfs(head: Option<Box<ListNode>>, res: &mut Box<ListNode>) {
             if let Some(mut next) = head {
@@ -1082,7 +1076,6 @@ impl A {
         fn dfs_insert(head: &mut Box<ListNode>, mut value: Box<ListNode>) {
             if head.next.is_none() {
                 head.next = Some(value);
-                return;
             } else if head.next.as_ref().unwrap().val > value.val {
                 let next_next = head.next.take();
                 value.next = next_next;
@@ -1356,7 +1349,7 @@ impl A {
         let mut s = String::new();
 
         loop {
-            left = left % denominator;
+            left %= denominator;
             if left == 0 {
                 break;
             }
@@ -1411,7 +1404,7 @@ impl A {
             if c == 0 {
                 res.push(b'Z');
             } else {
-                res.push((c as u8 + 64) as u8);
+                res.push((c as u8 + 64));
             }
 
             column_number /= 26;
@@ -1517,10 +1510,10 @@ impl A {
 
         for i in 0..s.len() - 9 {
             let sub = &s[i..i + 10];
-            if map.contains_key(&sub) {
-                *map.get_mut(&sub).unwrap() += 1;
+            if let std::collections::hash_map::Entry::Vacant(e) = map.entry(sub) {
+                e.insert(0);
             } else {
-                map.insert(sub, 0);
+                *map.get_mut(&sub).unwrap() += 1;
             }
         }
         let mut res = vec![];
@@ -1639,11 +1632,11 @@ impl A {
                 *is_of = true;
                 return;
             }
-            if res.contains_key(&r) {
-                *is_of = false;
-            } else {
-                res.insert(r, 0);
+            if let std::collections::hash_map::Entry::Vacant(e) = res.entry(r) {
+                e.insert(0);
                 cal(r, res, is_of);
+            } else {
+                *is_of = false;
             }
         }
         let mut res = HashMap::new();
@@ -1703,22 +1696,22 @@ impl A {
         for i in 0..s.len() {
             if map_s_t.contains_key(&s[i]) {
                 let v = map_s_t.get(&s[i]).unwrap();
-                if *v != *&t[i] {
+                if *v != t[i] {
                     return false;
                 }
             } else {
-                map_s_t.insert(*&s[i], *&t[i]);
+                map_s_t.insert(s[i], t[i]);
             }
             if map_t_s.contains_key(&t[i]) {
                 let v = map_t_s.get(&t[i]).unwrap();
-                if *v != *&s[i] {
+                if *v != s[i] {
                     return false;
                 }
             } else {
-                map_t_s.insert(*&t[i], *&s[i]);
+                map_t_s.insert(t[i], s[i]);
             }
         }
-        return true;
+        true
     }
     // 206
     pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
@@ -1730,12 +1723,12 @@ impl A {
                 let mut n = node.take();
                 let nn = n.as_mut().unwrap().next.take();
                 n.as_mut().unwrap().next = next;
-                return help(nn, n);
+                help(nn, n)
             } else {
-                return next;
+                next
             }
         }
-        return help(head, None);
+        help(head, None)
     }
     //207
     pub fn can_finish(num_courses: i32, prerequisites: Vec<Vec<i32>>) -> bool {
@@ -1747,7 +1740,7 @@ impl A {
         }
 
         fn find_cirlce(map: &Vec<Vec<i32>>, prev: &mut Vec<i32>, k: &i32) -> bool {
-            if map[*k as usize].len() == 0 {
+            if map[*k as usize].is_empty() {
                 return false;
             } else {
                 let prereq = map.get(*k as usize).unwrap();
@@ -1799,7 +1792,7 @@ impl A {
             fn new(c: char, is_word: bool) -> Self {
                 Self {
                     charatror: c,
-                    is_word: is_word,
+                    is_word,
                     nexts: vec![None; 26],
                 }
             }
@@ -1833,22 +1826,20 @@ impl A {
                             } else {
                                 handle_insert(&mut node.nexts, current_index + 1, word);
                             }
+                        } else if current_index == word.len() - 1 {
+                            nodes[(word_to_insert - 97) as usize] =
+                                Some(TrieNode::new(word_to_insert as char, true));
                         } else {
-                            if current_index == word.len() - 1 {
-                                nodes[(word_to_insert - 97) as usize] =
-                                    Some(TrieNode::new(word_to_insert as char, true));
-                            } else {
-                                nodes[(word_to_insert - 97) as usize] =
-                                    Some(TrieNode::new(word_to_insert as char, false));
-                                handle_insert(
-                                    &mut nodes[(word_to_insert - 97) as usize]
-                                        .as_mut()
-                                        .unwrap()
-                                        .nexts,
-                                    current_index + 1,
-                                    word,
-                                );
-                            }
+                            nodes[(word_to_insert - 97) as usize] =
+                                Some(TrieNode::new(word_to_insert as char, false));
+                            handle_insert(
+                                &mut nodes[(word_to_insert - 97) as usize]
+                                    .as_mut()
+                                    .unwrap()
+                                    .nexts,
+                                current_index + 1,
+                                word,
+                            );
                         }
                     }
                 }
@@ -1870,18 +1861,18 @@ impl A {
                     if let Some(node) = nodes.get(node_idx) {
                         if let Some(node) = node {
                             if node.is_word && current_idx == word.len() - 1 {
-                                return true;
+                                true
                             } else {
-                                return dfs_search(word, current_idx + 1, &node.nexts);
+                                dfs_search(word, current_idx + 1, &node.nexts)
                             }
                         } else {
-                            return false;
+                            false
                         }
                     } else {
-                        return false;
+                        false
                     }
                 }
-                return dfs_search(word, 0, &self.nodes);
+                dfs_search(word, 0, &self.nodes)
             }
 
             fn starts_with(&self, prefix: String) -> bool {
@@ -1899,18 +1890,18 @@ impl A {
                     if let Some(node) = nodes.get(node_idx) {
                         if let Some(node) = node {
                             if current_idx == word.len() - 1 {
-                                return true;
+                                true
                             } else {
-                                return dfs_search(word, current_idx + 1, &node.nexts);
+                                dfs_search(word, current_idx + 1, &node.nexts)
                             }
                         } else {
-                            return false;
+                            false
                         }
                     } else {
-                        return false;
+                        false
                     }
                 }
-                return dfs_search(word, 0, &self.nodes);
+                dfs_search(word, 0, &self.nodes)
             }
         }
     }
@@ -2025,11 +2016,7 @@ impl A {
                 let word = word.as_bytes();
                 fn dfs_insert(node: &mut HashMap<char, DicNode>, current_idx: usize, word: &[u8]) {
                     let c_to_insert = word[current_idx] as char;
-                    let is_last_c = if current_idx == word.len() - 1 {
-                        true
-                    } else {
-                        false
-                    };
+                    let is_last_c = current_idx == word.len() - 1;
 
                     if let Some(next_node) = node.get_mut(&c_to_insert) {
                         if is_last_c {
@@ -2038,7 +2025,7 @@ impl A {
                         }
                         dfs_insert(&mut next_node.nexts, current_idx + 1, word);
                     } else {
-                        let mut dic_node = DicNode::new(if is_last_c { true } else { false });
+                        let mut dic_node = DicNode::new(is_last_c);
 
                         if !is_last_c {
                             dfs_insert(&mut dic_node.nexts, current_idx + 1, word);
@@ -2059,7 +2046,7 @@ impl A {
 
                     if current_idx == word.len() - 1 {
                         if c_to_search == '.' {
-                            for (_, v) in node {
+                            for v in node.values() {
                                 if v.is_world {
                                     return true;
                                 }
@@ -2067,11 +2054,7 @@ impl A {
                             return false;
                         } else {
                             if let Some(node) = node.get(&c_to_search) {
-                                if node.is_world {
-                                    return true;
-                                } else {
-                                    return false;
-                                }
+                                return node.is_world
                             } else {
                                 return false;
                             }
@@ -2079,18 +2062,18 @@ impl A {
                     }
 
                     if c_to_search == '.' {
-                        for (_, v) in node {
+                        for v in node.values() {
                             let res = dfs_search(&v.nexts, current_idx + 1, word);
                             if res {
                                 return true;
                             }
                         }
-                        return false;
+                        false
                     } else {
                         if let Some(n) = node.get(&c_to_search) {
-                            return dfs_search(&n.nexts, current_idx + 1, word);
+                            dfs_search(&n.nexts, current_idx + 1, word)
                         } else {
-                            return false;
+                            false
                         }
                     }
                 }
@@ -2115,11 +2098,7 @@ impl A {
                 if sum == n {
                     res.push(temp.clone());
                     return false;
-                } else if sum < n {
-                    return true;
-                } else {
-                    return false;
-                }
+                } else { return sum < n }
             }
             for i in current..=8 {
                 temp.push((i + 1) as i32);
@@ -2129,7 +2108,7 @@ impl A {
                     return true;
                 }
             }
-            return true;
+            true
         }
         search(k as usize, 0, &mut temp, &mut res, n);
         res
@@ -2143,7 +2122,7 @@ impl A {
             }
             map.insert(*ele, 0);
         }
-        return true;
+        true
     }
 
     //219
@@ -2162,7 +2141,7 @@ impl A {
                 map.insert(*v, vec![idx as i32]);
             }
         }
-        return false;
+        false
     }
 
     //222
@@ -2204,7 +2183,7 @@ impl A {
         if by1 > ay2 || by2 < ay1 || bx1 > ax2 {
             //just return
 
-            return ax * ay + bx * by;
+            ax * ay + bx * by
         } else {
             //some overlap
             let max_up = ay2.max(by2);
@@ -2223,7 +2202,7 @@ impl A {
                 }
                 res += max_y;
             }
-            return res;
+            res
         }
     }
 
@@ -2293,7 +2272,7 @@ impl A {
             root.borrow_mut().left = right;
             root.borrow_mut().right = left;
         }
-        return root;
+        root
     }
 
     // 227
@@ -2569,10 +2548,8 @@ impl A {
         }
         let mut res = 0;
         fn cal(n: i32, dp: &Vec<u128>, res: &mut i32) {
-            if n < 10 {
-                if n >= 1 {
-                    *res += 1;
-                }
+            if n < 10 && n >= 1 {
+                *res += 1;
             }
             let mut i = 0;
             let mut step = 10;
@@ -2591,7 +2568,7 @@ impl A {
             cal(n % step, dp, res);
         }
         cal(n as i32, &dp[1], &mut res);
-        res as i32
+        res
     }
     // 234
     pub fn is_palindrome_list(head: Option<Box<ListNode>>) -> bool {
@@ -2603,7 +2580,7 @@ impl A {
             }
         }
         dfs_collect(head.as_ref(), &mut nodes);
-        let mut start = 0 as i32;
+        let mut start = 0_i32;
         let mut end = (nodes.len() - 1) as i32;
         while start <= end {
             if nodes[start as usize] != nodes[end as usize] {
@@ -2612,7 +2589,7 @@ impl A {
             start += 1;
             end -= 1;
         }
-        return true;
+        true
     }
     //235
     pub fn lowest_common_ancestor(
@@ -2656,7 +2633,7 @@ impl A {
                 }
                 (x, y)
             } else {
-                return (false, false);
+                (false, false)
             }
         }
         search(
@@ -2704,14 +2681,12 @@ impl A {
             left *= nums[i - 1];
             if i == nums.len() - 1 {
                 right = 1;
+            } else if nums[i] != 0 {
+                right /= nums[i];
             } else {
-                if nums[i] != 0 {
-                    right /= nums[i];
-                } else {
-                    right = 1;
-                    for i in i + 1..nums.len() {
-                        right *= nums[i];
-                    }
+                right = 1;
+                for i in i + 1..nums.len() {
+                    right *= nums[i];
                 }
             }
             res[i] = left * right;
@@ -2809,13 +2784,13 @@ impl A {
     pub fn single_number2(nums: Vec<i32>) -> Vec<i32> {
         let mut map = std::collections::HashMap::new();
         for num in nums {
-            if map.contains_key(&num) {
-                map.remove(&num).unwrap();
+            if let std::collections::hash_map::Entry::Vacant(e) = map.entry(num) {
+                e.insert(0);
             } else {
-                map.insert(num, 0);
+                map.remove(&num).unwrap();
             }
         }
-        map.iter().map(|(k, _)| *k).collect::<Vec<i32>>()
+        map.keys().map(|k| *k).collect::<Vec<i32>>()
     }
     //263
     pub fn is_ugly(n: i32) -> bool {
@@ -2827,28 +2802,26 @@ impl A {
                 return false;
             }
             for i in factors.iter() {
-                if n % *i == 0 {
-                    if find(n / *i, factors) {
-                        return true;
-                    }
+                if n % *i == 0 && find(n / *i, factors) {
+                    return true;
                 }
             }
             false
         }
         let factors = vec![2, 3, 5];
 
-        return find(n, &factors);
+        find(n, &factors)
     }
     //264
     pub fn nth_ugly_number(n: i32) -> i32 {
-        let factors = vec![2, 3, 5];
+        let factors = [2, 3, 5];
         let mut set = std::collections::HashSet::new();
         let mut heap = std::collections::BinaryHeap::new();
         set.insert(1);
         heap.push(std::cmp::Reverse(1));
 
         for i in 0..n - 1 {
-            let next = heap.pop().unwrap().0 as usize;
+            let next = heap.pop().unwrap().0;
             for f in factors.iter() {
                 if set.insert(*f * next) {
                     heap.push(std::cmp::Reverse(*f * next));
@@ -3244,7 +3217,7 @@ impl A {
         }
         for i in 0..num.len() {
             for j in i..num.len() {
-                let from = (0 as usize, i);
+                let from = (0_usize, i);
                 let to = (i + 1, j + 1);
                 let max = usize::max(from.1 - from.0, to.1 - to.0);
                 if search(from, to, max, &num, 1) {
@@ -3328,7 +3301,7 @@ impl A {
                         nexts.append(&mut children.into_iter().collect::<Vec<i32>>());
                     }
                 }
-                if nexts.len() != 0 {
+                if !nexts.is_empty() {
                     q.push_back(nexts);
                 }
                 count += 1;
@@ -3386,7 +3359,6 @@ impl A {
         }
         let mut e = map
             .into_iter()
-            .map(|(k, v)| (k, v))
             .collect::<Vec<(u8, Vec<usize>)>>();
         e.sort_by(|x, y| x.0.cmp(&y.0));
         let mut next = 0;
@@ -3425,7 +3397,7 @@ impl A {
                 let right = &words[j];
                 let x = &sets[i];
                 let y = &sets[j];
-                if x.intersection(&y).collect::<Vec<&u8>>().len() != 0 {
+                if x.intersection(y).collect::<Vec<&u8>>().len() != 0 {
                     continue;
                 } else {
                     max = max.max(left.len() * right.len())
@@ -3476,15 +3448,15 @@ impl A {
             dp[(remain - 1) as usize]
         }
         let mut dp = vec![0; amount as usize];
-        let res = search(&coins, amount, &mut dp);
-        res
+        
+        search(&coins, amount, &mut dp)
     }
 
     //334
     pub fn wiggle_sort(nums: &mut Vec<i32>) {
         nums.sort();
         let mut res = vec![];
-        let mut mid = (nums.len() + 1) / 2;
+        let mut mid = nums.len().div_ceil(2);
 
         if nums.len() % 2 != 0 {
             mid -= 1;
@@ -3522,7 +3494,7 @@ impl A {
     }
     //328
     pub fn odd_even_list(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
-        if let None = head {
+        if head.is_none() {
             return head;
         }
         let mut even_head = Box::new(ListNode::new(0));
@@ -3537,7 +3509,7 @@ impl A {
             }
         }
         fn conjunction(head: &mut Box<ListNode>, last: Option<Box<ListNode>>) {
-            if let None = head.next.as_ref() {
+            if head.next.as_ref().is_none() {
                 head.next = last
             } else {
                 conjunction(head.next.as_mut().unwrap(), last);
@@ -3554,7 +3526,7 @@ impl A {
             false
         } else {
             let mut stack = vec![];
-            let nodes = preorder.split(|c| c == ',').collect::<Vec<&str>>();
+            let nodes = preorder.split(',').collect::<Vec<&str>>();
             let size = nodes.len() - 1;
             for (idx, node) in nodes.into_iter().enumerate() {
                 if let Some(top) = stack.last() {
@@ -3581,7 +3553,7 @@ impl A {
                     stack.push(node);
                 }
             }
-            if stack.len() != 0 { false } else { true }
+            if !stack.is_empty() { false } else { true }
         }
     }
 
@@ -3607,7 +3579,7 @@ impl A {
     //334 😭
     pub fn increasing_triplet(nums: Vec<i32>) -> bool {
         if nums.len() < 3 {
-            return false;
+            false
         } else {
             let mut left_min = vec![nums[0]; nums.len()];
             for i in 1..nums.len() {
@@ -3682,14 +3654,12 @@ impl A {
                 } else {
                     search(step - 1, State::TwoStep, mem)
                 }
+            } else if step == 1 {
+                0
+            } else if step == 2 {
+                1
             } else {
-                if step == 1 {
-                    0
-                } else if step == 2 {
-                    1
-                } else {
-                    search(step - 2, State::OneStep, mem) + search(step - 2, State::TwoStep, mem)
-                }
+                search(step - 2, State::OneStep, mem) + search(step - 2, State::TwoStep, mem)
             };
             let vec = mem.get_mut(&stat).unwrap();
             vec[step as usize] = e as i128;
@@ -3724,15 +3694,13 @@ impl A {
         fn search(val: &Vec<i32>, wei: &Vec<i32>, i: usize, cap: i32) -> i32 {
             if i == 0 || cap == 0 {
                 0
+            } else if wei[i] <= cap {
+                max(
+                    search(val, wei, i - 1, cap - wei[i]) + val[i],
+                    search(val, wei, i - 1, cap),
+                )
             } else {
-                if wei[i] <= cap {
-                    max(
-                        search(val, wei, i - 1, cap - wei[i]) + val[i],
-                        search(val, wei, i - 1, cap),
-                    )
-                } else {
-                    search(val, wei, i - 1, cap)
-                }
+                search(val, wei, i - 1, cap)
             }
         }
         search(&val, &wei, val.len() - 1, cap)
@@ -3835,9 +3803,8 @@ impl A {
         let mid = s.len();
         let len = s.len() - 1;
         for i in 0..mid {
-            let t = s[i];
-            s[i] = s[len - i];
-            s[len - i] = t;
+            let i = i;
+            s.swap(i, len - i);
             println!("{}->{}", s[i], s[len - i]);
         }
     }
@@ -3888,7 +3855,7 @@ impl A {
                 map.insert(ele, 0);
             }
         }
-        let mut e = map.into_iter().map(|x| x).collect::<Vec<(i32, i32)>>();
+        let mut e = map.into_iter().collect::<Vec<(i32, i32)>>();
         e.sort_by(|a, b| b.1.cmp(&a.1));
         e.into_iter()
             .take(k as usize)
@@ -3898,11 +3865,11 @@ impl A {
     //349
     pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
         let num1: std::collections::HashSet<i32, std::hash::RandomState> =
-            std::collections::HashSet::from_iter(nums1.into_iter());
+            std::collections::HashSet::from_iter(nums1);
         let num2: std::collections::HashSet<i32, std::hash::RandomState> =
-            std::collections::HashSet::from_iter(nums2.into_iter());
+            std::collections::HashSet::from_iter(nums2);
 
-        num1.intersection(&num2).map(|x| *x).collect::<Vec<i32>>()
+        num1.intersection(&num2).copied().collect::<Vec<i32>>()
     }
 
     //350
@@ -4011,7 +3978,7 @@ impl A {
 
     //357
     pub fn count_numbers_with_unique_digits(n: i32) -> i32 {
-        let mut dp_2 = vec![9 as i32; n as usize];
+        let mut dp_2 = vec![9_i32; n as usize];
         for i in 1..n as usize {
             dp_2[i] = dp_2[i - 1] * (10 - i as i32);
         }
@@ -4225,7 +4192,7 @@ impl A {
             if next.1 + 1 >= nums2.len() {
                 next.2 = i32::MAX;
             } else {
-                next.1 = next.1 + 1;
+                next.1 += 1;
                 next.2 = nums1[next.0] + nums2[next.1];
             }
             heap.push(next);
@@ -4237,7 +4204,7 @@ impl A {
         fn guess(num: i32) -> i32 {
             0
         }
-        let mut left = 1 as u128;
+        let mut left = 1_u128;
         let mut right = n as u128;
         loop {
             let mid = (left + right) / 2;
@@ -4374,8 +4341,7 @@ impl A {
                 self.list = self
                     .list
                     .iter()
-                    .filter(|x| self.set.contains(x))
-                    .map(|x| *x)
+                    .filter(|x| self.set.contains(x)).copied()
                     .collect::<VecDeque<i32>>();
                 let mut rng = rand::thread_rng();
                 let idx = rng.gen_range(0..(self.list.len()));
@@ -4493,13 +4459,13 @@ impl A {
                         if c.is_numeric() || c == '-' {
                             cache.push(c);
                         } else if c == ',' {
-                            if cache.len() != 0 {
+                            if !cache.is_empty() {
                                 let next = cache.parse::<i32>().expect("convert fails");
                                 l.push(NestedInteger::Int(next));
                                 cache.clear();
                             }
                         } else if c == ']' {
-                            if cache.len() != 0 {
+                            if !cache.is_empty() {
                                 let next = cache.parse::<i32>().expect("convert fails");
                                 l.push(NestedInteger::Int(next));
                             }
@@ -4556,7 +4522,7 @@ impl A {
             }
         }
         for (idx, ele) in s.as_bytes().iter().enumerate() {
-            if let Some(v) = map.get(&ele) {
+            if let Some(v) = map.get(ele) {
                 if *v == 1 {
                     return idx as i32;
                 }
@@ -4627,7 +4593,7 @@ impl A {
             i += 1;
         }
         if cache.contains('.') {
-            println!("{}", "eeeeeee");
+            println!("eeeeeee");
             stack.push(cache);
             println!("{:?}", stack.join("/"));
             let len = stack.join("/").len();
@@ -4691,19 +4657,19 @@ impl A {
     //393
     pub fn valid_utf8(data: Vec<i32>) -> bool {
         fn is_followed(d: i32) -> bool {
-            d >= 128 && d < 192
+            (128..192).contains(&d)
         }
         fn is_one(d: i32) -> bool {
             d < 128
         }
         fn is_two(d: i32) -> bool {
-            d >= 192 && d < 224
+            (192..224).contains(&d)
         }
         fn is_three(d: i32) -> bool {
-            d >= 224 && d < 240
+            (224..240).contains(&d)
         }
         fn is_four(d: i32) -> bool {
-            d >= 240 && d < 248
+            (240..248).contains(&d)
         }
         #[derive(PartialEq, Eq)]
         enum Type {
@@ -5031,7 +4997,7 @@ impl A {
         let mut digit = 0;
         let mut start = 0;
         let mut len = 0;
-        for i in 1 as usize.. {
+        for i in 1_usize.. {
             let next = digit + i * 9 * step;
             if next > n {
                 start = step;

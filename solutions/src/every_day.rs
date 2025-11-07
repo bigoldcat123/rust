@@ -70,7 +70,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                         .entry(*e.key())
                         .or_default()
                         .insert(e.get_mut().pop_first().unwrap());
-                    if e.get().len() == 0 {
+                    if e.get().is_empty() {
                         max_accurance_nums_map.pop_first();
                     }
                     max_accurance_nums_map.entry(v).or_default().insert(k);
@@ -82,7 +82,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                             .entry(*e.key())
                             .or_default()
                             .insert(e.get_mut().pop_first().unwrap());
-                        if e.get().len() == 0 {
+                        if e.get().is_empty() {
                             max_accurance_nums_map.pop_first();
                         }
                         sum += v * k;
@@ -116,7 +116,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
             if max_occ.remove(&delete_n) {
                 max_minus = true;
                 sum -= delete_n;
-                if max_occ.len() == 0 {
+                if max_occ.is_empty() {
                     max_accurance_nums_map.remove(&pre_occ_del);
                 }
                 if pre_occ_del - 1 > 0 {
@@ -132,7 +132,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
         if let Some(max_occ) = unsued_accurance_nums_map.get_mut(&pre_occ_del) {
             if max_occ.remove(&delete_n) {
                 sum -= delete_n;
-                if max_occ.len() == 0 {
+                if max_occ.is_empty() {
                     unsued_accurance_nums_map.remove(&pre_occ_del);
                 }
                 if pre_occ_del - 1 > 0 {
@@ -147,7 +147,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
 
         if let Some(mac_occ) = max_accurance_nums_map.get_mut(&pre_occ_new) {
             if mac_occ.remove(&new_n) {
-                if mac_occ.len() == 0 {
+                if mac_occ.is_empty() {
                     max_accurance_nums_map.remove(&pre_occ_new);
                 }
                 added = true;
@@ -161,7 +161,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
 
         if let Some(mac_occ) = unsued_accurance_nums_map.get_mut(&pre_occ_new) {
             if mac_occ.remove(&new_n) {
-                if mac_occ.len() == 0 {
+                if mac_occ.is_empty() {
                     unsued_accurance_nums_map.remove(&pre_occ_new);
                 }
                 unsed_add = true;
@@ -187,7 +187,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
             let n = last.get_mut().pop_last().unwrap();
             max_accurance_nums_map.entry(occ).or_default().insert(n);
             sum += n * occ;
-            if last.get().len() == 0 {
+            if last.get().is_empty() {
                 unsued_accurance_nums_map.pop_last();
             }
         } else {
@@ -204,7 +204,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                                     .entry(*e_min_max.key())
                                     .or_default()
                                     .insert(new);
-                                if e_min_max.get().len() == 0 {
+                                if e_min_max.get().is_empty() {
                                     unsued_accurance_nums_map.pop_last();
                                 }
                                 unsued_accurance_nums_map
@@ -221,7 +221,7 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                                     .entry(*e_min_max.key())
                                     .or_default()
                                     .insert(new);
-                                if e_min_max.get().len() == 0 {
+                                if e_min_max.get().is_empty() {
                                     unsued_accurance_nums_map.pop_last();
                                 }
                                 unsued_accurance_nums_map
@@ -237,10 +237,10 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                                 sum += b * *e_max_min.key();
                                 e_max_min.get_mut().insert(b);
                                 e_min_max.get_mut().insert(a);
-                                if e_min_max.get().len() == 0 {
+                                if e_min_max.get().is_empty() {
                                     unsued_accurance_nums_map.pop_last();
                                 }
-                                if e_max_min.get().len() == 0 {
+                                if e_max_min.get().is_empty() {
                                     max_accurance_nums_map.pop_first();
                                 }
                             }
@@ -390,8 +390,8 @@ pub fn max_product(nums: Vec<i32>) -> i64 {
         .collect::<Vec<i64>>();
     nums.sort();
 
-    let x = 1_00_000 as i64;
-    (nums[nums.len() - 1] as i64 * nums[nums.len() - 2] as i64 * x).abs()
+    let x = 1_00_000_i64;
+    (nums[nums.len() - 1] * nums[nums.len() - 2] * x).abs()
 }
 pub fn find_missing_elements(nums: Vec<i32>) -> Vec<i32> {
     use std::collections::HashSet;
@@ -495,7 +495,7 @@ pub fn count_unguarded(m: i32, n: i32, guards: Vec<Vec<i32>>, walls: Vec<Vec<i32
 
 pub fn modified_list(nums: Vec<i32>, mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     use std::collections::HashSet;
-    let set: HashSet<i32> = HashSet::from_iter(nums.into_iter());
+    let set: HashSet<i32> = HashSet::from_iter(nums);
     let mut pre = Box::new(ListNode::new(2));
     let mut pre_ptr = &mut pre;
 
@@ -627,11 +627,7 @@ fn bank() {
         }
 
         fn is_valaid_account(&self, account: i32) -> bool {
-            if self.account.len() > account as usize - 1 {
-                false
-            } else {
-                true
-            }
+            self.account.len() <= account as usize - 1
         }
         fn transfer(&mut self, account1: i32, account2: i32, money: i64) -> bool {
             if self.is_valaid_account(account1) && self.is_valaid_account(account2) {
@@ -773,8 +769,8 @@ pub fn min_operations(mut nums1: Vec<i32>, nums2: Vec<i32>) -> i64 {
             op += pre_sum[j];
             op += pre_sum[pre_sum.len() - 1] - pre_sum[j + 1];
         }
-        if (op as i64) < min_operations {
-            min_operations = op as i64;
+        if op < min_operations {
+            min_operations = op;
             i = j;
         }
     }
@@ -805,7 +801,7 @@ pub fn num_good_subarrays(nums: Vec<i32>, k: i32) -> i64 {
     let mut last_start = 0;
     let mut sum = 0_usize;
     for i in 0..nums.len() {
-        sum = (sum + nums[i] as usize);
+        sum += nums[i] as usize;
         if i > 0 && nums[i - 1] != nums[i] {
             let mut s = sum;
             let mut extra = i - last_start;

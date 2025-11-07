@@ -134,7 +134,7 @@ impl Solution {
         }
         // res.push_str(&a[start..]);
         let mut start = res.len();
-        for i in 0..res.as_bytes().len() {
+        for i in 0..res.len() {
             if res.as_bytes()[i] != 48 {
                 start = i;
                 break;
@@ -143,7 +143,7 @@ impl Solution {
         if start == res.len() {
             return "0".to_string();
         }
-        format!("{}", &res[start..])
+        (&res[start..]).to_string()
     }
 
     //405
@@ -363,10 +363,8 @@ impl Solution {
     }
     //29
     pub fn divide(mut dividend: i32, mut divisor: i32) -> i32 {
-        if dividend == i32::MIN {
-            if divisor == -1 {
-                return i32::MAX;
-            }
+        if dividend == i32::MIN && divisor == -1 {
+            return i32::MAX;
         }
         if divisor == i32::MAX {
             if dividend == i32::MAX {
@@ -415,12 +413,10 @@ impl Solution {
             for j in 0..nums.len() {
                 if dp[i][j - 1] {
                     dp[i][j] = true;
+                } else if nums[j] as usize > i {
+                    dp[i][j] = false;
                 } else {
-                    if nums[j] as usize > i {
-                        dp[i][j] = false;
-                    } else {
-                        dp[i][j] = dp[i - nums[j] as usize][j - 1];
-                    }
+                    dp[i][j] = dp[i - nums[j] as usize][j - 1];
                 }
             }
         }
@@ -795,7 +791,7 @@ impl Solution {
                     pre_order: &[i32],
                     mid_order: &[i32],
                 ) -> Option<Rc<RefCell<TreeNode>>> {
-                    if pre_order.len() != 0 {
+                    if !pre_order.is_empty() {
                         let mut root = TreeNode::new(pre_order[0]);
                         let idx = mid_order.binary_search(&pre_order[0]).unwrap();
 
@@ -906,7 +902,7 @@ impl Solution {
                 map.insert(*i, 1);
             }
         }
-        let mut arr: Vec<(u8, i32)> = map.into_iter().map(|x| x).collect();
+        let mut arr: Vec<(u8, i32)> = map.into_iter().collect();
         arr.sort_by(|x, y| y.1.cmp(&x.1));
         for w in arr {
             res.push_str(&format!("{}", w.0 as char).repeat(w.1 as usize));
@@ -928,7 +924,7 @@ impl Solution {
             } else {
                 res += 1;
                 left = right;
-                right = right + 1;
+                right += 1;
                 max = points[left][1];
             }
         }
@@ -968,9 +964,8 @@ impl Solution {
                 if nums[target] == nums[i] {
                     break;
                 }
-                let t = nums[i];
-                nums[i] = nums[target];
-                nums[target] = t;
+                let i = i;
+                nums.swap(i, target);
             }
         }
         let mut res = vec![];
@@ -1311,11 +1306,11 @@ impl Solution {
         let mut dp = vec![false; s.len()];
         let s = s.as_str();
         for i in 0..s.len() {
-            if word_dict.contains(&format!("{}", &s[0..=i])) {
+            if word_dict.contains(&(&s[0..=i]).to_string()) {
                 dp[i] = true;
             } else {
                 for j in 0..i {
-                    if dp[j] && word_dict.contains(&format!("{}", &s[j + 1..=i])) {
+                    if dp[j] && word_dict.contains(&(&s[j + 1..=i]).to_string()) {
                         dp[i] = true
                     }
                 }
@@ -1620,8 +1615,8 @@ impl Solution {
             }
             let mut res = vec![];
             for i in (start + 1..end).step_by(2) {
-                let left = dfs(&ops, start, i, dp);
-                let right = dfs(&ops, i + 1, end, dp);
+                let left = dfs(ops, start, i, dp);
+                let right = dfs(ops, i + 1, end, dp);
                 for l in left {
                     for r in &right {
                         res.push(cal(l, ops[i], *r));
@@ -1681,11 +1676,9 @@ impl Solution {
         println!("{:?}", dest_from_node2);
         let mut min = usize::MAX;
         for i in 0..dest_from_node1.len() {
-            if dest_from_node1[i] != nodes.len() && dest_from_node2[i] != nodes.len() {
-                if min > dest_from_node1[i].max(dest_from_node2[i]) {
-                    min = dest_from_node1[i].max(dest_from_node2[i]);
-                    res = i;
-                }
+            if dest_from_node1[i] != nodes.len() && dest_from_node2[i] != nodes.len() && min > dest_from_node1[i].max(dest_from_node2[i]) {
+                min = dest_from_node1[i].max(dest_from_node2[i]);
+                res = i;
             }
         }
         if res == usize::MAX { -1 } else { res as i32 }
@@ -1884,11 +1877,7 @@ impl Solution {
                     for i in nums.iter().filter(|x| !current.contains(x)) {
                         c *= *i as i64;
                     }
-                    if c == target {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return c == target
                 } else {
                     return false;
                 }
@@ -1950,8 +1939,8 @@ impl Solution {
         for i in 0..=grid.len() - k {
             for j in 0..=grid[0].len() - k {
                 let mut s = vec![];
-                for row in i + 0..i + k {
-                    for col in j + 0..j + k {
+                for row in i..i + k {
+                    for col in j..j + k {
                         s.push(grid[row][col]);
                     }
                 }
@@ -1989,30 +1978,30 @@ impl Solution {
             }
 
             if q.all(|x| {
-                if x.len() != 1 && x.starts_with("0") || x.len() == 0 {
-                    return false;
+                if x.len() != 1 && x.starts_with("0") || x.is_empty() {
+                    false
                 } else {
                     if let Ok(p) = x.parse::<i32>() {
-                        if p < 0 || p > 255 {
-                            return false;
+                        if !(0..=255).contains(&p) {
+                            false
                         } else {
-                            return true;
+                            true
                         }
                     } else {
-                        return false;
+                        false
                     }
                 }
             }) {
-                return "IPv4".to_string();
+                "IPv4".to_string()
             } else {
-                return "Neither".to_string();
+                "Neither".to_string()
             }
         } else {
             if query_ip.split(":").count() != 8 {
                 return "Neither".to_string();
             }
             if query_ip.split(":").all(|x| {
-                if x.len() > 4 || x.len() == 0 {
+                if x.len() > 4 || x.is_empty() {
                     return false;
                 }
                 if x.chars().any(|xx| !set.contains(&(xx as u8))) {
@@ -2020,7 +2009,7 @@ impl Solution {
                 }
                 true
             }) {
-                return "IPv6".to_string();
+                "IPv6".to_string()
             } else {
                 "Neither".to_string()
             }
@@ -2103,8 +2092,8 @@ impl Solution {
         } else {
             res[ratings.len() - 1] = 1;
         }
-        let res = res.iter().sum::<i32>();
-        res
+        
+        res.iter().sum::<i32>()
     }
     //337 dp
     pub fn rob(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
@@ -2225,10 +2214,10 @@ impl Solution {
             for j in 0..n as usize + 1 {
                 for k in 0..m as usize + 1 {
                     if x[i].0 > j || x[i].1 > k {
-                        if i == 1 {}
+                        i == 1;
                         dp[i][j][k] = dp[i - 1][j][k];
                     } else {
-                        if i == 1 {}
+                        i == 1;
                         dp[i][j][k] = dp[i - 1][j][k].max(dp[i - 1][j - x[i].0][k - x[i].1] + 1);
                     }
                 }
@@ -2395,13 +2384,13 @@ impl Solution {
         //2. compare the words from the start index to index + word.len - (numberfriend - 1)
         let mut indices = vec![];
         let mut max = 0;
-        let max_len = word.as_bytes().len() - (num_friends - 1) as usize;
+        let max_len = word.len() - (num_friends - 1) as usize;
 
         for i in word.as_bytes() {
             max = max.max(*i);
         }
 
-        for i in 0..word.as_bytes().len() {
+        for i in 0..word.len() {
             if word.as_bytes()[i] == max {
                 // if let Some(last) = indices.last() {
                 //     if *last + max_len <= i {
@@ -2426,7 +2415,6 @@ impl Solution {
     pub fn license_key_formatting(s: String, k: i32) -> String {
         let mut s = s
             .chars()
-            .into_iter()
             .filter(|x| *x != '-')
             .map(|x| x.to_ascii_uppercase())
             .collect::<String>();
@@ -2558,7 +2546,7 @@ impl Solution {
         }
         println!("{:?}", pre);
         println!("{:?}", post);
-        let mut a = pre.intersection(&post).into_iter().collect::<Vec<&&str>>();
+        let mut a = pre.intersection(&post).collect::<Vec<&&str>>();
         a.sort_by(|a, b| b.len().cmp(&a.len()));
         if a.len() > 1 {
             String::from(*a[0])
@@ -2596,8 +2584,8 @@ impl Solution {
     //2434
     pub fn robot_with_string(s: String) -> String {
         let mut min = b'a';
-        let mut cnt = vec![0; 26];
-        for i in s.as_bytes().as_ref() {
+        let mut cnt = [0; 26];
+        for i in s.as_bytes() {
             cnt[(*i - b'a') as usize] += 1;
         }
 
@@ -2745,9 +2733,7 @@ impl Solution {
 
     //500
     pub fn find_words(words: Vec<String>) -> Vec<String> {
-        let map = vec![
-            2, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, 2, 3, 3, 1, 1, 1, 1, 2, 1, 1, 3, 1, 3, 1, 3,
-        ];
+        let map = [2, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, 2, 3, 3, 1, 1, 1, 1, 2, 1, 1, 3, 1, 3, 1, 3];
         words
             .into_iter()
             .filter(|x| {

@@ -186,17 +186,13 @@ pub fn maximum_segment_sum(nums: Vec<i32>, remove_queries: Vec<i32>) -> Vec<i64>
         current_nums[idx] = nums[idx];
         d_set.value[idx] = nums[idx] as i64;
         let mut pre = res[res.len() - 1].max(nums[idx] as _);
-        if idx > 0 {
-            if current_nums[idx - 1] != 0 {
-                d_set.union(idx, idx - 1);
-                pre = pre.max(d_set.get_value(idx));
-            }
+        if idx > 0 && current_nums[idx - 1] != 0 {
+            d_set.union(idx, idx - 1);
+            pre = pre.max(d_set.get_value(idx));
         }
-        if idx < current_nums.len() - 1 {
-            if current_nums[idx + 1] != 0 {
-                d_set.union(idx, idx + 1);
-                pre = pre.max(d_set.get_value(idx));
-            }
+        if idx < current_nums.len() - 1 && current_nums[idx + 1] != 0 {
+            d_set.union(idx, idx + 1);
+            pre = pre.max(d_set.get_value(idx));
         }
         res.push(pre);
     }
@@ -258,7 +254,7 @@ pub fn largest_component_size(arr: Vec<i32>, m: i32) -> i32 {
     let mut res = 1;
     let mut map = HashMap::new();
     for i in 0..arr.len() {
-        let idx = arr[i as usize] as usize;
+        let idx = arr[i] as usize;
         s[idx] = 1;
         *map.entry(1).or_default() += 1;
         println!("{:?}", s);
@@ -452,11 +448,7 @@ fn check6(
     visited: &mut HashSet<(usize, usize)>,
 ) -> bool {
     if i == j && i == distance_to_theif.len() - 1 {
-        if distance_to_theif[i][j] >= distance {
-            return true;
-        } else {
-            return false;
-        }
+        return distance_to_theif[i][j] >= distance
     }
     if visited.contains(&(i, j)) {
         return false;
@@ -504,8 +496,7 @@ pub fn regions_by_slashes(mut grid: Vec<String>) -> i32 {
                 if !d_set.union((i, j), (i + 1, j + 1)) {
                     res += 1;
                 }
-            } else {
-            }
+            } 
         }
     }
     res
@@ -589,12 +580,10 @@ pub fn friend_requests(n: i32, restrictions: Vec<Vec<i32>>, requests: Vec<Vec<i3
             let empty = HashSet::new();
             let a = restriction_map
                 .get(&d_set.find(r[1] as usize))
-                .or(Some(&empty))
-                .unwrap();
+                .unwrap_or(&empty);
             let b = restriction_map
                 .get(&d_set.find(r[0] as usize))
-                .or(Some(&empty))
-                .unwrap();
+                .unwrap_or(&empty);
             let res = a.union(b).copied().collect();
             d_set.union(r[1] as usize, r[0] as usize);
             let c = restriction_map.get_mut(&d_set.find(r[1] as usize)).unwrap();
@@ -619,11 +608,8 @@ pub fn latest_day_to_cross(row: i32, col: i32, mut cells: Vec<Vec<i32>>) -> i32 
             (row, col + 1),
         ];
         for d in directions {
-            if d.0 >= 0 && (d.0 as usize) < grid.len() && d.1 >= 0 && (d.1 as usize) < grid[1].len()
-            {
-                if grid[d.0 as usize][d.1 as usize] == 0 {
-                    d_set.union((d.0 as usize, d.1 as usize), (row as usize, col as usize));
-                }
+            if d.0 >= 0 && (d.0 as usize) < grid.len() && d.1 >= 0 && (d.1 as usize) < grid[1].len() && grid[d.0 as usize][d.1 as usize] == 0 {
+                d_set.union((d.0 as usize, d.1 as usize), (row as usize, col as usize));
             }
         }
         use std::collections::HashSet;
@@ -716,7 +702,7 @@ pub fn accounts_merge(accounts: Vec<Vec<String>>) -> Vec<Vec<String>> {
 
     let mut res: Vec<Vec<String>> = accounts.iter().map(|x| vec![x[0].clone()]).collect();
     for i in 0..accounts.len() {
-        if accounts_sets[i].len() != 0 {
+        if !accounts_sets[i].is_empty() {
             let mut a = accounts_sets[i]
                 .iter()
                 .map(|x| String::from(x.as_str()))
@@ -855,7 +841,7 @@ pub fn smallest_equivalent_string(s1: String, s2: String, mut base_str: String) 
     for i in 0..26 {
         map.entry(d_set.find(i)).or_default().push(i);
     }
-    let mut min_map = vec!['z'; 26];
+    let mut min_map = ['z'; 26];
     for ccc in map.values() {
         let min = (ccc.iter().min().copied().unwrap() as u8 + 97) as char;
         for &c in ccc {
@@ -903,12 +889,10 @@ pub fn minimum_hamming_distance(
                 } else {
                     source[idx] = -1;
                 }
-            } else {
-                if let Some(x) = available.get_mut(&source[idx]) {
-                    *x -= 1;
-                    if *x == 0 {
-                        available.remove(&source[idx]);
-                    }
+            } else if let Some(x) = available.get_mut(&source[idx]) {
+                *x -= 1;
+                if *x == 0 {
+                    available.remove(&source[idx]);
                 }
             }
         }
@@ -1088,10 +1072,8 @@ pub fn find_redundant_directed_connection(edges: Vec<Vec<i32>>) -> Vec<i32> {
     }
 
     for i in (0..edges.len()).rev() {
-        if in_[edges[i][1] as usize] > 1 {
-            if remove_is_tree(&edges, i) {
-                return edges[i].clone();
-            }
+        if in_[edges[i][1] as usize] > 1 && remove_is_tree(&edges, i) {
+            return edges[i].clone();
         }
     }
     getRemoveEdge(edges)
