@@ -620,7 +620,7 @@ impl A {
         res
     }
     pub fn get_row(row_index: i32) -> Vec<i32> {
-        
+
         Self::generate(row_index).pop().unwrap()
     }
     pub fn max_profit(prices: Vec<i32>) -> i32 {
@@ -3448,7 +3448,7 @@ impl A {
             dp[(remain - 1) as usize]
         }
         let mut dp = vec![0; amount as usize];
-        
+
         search(&coins, amount, &mut dp)
     }
 
@@ -4829,7 +4829,7 @@ impl A {
         let sum = nums.iter().sum::<i32>();
 
         let mut res = 0;
-        fn calc(nums: &Vec<i32>, n: usize, sum: i32, max: &mut i32) -> i32 {
+        fn calc(nums: &Vec<i32>, n: usize, _sum: i32, max: &mut i32) -> i32 {
             if n == 0 {
                 let mut r = 0;
                 for i in 0..nums.len() {
@@ -4840,7 +4840,7 @@ impl A {
                 r
             } else {
                 let r =
-                    calc(nums, n - 1, sum, max) + (nums.len() as i32 + 1) * nums[nums.len() - n];
+                    calc(nums, n - 1, _sum, max) + (nums.len() as i32 + 1) * nums[nums.len() - n];
                 *max = r.max(*max);
                 r
             }
