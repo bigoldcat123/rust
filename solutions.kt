@@ -4,6 +4,9 @@ import java.util.TreeMap
 import java.sql.Array
 import kotlin.math.max
 import kotlin.math.min
+
+
+
 class DisjointSet(val size:Int) {
     var cc = size
     val fa = MutableList(size) { it }

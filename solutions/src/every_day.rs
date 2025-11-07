@@ -8,7 +8,44 @@ use std::{
 };
 
 use crate::ListNode;
-
+pub fn max_power(stations: Vec<i32>, r: i32, k: i32) -> i64 {
+    let mut diff = vec![0; stations.len() + 1];
+    for (i, &s) in stations.iter().enumerate() {
+        let start = (i as i32 - r).max(0) as usize;
+        let end = (i + r as usize + 1).min(stations.len());
+        diff[start] += s as i64;
+        diff[end] -= s as i64;
+    }
+    let mut min = stations.iter().min().copied().unwrap() as i64;
+    let mut max = (stations.iter().max().copied().unwrap() as i64) + k as i64;
+    while min <= max {
+        let mid = (max - min) / 2 + min;
+        if check(diff.as_ref(),mid,r as usize,k as i64) {
+            min = mid + 1;
+        }else {
+            max = mid - 1;
+        }
+    }
+    max
+}
+fn  check(diff:&[i64],target:i64,radius:usize,mut k:i64) -> bool {
+    let mut d = vec![0;diff.len()];
+    let mut current = 0;
+    for i in 0..diff.len() - 1 {
+        current += diff[i] + d[i];
+        let need = target - current;
+        if need > 0 {
+           if  k >= need  {
+               current = target;
+               d[i + 2 * radius + 1] -= need;
+               k -= need;
+           }else {
+               return false
+           }
+        }
+    }
+    k >= 0
+}
 pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
     let x = x as i64;
     use std::collections::{BTreeMap, BTreeSet, HashMap};

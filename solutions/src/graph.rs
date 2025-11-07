@@ -1,4 +1,5 @@
 use std::{
+    char::ToUppercase,
     collections::{HashMap, HashSet},
 };
 
@@ -41,9 +42,154 @@ impl DSet {
     }
 }
 
+pub fn flood_fill(mut image: Vec<Vec<i32>>, sr: i32, sc: i32, color: i32) -> Vec<Vec<i32>> {
+
+    let origin_color = image[sr as usize][sc as usize];
+    if origin_color != color {
+        dfs_flood_fill(&mut image, sr, sc,origin_color ,color);
+    }
+    image
+}
+fn dfs_flood_fill(image: &mut Vec<Vec<i32>>,i:i32,j:i32,orign_color:i32,target_color:i32) {
+    if i >= 0 && j >= 0 && (i as usize) < image.len() && (j as usize) < image[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if image[i_usize][j_usize] == orign_color {
+            image[i_usize][j_usize] = target_color;
+            let des = [(i + 1,j),(i - 1,j),(i,j + 1),(i,j - 1)];
+            for (i,j) in des {
+                dfs_flood_fill(image, i, j, orign_color, target_color);
+            }
+        }
+    }
+}
+
+pub fn find_max_fish(grid: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    let mut selected = grid.iter().map(|x| x.iter().map(|_|false).collect()).collect();
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            ans = ans.max(dfs_find_max_fish(i as i32, j as i32, &grid, &mut selected))
+        }
+    }
+    ans
+}
+fn dfs_find_max_fish(i: i32, j: i32, grid: &Vec<Vec<i32>>, selected: &mut Vec<Vec<bool>>) -> i32 {
+    if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() {
+        let mut i_usize = i as usize;
+        let mut j_usize = j as usize;
+        if selected[i_usize][j_usize] {
+            return 0;
+        }
+        selected[i_usize][j_usize] = true;
+        if grid[i_usize][j_usize] == 0 {
+            return 0;
+        } else {
+            let mut ans = grid[i_usize][j_usize];
+            let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+            for (i,j) in des {
+                ans += dfs_find_max_fish(i, j, grid, selected)
+            }
+            return ans;
+        }
+    } else {
+        0
+    }
+}
+
+pub fn island_perimeter(grid: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    for i in 0..grid.len() {
+        for j in 0..grid.len() {
+            if grid[i][j] == 1 {
+                if i == 0 {
+                    ans += 1;
+                }
+                if i == grid.len() - 1 {
+                    ans += 1
+                }
+                if j == 0 {
+                    ans += 1;
+                }
+                if j == grid[0].len() - 1 {
+                    ans += 1;
+                }
+            } else {
+                let i = i as i32;
+                let j = j as i32;
+                let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+                for (i, j) in des {
+                    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len()
+                    {
+                        if grid[i as usize][j as usize] == 1 {
+                            ans += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ans
+}
+
+pub fn largest_area(grid: Vec<String>) -> i32 {
+    let mut ans = 0;
+    let grid: Vec<&[u8]> = grid.iter().map(|x| x.as_bytes()).collect();
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            if grid[i][j] != b'0' {
+                let (area, not_aligned) = dfs_largest_area(
+                    i as i32,
+                    j as i32,
+                    1,
+                    &grid,
+                    &mut vec![vec![false; grid[0].len()]; grid.len()],
+                );
+                if not_aligned {
+                    ans = ans.max(area)
+                }
+            }
+        }
+    }
+    ans
+}
+fn dfs_largest_area(
+    i: i32,
+    j: i32,
+    area_id: u8,
+    grid: &Vec<&[u8]>,
+    visited: &mut Vec<Vec<bool>>,
+) -> (i32, bool) {
+    if i >= 0 && (i as usize) < grid.len() && j > 0 && (j as usize) < grid[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if visited[i_usize][j_usize] {
+            return (0, true);
+        }
+        visited[i_usize][j_usize] = true;
+        if grid[i_usize][j_usize] == area_id {
+            let mut ans = 1;
+            let mut not_aligned = true;
+            let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+            for (i, j) in des {
+                let (a, b) = dfs_largest_area(i, j, area_id, grid, visited);
+                ans += a;
+                not_aligned &= b;
+            }
+            (ans, not_aligned)
+        } else if grid[i_usize][j_usize] == b'0' {
+            (0, false)
+        } else {
+            (0, true)
+        }
+    } else {
+        (0, false)
+    }
+}
+
 pub fn num_islands(grid: Vec<Vec<char>>) -> i32 {
     use std::collections::HashSet;
-    let mut res = 0 ;
+    let mut res = 0;
     let mut selected = HashSet::new();
     for i in 0..grid.len() {
         for j in 0..grid[0].len() {
@@ -54,36 +200,60 @@ pub fn num_islands(grid: Vec<Vec<char>>) -> i32 {
     }
     res
 }
-fn dfs_num_islands(i:i32,j:i32,selected:&mut HashSet<(i32,i32)>,grid: &Vec<Vec<char>>) -> bool {
-    if (i >=0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() ){
+fn dfs_num_islands(
+    i: i32,
+    j: i32,
+    selected: &mut HashSet<(i32, i32)>,
+    grid: &Vec<Vec<char>>,
+) -> bool {
+    if (i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len()) {
         if grid[i as usize][j as usize] == '0' {
             return false;
         }
-        if selected.insert((i,j)) {
-            let next = [(i + 1,j),(i - 1,j),(i,j + 1),(i,j - 1)];
-            for &(x,y) in next.iter() {
-                dfs_num_islands(x,y,selected,grid);
+        if selected.insert((i, j)) {
+            let next = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+            for &(x, y) in next.iter() {
+                dfs_num_islands(x, y, selected, grid);
             }
             true
-        }else {
+        } else {
             false
         }
-    }else {
+    } else {
         false
     }
-
 }
 
-pub fn max_candies(status: Vec<i32>, candies: Vec<i32>, keys: Vec<Vec<i32>>, contained_boxes: Vec<Vec<i32>>, initial_boxes: Vec<i32>) -> i32 {
-
+pub fn max_candies(
+    status: Vec<i32>,
+    candies: Vec<i32>,
+    keys: Vec<Vec<i32>>,
+    contained_boxes: Vec<Vec<i32>>,
+    initial_boxes: Vec<i32>,
+) -> i32 {
     let mut obtained_boxs = HashSet::from_iter(initial_boxes.into_iter().map(|x| x as usize));
     let mut obtained_keys = HashSet::new();
     let mut res = 0;
-    dfs_max_candies(obtained_boxs, obtained_keys, &status, &candies, &keys, &contained_boxes, &mut res);
+    dfs_max_candies(
+        obtained_boxs,
+        obtained_keys,
+        &status,
+        &candies,
+        &keys,
+        &contained_boxes,
+        &mut res,
+    );
     res
 }
-fn dfs_max_candies(obtained_boxs:HashSet<usize>, mut obtained_keys: HashSet<usize>, status: &Vec<i32>, candies: &Vec<i32>, keys: &Vec<Vec<i32>>, contained_boxes: &Vec<Vec<i32>>,res:&mut i32) {
-
+fn dfs_max_candies(
+    obtained_boxs: HashSet<usize>,
+    mut obtained_keys: HashSet<usize>,
+    status: &Vec<i32>,
+    candies: &Vec<i32>,
+    keys: &Vec<Vec<i32>>,
+    contained_boxes: &Vec<Vec<i32>>,
+    res: &mut i32,
+) {
     let mut next_boxs = HashSet::new();
     let mut new_thing = false;
     for b in obtained_boxs {
@@ -96,7 +266,7 @@ fn dfs_max_candies(obtained_boxs:HashSet<usize>, mut obtained_keys: HashSet<usiz
                 next_boxs.insert(*b as usize);
             }
             new_thing = true;
-        }else {
+        } else {
             if obtained_keys.contains(&b) {
                 *res += candies[b];
                 for &k in keys[b].iter() {
@@ -106,34 +276,47 @@ fn dfs_max_candies(obtained_boxs:HashSet<usize>, mut obtained_keys: HashSet<usiz
                     next_boxs.insert(*b as usize);
                 }
                 new_thing = true;
-            }else {
+            } else {
                 next_boxs.insert(b);
             }
         }
     }
     if new_thing {
-        dfs_max_candies(next_boxs, obtained_keys, status, candies, keys, contained_boxes, res);
+        dfs_max_candies(
+            next_boxs,
+            obtained_keys,
+            status,
+            candies,
+            keys,
+            contained_boxes,
+            res,
+        );
     }
 }
 
 pub fn num_ways(n: i32, relation: Vec<Vec<i32>>, k: i32) -> i32 {
     use std::collections::HashMap;
-    let mut map:HashMap<i32,Vec<i32>> = HashMap::new();
+    let mut map: HashMap<i32, Vec<i32>> = HashMap::new();
 
     for r in relation {
         map.entry(r[0]).or_default().push(r[1]);
     }
-    println!("{:?}",map);
+    println!("{:?}", map);
     let mut res = 0;
 
     dfs_num_ways(0, k, &map, &mut res, 0, n - 1);
 
     res
-
 }
-fn dfs_num_ways(current_turn:i32,max_turn:i32,relation:&HashMap<i32,Vec<i32>>,res:&mut i32,current_people:i32,last:i32) {
-
-    println!("{} {}",current_people,last);
+fn dfs_num_ways(
+    current_turn: i32,
+    max_turn: i32,
+    relation: &HashMap<i32, Vec<i32>>,
+    res: &mut i32,
+    current_people: i32,
+    last: i32,
+) {
+    println!("{} {}", current_people, last);
     if current_people == last {
         *res += 1
     }
@@ -145,7 +328,6 @@ fn dfs_num_ways(current_turn:i32,max_turn:i32,relation:&HashMap<i32,Vec<i32>>,re
             dfs_num_ways(current_turn + 1, max_turn, relation, res, n, last);
         }
     }
-
 }
 
 pub fn minimum_cost(n: i32, edges: Vec<Vec<i32>>, query: Vec<Vec<i32>>) -> Vec<i32> {
@@ -161,14 +343,17 @@ pub fn minimum_cost(n: i32, edges: Vec<Vec<i32>>, query: Vec<Vec<i32>>) -> Vec<i
     for e in edges {
         *map.entry(d_set.find(e[0] as usize)).or_default() &= e[2];
     }
-    query.into_iter().map(|x| {
-        if d_set.find(x[0] as usize) == d_set.find(x[1] as usize) {
-            let a = map[&d_set.find(x[0] as usize)];
-            a
-        }else{
-            -1
-        }
-    }).collect()
+    query
+        .into_iter()
+        .map(|x| {
+            if d_set.find(x[0] as usize) == d_set.find(x[1] as usize) {
+                let a = map[&d_set.find(x[0] as usize)];
+                a
+            } else {
+                -1
+            }
+        })
+        .collect()
 }
 
 pub fn process_queries(c: i32, connections: Vec<Vec<i32>>, queries: Vec<Vec<i32>>) -> Vec<i32> {
