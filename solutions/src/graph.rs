@@ -41,6 +41,10 @@ impl DSet {
         self.size[x]
     }
 }
+fn add(b:i32,a:i32) -> i32 {
+    let a = a + b;
+    a
+}
 
 pub fn color_border(mut grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
     let orign_color = grid[row as usize][col as usize];
