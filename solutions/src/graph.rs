@@ -42,8 +42,11 @@ impl DSet {
     }
 }
 
-pub fn flood_fill(mut image: Vec<Vec<i32>>, sr: i32, sc: i32, color: i32) -> Vec<Vec<i32>> {
+pub fn color_border(grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
 
+}
+
+pub fn flood_fill(mut image: Vec<Vec<i32>>, sr: i32, sc: i32, color: i32) -> Vec<Vec<i32>> {
     let origin_color = image[sr as usize][sc as usize];
     if origin_color != color {
         dfs_flood_fill(&mut image, sr, sc,origin_color ,color);
