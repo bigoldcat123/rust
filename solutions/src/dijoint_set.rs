@@ -13,7 +13,7 @@ struct DisjointSet {
     fa: Vec<usize>,
     size: Vec<usize>,
     cc: usize,
-    value:Vec<i64>
+    value: Vec<i64>,
 }
 impl DisjointSet {
     fn new(size: usize) -> Self {
@@ -21,7 +21,7 @@ impl DisjointSet {
             fa: (0..size).collect(),
             size: vec![1; size],
             cc: size,
-            value:vec![0;size]
+            value: vec![0; size],
         }
     }
     fn find(&mut self, n: usize) -> usize {
@@ -31,7 +31,6 @@ impl DisjointSet {
         self.fa[n]
     }
     fn union(&mut self, from: usize, to: usize) -> bool {
-
         let a = self.find(from);
         let b = self.find(to);
         if a == b {
@@ -47,7 +46,7 @@ impl DisjointSet {
         let idx = self.find(n);
         self.size[idx]
     }
-    fn get_value(&mut self,n:usize) -> i64 {
+    fn get_value(&mut self, n: usize) -> i64 {
         let idx = self.find(n);
         self.value[idx]
     }
@@ -116,31 +115,51 @@ impl DisjointSet2DFull {
         true
     }
 }
-pub fn calc_equation(equations: Vec<Vec<String>>, values: Vec<f64>, queries: Vec<Vec<String>>) -> Vec<f64> {
-    use std::collections::{HashMap,HashSet};
-    let mut map:HashMap<String, f64> = HashMap::new();
-    let mut chain:HashMap<String,HashSet<String>> = HashMap::new();
+pub fn calc_equation(
+    equations: Vec<Vec<String>>,
+    values: Vec<f64>,
+    queries: Vec<Vec<String>>,
+) -> Vec<f64> {
+    use std::collections::{HashMap, HashSet};
+    let mut map: HashMap<String, f64> = HashMap::new();
+    let mut chain: HashMap<String, HashSet<String>> = HashMap::new();
     let mut res = vec![];
     for i in 0..equations.len() {
-        map.insert(format!("{}{}",equations[i][0],equations[i][1]), values[i]);
-        map.insert(format!("{}{}",equations[i][1],equations[i][0]), 1.0 / values[i]);
-        chain.entry(equations[i][0].clone()).or_default().insert(equations[i][1].clone());
-        chain.entry(equations[i][1].clone()).or_default().insert(equations[i][0].clone());
+        map.insert(format!("{}{}", equations[i][0], equations[i][1]), values[i]);
+        map.insert(
+            format!("{}{}", equations[i][1], equations[i][0]),
+            1.0 / values[i],
+        );
+        chain
+            .entry(equations[i][0].clone())
+            .or_default()
+            .insert(equations[i][1].clone());
+        chain
+            .entry(equations[i][1].clone())
+            .or_default()
+            .insert(equations[i][0].clone());
     }
     for q in queries {
         let mut selected = HashSet::new();
-        if chain.contains_key(&q[0]) && chain.contains_key(&q[1]){
+        if chain.contains_key(&q[0]) && chain.contains_key(&q[1]) {
             res.push(dfs_calc(1.0, &q[1], &q[0], &chain, &map, &mut selected));
-        }else {
+        } else {
             res.push(-1.0);
         }
     }
 
     res
 }
-fn dfs_calc<'a>(currentvalue:f64,end:&str,current:&str,chain:&'a HashMap<String,HashSet<String>>,map:&HashMap<String,f64>,selected:&mut HashSet<&'a String>) -> f64{
+fn dfs_calc<'a>(
+    currentvalue: f64,
+    end: &str,
+    current: &str,
+    chain: &'a HashMap<String, HashSet<String>>,
+    map: &HashMap<String, f64>,
+    selected: &mut HashSet<&'a String>,
+) -> f64 {
     if current == end {
-        return currentvalue
+        return currentvalue;
     }
     if let Some(next) = chain.get(current) {
         for n in next {
@@ -148,10 +167,10 @@ fn dfs_calc<'a>(currentvalue:f64,end:&str,current:&str,chain:&'a HashMap<String,
                 continue;
             }
             selected.insert(n);
-            let c_n = map.get(&format!("{}{}",current,n)).copied().unwrap() * currentvalue;
-            let res = dfs_calc(c_n, end, n, chain, map,selected);
+            let c_n = map.get(&format!("{}{}", current, n)).copied().unwrap() * currentvalue;
+            let res = dfs_calc(c_n, end, n, chain, map, selected);
             if res != -1.0 {
-                return res
+                return res;
             }
             selected.remove(n);
         }
@@ -159,9 +178,8 @@ fn dfs_calc<'a>(currentvalue:f64,end:&str,current:&str,chain:&'a HashMap<String,
     -1.0
 }
 
-
 pub fn maximum_segment_sum(nums: Vec<i32>, remove_queries: Vec<i32>) -> Vec<i64> {
-    let mut current_nums = vec![0;nums.len()];
+    let mut current_nums = vec![0; nums.len()];
     let mut res = vec![0];
     let mut d_set = DisjointSet::new(remove_queries.len());
     for idx in remove_queries[1..].iter().map(|x| *x as usize).rev() {
@@ -174,9 +192,9 @@ pub fn maximum_segment_sum(nums: Vec<i32>, remove_queries: Vec<i32>) -> Vec<i64>
                 pre = pre.max(d_set.get_value(idx));
             }
         }
-        if idx < current_nums.len() - 1{
+        if idx < current_nums.len() - 1 {
             if current_nums[idx + 1] != 0 {
-                d_set.union(idx , idx + 1);
+                d_set.union(idx, idx + 1);
                 pre = pre.max(d_set.get_value(idx));
             }
         }
@@ -203,23 +221,28 @@ pub fn max_events(mut events: Vec<Vec<i32>>) -> i32 {
 }
 
 pub fn avoid_flood(rains: Vec<i32>) -> Vec<i32> {
-    use std::collections::{HashMap,BTreeSet};
-    let mut res = vec![-1;rains.len()];
-    let mut is_full:HashMap<i32,usize> = HashMap::new();
-    let mut available_days:BTreeSet<usize> = rains.iter().enumerate().filter(|x| *x.1 == 0).map(|x| x.0).collect();
-    for (i,r) in rains.into_iter().enumerate() {
+    use std::collections::{BTreeSet, HashMap};
+    let mut res = vec![-1; rains.len()];
+    let mut is_full: HashMap<i32, usize> = HashMap::new();
+    let mut available_days: BTreeSet<usize> = rains
+        .iter()
+        .enumerate()
+        .filter(|x| *x.1 == 0)
+        .map(|x| x.0)
+        .collect();
+    for (i, r) in rains.into_iter().enumerate() {
         if r == 0 {
             continue;
         }
-        if let Some(rain_day) =  is_full.get_mut(&r) {
+        if let Some(rain_day) = is_full.get_mut(&r) {
             if let Some(&ok_day) = available_days.range(*rain_day..i).next() {
                 res[ok_day] = r;
                 available_days.remove(&ok_day);
-            }else {
-                return vec![]
+            } else {
+                return vec![];
             }
         }
-        is_full.insert(r,i);
+        is_full.insert(r, i);
     }
     for d in available_days {
         res[d] = 1;
@@ -227,19 +250,18 @@ pub fn avoid_flood(rains: Vec<i32>) -> Vec<i32> {
     res
 }
 
-pub fn largest_component_size(arr: Vec<i32>,m:i32) -> i32 {
+pub fn largest_component_size(arr: Vec<i32>, m: i32) -> i32 {
     let m = m as usize;
     use std::collections::HashMap;
-    let mut s = vec![0;arr.len() + 2];
+    let mut s = vec![0; arr.len() + 2];
     let mut d_set = DisjointSet::new(arr.len() + 2);
     let mut res = 1;
     let mut map = HashMap::new();
     for i in 0..arr.len() {
-
         let idx = arr[i as usize] as usize;
         s[idx] = 1;
         *map.entry(1).or_default() += 1;
-        println!("{:?}",s);
+        println!("{:?}", s);
         if s[idx - 1] == 1 && s[idx + 1] == 1 {
             decrease_and_del_if_zero(&mut map, 1);
             decrease_and_del_if_zero(&mut map, d_set.get_size(idx + 1));
@@ -247,26 +269,26 @@ pub fn largest_component_size(arr: Vec<i32>,m:i32) -> i32 {
             d_set.union(idx - 1, idx);
             d_set.union(idx + 1, idx);
             *map.entry(d_set.get_size(idx)).or_default() += 1;
-        }else if s[idx - 1] == 1  {
+        } else if s[idx - 1] == 1 {
             decrease_and_del_if_zero(&mut map, 1);
             decrease_and_del_if_zero(&mut map, d_set.get_size(idx - 1));
             d_set.union(idx - 1, idx);
             *map.entry(d_set.get_size(idx)).or_default() += 1;
-        }else if s[idx + 1] == 1  {
+        } else if s[idx + 1] == 1 {
             decrease_and_del_if_zero(&mut map, 1);
             decrease_and_del_if_zero(&mut map, d_set.get_size(idx + 1));
             d_set.union(idx + 1, idx);
             *map.entry(d_set.get_size(idx)).or_default() += 1;
         }
-        println!("{:?}",map);
+        println!("{:?}", map);
         if map.contains_key(&m) {
             res = res.max(i + 1)
         }
     }
     res as _
 }
-fn decrease_and_del_if_zero(map:&mut HashMap<usize,usize>,key:usize) {
-    if let Some(x) = map.get_mut(&key)  {
+fn decrease_and_del_if_zero(map: &mut HashMap<usize, usize>, key: usize) {
+    if let Some(x) = map.get_mut(&key) {
         *x -= 1;
         if *x == 0 {
             map.remove(&key);
@@ -274,7 +296,7 @@ fn decrease_and_del_if_zero(map:&mut HashMap<usize,usize>,key:usize) {
     }
 }
 
-pub fn init_factors(MAXX:usize) -> Vec<Vec<usize>> {
+pub fn init_factors(MAXX: usize) -> Vec<Vec<usize>> {
     let mut fac = vec![vec![]; MAXX + 10];
 
     for i in 2..=MAXX {
@@ -307,7 +329,7 @@ pub fn can_traverse_all_pairs(nums: Vec<i32>) -> bool {
     set.len() == 1
 }
 
-fn gcd(mut a:i32,mut b:i32) -> i32 {
+fn gcd(mut a: i32, mut b: i32) -> i32 {
     while a != 0 {
         let p = a;
         a = b % a;
@@ -317,9 +339,9 @@ fn gcd(mut a:i32,mut b:i32) -> i32 {
 }
 
 pub fn max_frequency(nums: Vec<i32>, k: i32, num_operations: i32) -> i32 {
-    use std::collections::{HashMap,BTreeMap};
+    use std::collections::{BTreeMap, HashMap};
     let mut cnt = HashMap::new();
-    let mut diff:BTreeMap<i32, i32> = BTreeMap::new();
+    let mut diff: BTreeMap<i32, i32> = BTreeMap::new();
     for n in nums {
         *cnt.entry(n).or_default() += 1;
         diff.entry(k).or_insert(0);
@@ -328,14 +350,10 @@ pub fn max_frequency(nums: Vec<i32>, k: i32, num_operations: i32) -> i32 {
     }
     let mut sumD = 0;
     let mut ans = 0;
-    for (k,v) in diff {
+    for (k, v) in diff {
         sumD += v;
-        ans = ans.max(
-            sumD.min(
-                cnt.get(&k).copied().unwrap_or(0) + num_operations
-            )
-        );
-    };
+        ans = ans.max(sumD.min(cnt.get(&k).copied().unwrap_or(0) + num_operations));
+    }
     ans
 }
 

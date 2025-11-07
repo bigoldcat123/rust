@@ -42,25 +42,62 @@ impl DSet {
     }
 }
 
-pub fn color_border(grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
-
+pub fn color_border(mut grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
+    let orign_color = grid[row as usize][col as usize];
+    let mut selected = vec![vec![false; grid[0].len()]; grid.len()];
+    for i in 0..grid.len() {
+        for j in 0..grid.len() {
+            if grid[i][j] == orign_color {
+                dfs_color_border(&mut grid, i as i32, j as i32, color, &mut selected);
+            }
+        }
+    }
+    grid
+}
+fn dfs_color_border(
+    grid: &mut Vec<Vec<i32>>,
+    i: i32,
+    j: i32,
+    color: i32,
+    selected: &mut Vec<Vec<bool>>,
+) {
+    if selected[i as usize][j as usize] {
+        return;
+    }
+    selected[i as usize][j as usize] = true;
+    let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+    for (next_i, next_j) in des {
+        if next_i < 0
+            || next_j < 0
+            || (next_i as usize) >= grid.len()
+            || (next_j as usize) >= grid[0].len()
+        {
+            grid[i as usize][i as usize] = color;
+        } else {
+            if grid[next_i as usize][next_j as usize] != grid[i as usize][j as usize] {
+                grid[i as usize][j as usize] = color;
+            } else {
+                dfs_color_border(grid, next_i, next_j, color, selected);
+            }
+        }
+    }
 }
 
 pub fn flood_fill(mut image: Vec<Vec<i32>>, sr: i32, sc: i32, color: i32) -> Vec<Vec<i32>> {
     let origin_color = image[sr as usize][sc as usize];
     if origin_color != color {
-        dfs_flood_fill(&mut image, sr, sc,origin_color ,color);
+        dfs_flood_fill(&mut image, sr, sc, origin_color, color);
     }
     image
 }
-fn dfs_flood_fill(image: &mut Vec<Vec<i32>>,i:i32,j:i32,orign_color:i32,target_color:i32) {
+fn dfs_flood_fill(image: &mut Vec<Vec<i32>>, i: i32, j: i32, orign_color: i32, target_color: i32) {
     if i >= 0 && j >= 0 && (i as usize) < image.len() && (j as usize) < image[0].len() {
         let i_usize = i as usize;
         let j_usize = j as usize;
         if image[i_usize][j_usize] == orign_color {
             image[i_usize][j_usize] = target_color;
-            let des = [(i + 1,j),(i - 1,j),(i,j + 1),(i,j - 1)];
-            for (i,j) in des {
+            let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+            for (i, j) in des {
                 dfs_flood_fill(image, i, j, orign_color, target_color);
             }
         }
@@ -69,7 +106,10 @@ fn dfs_flood_fill(image: &mut Vec<Vec<i32>>,i:i32,j:i32,orign_color:i32,target_c
 
 pub fn find_max_fish(grid: Vec<Vec<i32>>) -> i32 {
     let mut ans = 0;
-    let mut selected = grid.iter().map(|x| x.iter().map(|_|false).collect()).collect();
+    let mut selected = grid
+        .iter()
+        .map(|x| x.iter().map(|_| false).collect())
+        .collect();
     for i in 0..grid.len() {
         for j in 0..grid[i].len() {
             ans = ans.max(dfs_find_max_fish(i as i32, j as i32, &grid, &mut selected))
@@ -90,7 +130,7 @@ fn dfs_find_max_fish(i: i32, j: i32, grid: &Vec<Vec<i32>>, selected: &mut Vec<Ve
         } else {
             let mut ans = grid[i_usize][j_usize];
             let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
-            for (i,j) in des {
+            for (i, j) in des {
                 ans += dfs_find_max_fish(i, j, grid, selected)
             }
             return ans;

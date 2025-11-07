@@ -129,23 +129,23 @@ impl TireSolutions {
     pub fn count_prefix_suffix_pairs(mut words: Vec<String>) -> i64 {
         use std::collections::HashMap;
         struct Trie {
-            count:i64,
-            next:HashMap<(u8,u8),Trie>
+            count: i64,
+            next: HashMap<(u8, u8), Trie>,
         }
         impl Trie {
             fn new() -> Self {
-                Self{
-                    count:0,
-                    next:HashMap::new()
+                Self {
+                    count: 0,
+                    next: HashMap::new(),
                 }
             }
-            fn insert(&mut self,s:&str) {
+            fn insert(&mut self, s: &str) {
                 let mut node = self;
                 let s = s.as_bytes();
                 let mut l = 0;
                 let mut r = s.len() as i32 - 1;
                 while r >= 0 {
-                    let key = (s[l],s[r as usize]);
+                    let key = (s[l], s[r as usize]);
                     if node.next.get(&key).is_none() {
                         node.next.insert(key, Self::new());
                     }
@@ -155,15 +155,15 @@ impl TireSolutions {
                     r -= 1;
                 }
             }
-            fn search(&self,s:&str) -> i64 {
+            fn search(&self, s: &str) -> i64 {
                 let s = s.as_bytes();
                 let mut l = 0;
                 let mut r = s.len() as i32 - 1;
                 let mut node = self;
                 while r >= 0 {
-                    let key = (s[l],s[r as usize]);
+                    let key = (s[l], s[r as usize]);
                     if node.next.get(&key).is_none() {
-                        return 0
+                        return 0;
                     }
                     node = node.next.get(&key).unwrap();
                     l += 1;
@@ -183,14 +183,14 @@ impl TireSolutions {
     }
     pub fn word_break(s: String, word_dict: Vec<String>) -> bool {
         use std::collections::HashSet;
-        let set:HashSet<String> = HashSet::from_iter(word_dict.into_iter());
-        let mut dp = vec![false;s.len()];
+        let set: HashSet<String> = HashSet::from_iter(word_dict.into_iter());
+        let mut dp = vec![false; s.len()];
         for i in 1..=s.len() {
             if set.contains(&s[0..i]) {
                 dp[i - 1] = true;
-            }else {
+            } else {
                 for j in (1..=i - 1).rev() {
-                    if dp[j - 1] && set.contains(&s[j..i]){
+                    if dp[j - 1] && set.contains(&s[j..i]) {
                         dp[i - 1] = true;
                         break;
                     }
@@ -202,6 +202,5 @@ impl TireSolutions {
     fn aaa() {
         let mut a = Some(Box::new(String::from("value")));
         let x = a.as_mut().unwrap().as_mut();
-
     }
 }

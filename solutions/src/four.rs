@@ -1,5 +1,5 @@
 #![allow(dead_code, unused)]
-#![allow(deprecated,non_snake_case)]
+#![allow(deprecated, non_snake_case)]
 
 use core::{num, time};
 use std::{

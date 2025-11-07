@@ -1,5 +1,13 @@
 use std::{
-    collections::{BTreeMap, HashMap}, hash::Hash, i32, iter::Map, num, ops::{Add, AddAssign, Sub}, process::id, usize::MAX, vec
+    collections::{BTreeMap, HashMap},
+    hash::Hash,
+    i32,
+    iter::Map,
+    num,
+    ops::{Add, AddAssign, Sub},
+    process::id,
+    usize::MAX,
+    vec,
 };
 
 use num_traits::{Bounded, Num, NumAssign, Zero};
@@ -221,7 +229,6 @@ impl TreeArray3Isize {
         res
     }
 
-
     pub fn query_isize(&self, start: usize, end: usize) -> isize {
         self.pre_sum_isize(end) - self.pre_sum_isize(start - 1)
     }
@@ -256,16 +263,16 @@ pub fn get_min_swaps(num: String, k: i32) -> i32 {
 
 pub fn next_permutation(nums: &mut Vec<u8>) {
     use std::collections::BTreeMap;
-    let mut used:BTreeMap<u8,i32> = BTreeMap::new();
+    let mut used: BTreeMap<u8, i32> = BTreeMap::new();
     while let Some(last) = nums.pop() {
         *used.entry(last).or_default() += 1;
-        if let Some((k,v)) =  used.range_mut(last + 1..).next(){
+        if let Some((k, v)) = used.range_mut(last + 1..).next() {
             *v -= 1;
             nums.push(*k);
             break;
         }
     }
-    for (k,v) in used {
+    for (k, v) in used {
         for _ in 0..v {
             nums.push(k);
         }
@@ -273,8 +280,12 @@ pub fn next_permutation(nums: &mut Vec<u8>) {
 }
 
 pub fn number_of_pairs(nums1: Vec<i32>, nums2: Vec<i32>, diff: i32) -> i64 {
-    use std::collections::{BTreeSet,HashMap};
-    let diff_arr = nums1.into_iter().zip(nums2).map(|(a,b)| a - b).collect::<Vec<i32>>();
+    use std::collections::{BTreeSet, HashMap};
+    let diff_arr = nums1
+        .into_iter()
+        .zip(nums2)
+        .map(|(a, b)| a - b)
+        .collect::<Vec<i32>>();
     let mut res = 0;
     let mut set = BTreeSet::new();
     for &d in diff_arr.iter() {
@@ -288,7 +299,7 @@ pub fn number_of_pairs(nums1: Vec<i32>, nums2: Vec<i32>, diff: i32) -> i64 {
         map.insert(n, i);
         i += 1;
     }
-    let mut tree_array = TreeArray3::new(vec![0;i]);
+    let mut tree_array = TreeArray3::new(vec![0; i]);
     for d in diff_arr {
         let right = map.get(&(d + diff)).copied().unwrap();
         res += tree_array.query_isize(1, right);
@@ -299,16 +310,15 @@ pub fn number_of_pairs(nums1: Vec<i32>, nums2: Vec<i32>, diff: i32) -> i64 {
 }
 
 pub fn count_range_sum(nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
-    use std::collections::{BTreeSet,HashMap};
-    let mut set:BTreeSet<isize> = BTreeSet::new();
-    let mut pre_sum = vec![0;nums.len() + 1];
-    for (i,&n) in nums.iter().enumerate() {
-        pre_sum[i + 1]  = pre_sum[i] + n as isize;
+    use std::collections::{BTreeSet, HashMap};
+    let mut set: BTreeSet<isize> = BTreeSet::new();
+    let mut pre_sum = vec![0; nums.len() + 1];
+    for (i, &n) in nums.iter().enumerate() {
+        pre_sum[i + 1] = pre_sum[i] + n as isize;
     }
     let mut set = BTreeSet::new();
     set.insert(lower as isize);
     set.insert(pre_sum.last().copied().unwrap() - lower as isize);
-
 
     for &n in pre_sum.iter() {
         set.insert(n);
@@ -322,7 +332,7 @@ pub fn count_range_sum(nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
         map.insert(n, idx);
         idx += 1;
     }
-    let mut tree_array = TreeArray3::new(vec![0;map.len()]);
+    let mut tree_array = TreeArray3::new(vec![0; map.len()]);
 
     let i = map.get(&0).copied().unwrap();
     tree_array.update_delta(i, 1);
@@ -335,7 +345,6 @@ pub fn count_range_sum(nums: Vec<i32>, lower: i32, upper: i32) -> i32 {
         tree_array.update_delta(idx, 1);
     }
     res
-
 }
 
 pub fn reverse_pairs2(nums: Vec<i32>) -> i32 {

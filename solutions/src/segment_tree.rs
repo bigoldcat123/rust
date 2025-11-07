@@ -54,21 +54,21 @@ impl SegTree {
 }
 
 pub struct MySegTree {
-    pub  nodes:Vec<i32>,
-    tree:Vec<i32>
+    pub nodes: Vec<i32>,
+    tree: Vec<i32>,
 }
 impl MySegTree {
-    pub fn new(nodes:Vec<i32>) -> Self {
+    pub fn new(nodes: Vec<i32>) -> Self {
         let len = nodes.len();
-        let mut tree = vec![0;len * 4 + 7];
-        let mut seg_tree = Self { nodes, tree};
+        let mut tree = vec![0; len * 4 + 7];
+        let mut seg_tree = Self { nodes, tree };
         seg_tree.build(1, len, 1);
         seg_tree
     }
-    fn build(&mut self,l:usize,r:usize,idx:usize) {
+    fn build(&mut self, l: usize, r: usize, idx: usize) {
         if l == r {
             self.tree[idx] = self.nodes[l - 1];
-        }else {
+        } else {
             let mid = (r + l) / 2;
             self.build(l, mid, idx * 2);
             self.build(mid + 1, r, idx * 2 + 1);
@@ -76,29 +76,29 @@ impl MySegTree {
         }
     }
     /// 1-indexed
-    pub fn update_delta(&mut self,idx:usize,delta:i32) {
-        let value = self.nodes[idx - 1]  + delta;
-        self.update(idx,value);
+    pub fn update_delta(&mut self, idx: usize, delta: i32) {
+        let value = self.nodes[idx - 1] + delta;
+        self.update(idx, value);
     }
     /// 1-indexed
-    pub fn update(&mut self,idx:usize,value:i32) {
+    pub fn update(&mut self, idx: usize, value: i32) {
         self.nodes[idx - 1] = value;
-        self.update_dfs(idx, 1, self.nodes.len(),value,1);
+        self.update_dfs(idx, 1, self.nodes.len(), value, 1);
     }
-    fn update_dfs(&mut self,idx:usize,l:usize,r:usize,value:i32,tree_idx:usize) {
+    fn update_dfs(&mut self, idx: usize, l: usize, r: usize, value: i32, tree_idx: usize) {
         if l == r {
             self.tree[tree_idx] = value;
-        }else {
+        } else {
             let mid = (l + r) / 2;
             if idx <= mid {
-                self.update_dfs(idx, l, mid, value,tree_idx * 2);
-            }else {
-                self.update_dfs(idx, mid + 1, r, value,tree_idx * 2 + 1);
+                self.update_dfs(idx, l, mid, value, tree_idx * 2);
+            } else {
+                self.update_dfs(idx, mid + 1, r, value, tree_idx * 2 + 1);
             }
             self.tree[tree_idx] = self.tree[tree_idx * 2].max(self.tree[tree_idx * 2 + 1]);
         }
     }
-    fn query_dfs(&self,ql:usize,qr:usize,l:usize,r:usize,tree_idx:usize) -> i32 {
+    fn query_dfs(&self, ql: usize, qr: usize, l: usize, r: usize, tree_idx: usize) -> i32 {
         if ql == l && qr == r {
             return self.tree[tree_idx];
         }
@@ -113,26 +113,26 @@ impl MySegTree {
             .max(self.query_dfs(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
     }
     /// 1-indexed
-    pub fn query(&self,ql:usize,qr:usize) -> i32 {
+    pub fn query(&self, ql: usize, qr: usize) -> i32 {
         self.query_dfs(ql, qr, 1, self.nodes.len(), 1)
     }
 }
 pub struct MyLazySegTree {
-    pub  nodes:Vec<i32>,
-    tree:Vec<(i32,i32)>// value and lazy mark
+    pub nodes: Vec<i32>,
+    tree: Vec<(i32, i32)>, // value and lazy mark
 }
 impl MyLazySegTree {
-    pub fn new(nodes:Vec<i32>) -> Self {
+    pub fn new(nodes: Vec<i32>) -> Self {
         let len = nodes.len();
-        let mut tree = vec![(0,0);len * 4 + 7];
-        let mut seg_tree = Self { nodes, tree};
+        let mut tree = vec![(0, 0); len * 4 + 7];
+        let mut seg_tree = Self { nodes, tree };
         seg_tree.build(1, len, 1);
         seg_tree
     }
-    fn build(&mut self,l:usize,r:usize,idx:usize) {
+    fn build(&mut self, l: usize, r: usize, idx: usize) {
         if l == r {
-            self.tree[idx] = (self.nodes[l - 1],0);
-        }else {
+            self.tree[idx] = (self.nodes[l - 1], 0);
+        } else {
             let mid = (r + l) / 2;
             self.build(l, mid, idx * 2);
             self.build(mid + 1, r, idx * 2 + 1);
@@ -140,10 +140,18 @@ impl MyLazySegTree {
         }
     }
 
-    pub fn update_range_delta(&mut self,range_l:usize,range_r:usize,delta:i32) {
+    pub fn update_range_delta(&mut self, range_l: usize, range_r: usize, delta: i32) {
         self.update_range_dfs(range_l, range_r, 1, self.nodes.len(), 1, delta);
     }
-    fn update_range_dfs(&mut self,range_l:usize,range_r:usize,l:usize,r:usize,tree_idx:usize,delta:i32) {
+    fn update_range_dfs(
+        &mut self,
+        range_l: usize,
+        range_r: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+        delta: i32,
+    ) {
         if self.tree[tree_idx].1 != 0 && l != r {
             // println!("{} {} {}",l,r,tree_idx);
             self.handle_lazy_mark(tree_idx);
@@ -151,24 +159,33 @@ impl MyLazySegTree {
         if range_l == l && range_r == r {
             self.tree[tree_idx].0 += delta;
             self.tree[tree_idx].1 += delta;
-        }else {
+        } else {
             let mid = (r + l) / 2;
-            if mid >= range_r{// left
+            if mid >= range_r {
+                // left
                 self.update_range_dfs(range_l, range_r, l, mid, tree_idx * 2, delta);
-            }else if mid < range_l {// right
+            } else if mid < range_l {
+                // right
                 self.update_range_dfs(range_l, range_r, mid + 1, r, tree_idx * 2 + 1, delta);
-            }else {
+            } else {
                 self.update_range_dfs(range_l, mid, l, mid, tree_idx * 2, delta);
                 self.update_range_dfs(mid + 1, range_r, mid + 1, r, tree_idx * 2 + 1, delta);
             }
             self.tree[tree_idx].0 = self.tree[tree_idx * 2].0.max(self.tree[tree_idx * 2 + 1].0);
-
         }
     }
-    pub fn update_range_value(&mut self,range_l:usize,range_r:usize,value:i32) {
+    pub fn update_range_value(&mut self, range_l: usize, range_r: usize, value: i32) {
         self.update_range_value_dfs(range_l, range_r, 1, self.nodes.len(), 1, value);
     }
-    fn update_range_value_dfs(&mut self,range_l:usize,range_r:usize,l:usize,r:usize,tree_idx:usize,value:i32) {
+    fn update_range_value_dfs(
+        &mut self,
+        range_l: usize,
+        range_r: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+        value: i32,
+    ) {
         if self.tree[tree_idx].1 != 0 && l != r {
             // println!("{} {} {}",l,r,tree_idx);
             self.handle_lazy_mark_value(tree_idx);
@@ -176,21 +193,22 @@ impl MyLazySegTree {
         if range_l == l && range_r == r {
             self.tree[tree_idx].0 = value;
             self.tree[tree_idx].1 = value;
-        }else {
+        } else {
             let mid = (r + l) / 2;
-            if mid >= range_r{// left
+            if mid >= range_r {
+                // left
                 self.update_range_value_dfs(range_l, range_r, l, mid, tree_idx * 2, value);
-            }else if mid < range_l {// right
+            } else if mid < range_l {
+                // right
                 self.update_range_value_dfs(range_l, range_r, mid + 1, r, tree_idx * 2 + 1, value);
-            }else {
+            } else {
                 self.update_range_value_dfs(range_l, mid, l, mid, tree_idx * 2, value);
                 self.update_range_value_dfs(mid + 1, range_r, mid + 1, r, tree_idx * 2 + 1, value);
             }
             self.tree[tree_idx].0 = self.tree[tree_idx * 2].0.max(self.tree[tree_idx * 2 + 1].0);
-
         }
     }
-    fn handle_lazy_mark(&mut self,idx:usize) {
+    fn handle_lazy_mark(&mut self, idx: usize) {
         let delta = self.tree[idx].1;
         self.tree[idx].1 = 0;
         self.tree[idx * 2].0 += delta;
@@ -198,7 +216,7 @@ impl MyLazySegTree {
         self.tree[idx * 2 + 1].0 += delta;
         self.tree[idx * 2 + 1].1 += delta;
     }
-    fn handle_lazy_mark_value(&mut self,idx:usize) {
+    fn handle_lazy_mark_value(&mut self, idx: usize) {
         let delta = self.tree[idx].1;
         self.tree[idx].1 = 0;
         self.tree[idx * 2].0 = delta;
@@ -206,7 +224,7 @@ impl MyLazySegTree {
         self.tree[idx * 2 + 1].0 = delta;
         self.tree[idx * 2 + 1].1 = delta;
     }
-    fn query_dfs(&mut self,ql:usize,qr:usize,l:usize,r:usize,tree_idx:usize) -> i32 {
+    fn query_dfs(&mut self, ql: usize, qr: usize, l: usize, r: usize, tree_idx: usize) -> i32 {
         if self.tree[tree_idx].1 != 0 && l != r {
             self.handle_lazy_mark(tree_idx);
         }
@@ -225,10 +243,17 @@ impl MyLazySegTree {
             .max(self.query_dfs(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
     }
     /// 1-indexed
-    pub fn query(&mut self,ql:usize,qr:usize) -> i32 {
+    pub fn query(&mut self, ql: usize, qr: usize) -> i32 {
         self.query_dfs(ql, qr, 1, self.nodes.len(), 1)
     }
-    fn query_dfs_value(&mut self,ql:usize,qr:usize,l:usize,r:usize,tree_idx:usize) -> i32 {
+    fn query_dfs_value(
+        &mut self,
+        ql: usize,
+        qr: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+    ) -> i32 {
         if self.tree[tree_idx].1 != 0 && l != r {
             self.handle_lazy_mark_value(tree_idx);
         }
@@ -247,29 +272,27 @@ impl MyLazySegTree {
             .max(self.query_dfs_value(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
     }
     /// 1-indexed
-    pub fn query_value(&mut self,ql:usize,qr:usize) -> i32 {
+    pub fn query_value(&mut self, ql: usize, qr: usize) -> i32 {
         self.query_dfs_value(ql, qr, 1, self.nodes.len(), 1)
     }
 }
 
-
-
 pub struct MyLazySumSegTree {
-    pub  nodes:Vec<i32>,
-    tree:Vec<(i32,i32)>// value and lazy mark
+    pub nodes: Vec<i32>,
+    tree: Vec<(i32, i32)>, // value and lazy mark
 }
 impl MyLazySumSegTree {
-    pub fn new(nodes:Vec<i32>) -> Self {
+    pub fn new(nodes: Vec<i32>) -> Self {
         let len = nodes.len();
-        let mut tree = vec![(0,0);len * 4 + 7];
-        let mut seg_tree = Self { nodes, tree};
+        let mut tree = vec![(0, 0); len * 4 + 7];
+        let mut seg_tree = Self { nodes, tree };
         seg_tree.build(1, len, 1);
         seg_tree
     }
-    fn build(&mut self,l:usize,r:usize,idx:usize) {
+    fn build(&mut self, l: usize, r: usize, idx: usize) {
         if l == r {
-            self.tree[idx] = (self.nodes[l - 1],0);
-        }else {
+            self.tree[idx] = (self.nodes[l - 1], 0);
+        } else {
             let mid = (r + l) / 2;
             self.build(l, mid, idx * 2);
             self.build(mid + 1, r, idx * 2 + 1);
@@ -277,34 +300,42 @@ impl MyLazySumSegTree {
         }
     }
 
-
-    pub fn update_range_value(&mut self,range_l:usize,range_r:usize) {
+    pub fn update_range_value(&mut self, range_l: usize, range_r: usize) {
         self.update_range_value_dfs(range_l, range_r, 1, self.nodes.len(), 1);
     }
-    fn update_range_value_dfs(&mut self,range_l:usize,range_r:usize,l:usize,r:usize,tree_idx:usize) {
+    fn update_range_value_dfs(
+        &mut self,
+        range_l: usize,
+        range_r: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+    ) {
         if self.tree[tree_idx].1 != 0 && l != r {
             // println!("{} {} {}",l,r,tree_idx);
-            self.handle_lazy_mark_value(tree_idx,l,r);
+            self.handle_lazy_mark_value(tree_idx, l, r);
         }
         if range_l == l && range_r == r {
             let range_len = range_r - range_l + 1;
             let value = range_len as i32 - self.tree[tree_idx].0;
             self.tree[tree_idx].0 = value;
             self.tree[tree_idx].1 = (self.tree[tree_idx].1 + 1) % 2;
-        }else {
+        } else {
             let mid = (r + l) / 2;
-            if mid >= range_r{// left
+            if mid >= range_r {
+                // left
                 self.update_range_value_dfs(range_l, range_r, l, mid, tree_idx * 2);
-            }else if mid < range_l {// right
+            } else if mid < range_l {
+                // right
                 self.update_range_value_dfs(range_l, range_r, mid + 1, r, tree_idx * 2 + 1);
-            }else {
+            } else {
                 self.update_range_value_dfs(range_l, mid, l, mid, tree_idx * 2);
                 self.update_range_value_dfs(mid + 1, range_r, mid + 1, r, tree_idx * 2 + 1);
             }
             self.tree[tree_idx].0 = self.tree[tree_idx * 2].0 + (self.tree[tree_idx * 2 + 1].0);
         }
     }
-    fn handle_lazy_mark_value(&mut self,idx:usize,l:usize,r:usize) {
+    fn handle_lazy_mark_value(&mut self, idx: usize, l: usize, r: usize) {
         self.tree[idx].1 = 0;
         let mid = (l + r) / 2;
         let range_len_left = mid - l + 1;
@@ -315,12 +346,18 @@ impl MyLazySumSegTree {
         let value = range_len_right as i32 - self.tree[idx * 2 + 1].0;
         self.tree[idx * 2 + 1].0 = value;
         self.tree[idx * 2 + 1].1 = (self.tree[idx * 2 + 1].1 + 1) % 2;
-
     }
 
-    fn query_dfs_value(&mut self,ql:usize,qr:usize,l:usize,r:usize,tree_idx:usize) -> i32 {
+    fn query_dfs_value(
+        &mut self,
+        ql: usize,
+        qr: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+    ) -> i32 {
         if self.tree[tree_idx].1 != 0 && l != r {
-            self.handle_lazy_mark_value(tree_idx,l,r);
+            self.handle_lazy_mark_value(tree_idx, l, r);
         }
         if ql == l && qr == r {
             return self.tree[tree_idx].0;
@@ -334,10 +371,10 @@ impl MyLazySumSegTree {
             return self.query_dfs_value(ql, qr, l, mid, tree_idx * 2);
         }
         self.query_dfs_value(ql, mid, l, mid, tree_idx * 2)
-        + (self.query_dfs_value(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
+            + (self.query_dfs_value(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
     }
     /// 1-indexed
-    pub fn query_value(&mut self,ql:usize,qr:usize) -> i32 {
+    pub fn query_value(&mut self, ql: usize, qr: usize) -> i32 {
         self.query_dfs_value(ql, qr, 1, self.nodes.len(), 1)
     }
 }
@@ -361,8 +398,16 @@ mod test {
                 let expected = seg.query(1, 0, n - 1, i, j);
                 let got_my = my.query(i + 1, j + 1);
                 let got_lazy = lazy.query_value(i + 1, j + 1);
-                assert_eq!(expected, got_my, "MySegTree mismatch for range {}..={}", i, j);
-                assert_eq!(expected, got_lazy, "MyLazySegTree mismatch for range {}..={}", i, j);
+                assert_eq!(
+                    expected, got_my,
+                    "MySegTree mismatch for range {}..={}",
+                    i, j
+                );
+                assert_eq!(
+                    expected, got_lazy,
+                    "MyLazySegTree mismatch for range {}..={}",
+                    i, j
+                );
             }
         }
     }
@@ -439,50 +484,58 @@ mod test {
         }
     }
 }
-#[derive(Debug,Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Mark {
     Add(usize),
-    Mul(usize)
+    Mul(usize),
 }
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 struct TreeNode {
-    v:usize,
-    marks:Vec<Mark>
+    v: usize,
+    marks: Vec<Mark>,
 }
 impl TreeNode {
-    fn new(v:usize,marks:Vec<Mark>) -> Self {
+    fn new(v: usize, marks: Vec<Mark>) -> Self {
         TreeNode { v, marks }
     }
 }
 pub struct MyLazySegTreeMultiMark {
-    pub  nodes:Vec<usize>,
-    tree:Vec<TreeNode>// value and lazy mark
+    pub nodes: Vec<usize>,
+    tree: Vec<TreeNode>, // value and lazy mark
 }
 impl MyLazySegTreeMultiMark {
-    pub fn new(nodes:Vec<usize>) -> Self {
+    pub fn new(nodes: Vec<usize>) -> Self {
         let len = nodes.len();
-        let mut tree = vec![TreeNode::default();len * 4 + 7];
-        let mut seg_tree = Self { nodes, tree};
+        let mut tree = vec![TreeNode::default(); len * 4 + 7];
+        let mut seg_tree = Self { nodes, tree };
         seg_tree.build(1, len, 1);
         seg_tree
     }
-    fn build(&mut self,l:usize,r:usize,idx:usize) {
+    fn build(&mut self, l: usize, r: usize, idx: usize) {
         if l == r {
-            self.tree[idx] = TreeNode::new(self.nodes[l - 1],vec![]);
-        }else {
+            self.tree[idx] = TreeNode::new(self.nodes[l - 1], vec![]);
+        } else {
             let mid = (r + l) / 2;
             self.build(l, mid, idx * 2);
             self.build(mid + 1, r, idx * 2 + 1);
             self.tree[idx].v = self.tree[idx * 2].v + (self.tree[idx * 2 + 1]).v;
         }
     }
-    pub fn update_range_value(&mut self,range_l:usize,range_r:usize,update_type:Mark) {
+    pub fn update_range_value(&mut self, range_l: usize, range_r: usize, update_type: Mark) {
         self.update_range_value_dfs(range_l, range_r, 1, self.nodes.len(), 1, update_type);
     }
-    fn update_range_value_dfs(&mut self,range_l:usize,range_r:usize,l:usize,r:usize,tree_idx:usize,update_type:Mark) {
+    fn update_range_value_dfs(
+        &mut self,
+        range_l: usize,
+        range_r: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+        update_type: Mark,
+    ) {
         if !self.tree[tree_idx].marks.is_empty() && l != r {
             // println!("{} {} {}",l,r,tree_idx);
-            self.handle_lazy_mark_value(tree_idx,l,r);
+            self.handle_lazy_mark_value(tree_idx, l, r);
         }
         if range_l == l && range_r == r {
             let len = (r - l + 1);
@@ -491,28 +544,43 @@ impl MyLazySegTreeMultiMark {
                     self.tree[tree_idx].v = (self.tree[tree_idx].v + len * add_f) % 1_000_000_007;
                 }
                 Mark::Mul(mul_f) => {
-                    self.tree[tree_idx].v = (self.tree[tree_idx].v * mul_f)% 1_000_000_007;
+                    self.tree[tree_idx].v = (self.tree[tree_idx].v * mul_f) % 1_000_000_007;
                 }
             }
             if l != r {
                 self.tree[tree_idx].marks.push(update_type);
             }
-        }else {
+        } else {
             let mid = (r + l) / 2;
-            if mid >= range_r{// left
+            if mid >= range_r {
+                // left
                 self.update_range_value_dfs(range_l, range_r, l, mid, tree_idx * 2, update_type);
-            }else if mid < range_l {// right
-                self.update_range_value_dfs(range_l, range_r, mid + 1, r, tree_idx * 2 + 1, update_type);
-            }else {
+            } else if mid < range_l {
+                // right
+                self.update_range_value_dfs(
+                    range_l,
+                    range_r,
+                    mid + 1,
+                    r,
+                    tree_idx * 2 + 1,
+                    update_type,
+                );
+            } else {
                 self.update_range_value_dfs(range_l, mid, l, mid, tree_idx * 2, update_type);
-                self.update_range_value_dfs(mid + 1, range_r, mid + 1, r, tree_idx * 2 + 1, update_type);
+                self.update_range_value_dfs(
+                    mid + 1,
+                    range_r,
+                    mid + 1,
+                    r,
+                    tree_idx * 2 + 1,
+                    update_type,
+                );
             }
             self.tree[tree_idx].v = self.tree[tree_idx * 2].v + (self.tree[tree_idx * 2 + 1].v);
-
         }
     }
 
-    fn handle_lazy_mark_value(&mut self,idx:usize,l:usize,r:usize) {
+    fn handle_lazy_mark_value(&mut self, idx: usize, l: usize, r: usize) {
         let mid = (l + r) / 2;
         let len_left = (mid - l) + 1;
         let len_right = (r - (mid + 1)) + 1;
@@ -520,24 +588,26 @@ impl MyLazySegTreeMultiMark {
             match self.tree[idx].marks[i] {
                 Mark::Add(add_f) => {
                     //left
-                    self.tree[idx * 2].v = (self.tree[idx * 2].v + len_left * add_f) % 1_000_000_007;
+                    self.tree[idx * 2].v =
+                        (self.tree[idx * 2].v + len_left * add_f) % 1_000_000_007;
                     if l != mid {
                         self.tree[idx * 2].marks.push(Mark::Add(add_f));
                     }
                     //right
-                    self.tree[idx * 2 + 1].v = (self.tree[idx * 2 + 1].v + len_right * add_f) % 1_000_000_007;
-                    if mid + 1 !=r {
+                    self.tree[idx * 2 + 1].v =
+                        (self.tree[idx * 2 + 1].v + len_right * add_f) % 1_000_000_007;
+                    if mid + 1 != r {
                         self.tree[idx * 2 + 1].marks.push(Mark::Add(add_f));
                     }
                 }
                 Mark::Mul(mul_f) => {
                     //left
-                    self.tree[idx * 2].v = (self.tree[idx * 2].v * mul_f)% 1_000_000_007;
+                    self.tree[idx * 2].v = (self.tree[idx * 2].v * mul_f) % 1_000_000_007;
                     if l != mid {
                         self.tree[idx * 2].marks.push(Mark::Mul(mul_f));
                     }
                     //right
-                    self.tree[idx * 2 + 1].v = (self.tree[idx * 2 + 1].v * mul_f)% 1_000_000_007;
+                    self.tree[idx * 2 + 1].v = (self.tree[idx * 2 + 1].v * mul_f) % 1_000_000_007;
                     if mid + 1 != r {
                         self.tree[idx * 2 + 1].marks.push(Mark::Mul(mul_f));
                     }
@@ -547,9 +617,16 @@ impl MyLazySegTreeMultiMark {
         self.tree[idx].marks.clear();
     }
 
-    fn query_dfs_value(&mut self,ql:usize,qr:usize,l:usize,r:usize,tree_idx:usize) -> usize {
+    fn query_dfs_value(
+        &mut self,
+        ql: usize,
+        qr: usize,
+        l: usize,
+        r: usize,
+        tree_idx: usize,
+    ) -> usize {
         if !self.tree[tree_idx].marks.is_empty() && l != r {
-            self.handle_lazy_mark_value(tree_idx,l,r);
+            self.handle_lazy_mark_value(tree_idx, l, r);
         }
         if ql == l && qr == r {
             return self.tree[tree_idx].v;
@@ -566,7 +643,7 @@ impl MyLazySegTreeMultiMark {
             .max(self.query_dfs_value(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
     }
     /// 1-indexed
-    pub fn query_value(&mut self,ql:usize,qr:usize) -> usize {
+    pub fn query_value(&mut self, ql: usize, qr: usize) -> usize {
         self.query_dfs_value(ql, qr, 1, self.nodes.len(), 1)
     }
 }

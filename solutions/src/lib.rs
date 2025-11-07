@@ -1,5 +1,4 @@
-#![allow(deprecated,non_snake_case)]
-
+#![allow(deprecated, non_snake_case)]
 #![allow(dead_code, unused)]
 use std::{
     cell::RefCell,
@@ -9,15 +8,15 @@ use std::{
     rc::Rc,
     vec,
 };
-pub mod graph;
-pub mod segment_tree_questions;
-pub mod segment_tree;
-pub mod tree_array;
+pub mod dijoint_set;
 pub mod every_day;
 pub mod five;
 pub mod four;
+pub mod graph;
+pub mod segment_tree;
+pub mod segment_tree_questions;
 pub mod tire;
-pub mod dijoint_set;
+pub mod tree_array;
 use log::info;
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
