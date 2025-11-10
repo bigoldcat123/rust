@@ -448,7 +448,7 @@ fn check6(
     visited: &mut HashSet<(usize, usize)>,
 ) -> bool {
     if i == j && i == distance_to_theif.len() - 1 {
-        return distance_to_theif[i][j] >= distance
+        return distance_to_theif[i][j] >= distance;
     }
     if visited.contains(&(i, j)) {
         return false;
@@ -492,11 +492,9 @@ pub fn regions_by_slashes(mut grid: Vec<String>) -> i32 {
                 if !d_set.union((i + 1, j), (i, j + 1)) {
                     res += 1;
                 }
-            } else if c == '\\' {
-                if !d_set.union((i, j), (i + 1, j + 1)) {
-                    res += 1;
-                }
-            } 
+            } else if c == '\\' && !d_set.union((i, j), (i + 1, j + 1)) {
+                res += 1;
+            }
         }
     }
     res
@@ -608,7 +606,12 @@ pub fn latest_day_to_cross(row: i32, col: i32, mut cells: Vec<Vec<i32>>) -> i32 
             (row, col + 1),
         ];
         for d in directions {
-            if d.0 >= 0 && (d.0 as usize) < grid.len() && d.1 >= 0 && (d.1 as usize) < grid[1].len() && grid[d.0 as usize][d.1 as usize] == 0 {
+            if d.0 >= 0
+                && (d.0 as usize) < grid.len()
+                && d.1 >= 0
+                && (d.1 as usize) < grid[1].len()
+                && grid[d.0 as usize][d.1 as usize] == 0
+            {
                 d_set.union((d.0 as usize, d.1 as usize), (row as usize, col as usize));
             }
         }

@@ -223,7 +223,7 @@ impl TreeArray3Isize {
         let mut res = 0;
         idx = idx.min(self.nums.len());
         while idx > 0 {
-            res = res + self.tree[idx];
+            res += self.tree[idx];
             idx -= Self::next_idx(idx);
         }
         res

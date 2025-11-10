@@ -41,8 +41,525 @@ impl DSet {
         self.size[x]
     }
 }
-fn add(b:i32,a:i32) -> i32 {
-    a + b
+
+pub fn largest_island(grid: Vec<Vec<i32>>) -> i32 {
+    let mut d_set = DSet::new(grid.len() * grid[0].len());
+    let mut visited = vec![vec![false;grid[0].len()];grid.len()];
+
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            dfs_largest_island(i as i32, j as i32, &grid, &mut visited, calc_idx(i, j, grid[0].len()), &mut d_set);
+        }
+    }
+    let mut ans = 0;
+    for i in 0..grid.len(){
+        for j in 0..grid[0].len() {
+            if grid[i][j] == 0 {
+                let i = i as i32;let j = j as i32;
+                let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+                let mut size = 1;
+                let mut s = vec![];
+                for (i,j) in des {
+                    if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() {
+                        if grid[i as usize][j as usize] == 1 {
+                            if !s.contains(&d_set.find(calc_idx(i as usize, j as usize, grid[0].len()))) {
+                                size += d_set.get_size(calc_idx(i as usize, j as usize, grid[0].len()));
+                                s.push(d_set.find(calc_idx(i as usize, j as usize, grid[0].len())));
+                            }
+                        }
+                    }
+                }
+                ans = ans.max(size);
+            }
+        }
+    }
+    ans as _
+}
+fn dfs_largest_island(i:i32,j:i32,grid1: &Vec<Vec<i32>>,selected: &mut Vec<Vec<bool>>,fa:usize,d_set:&mut DSet)-> i32 {
+    if i >= 0 && j >= 0 && (i as usize) < grid1.len() && (j as usize) < grid1[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if selected[i_usize][j_usize] {
+            return 0
+        }
+        if grid1[i_usize][j_usize] == 0 {
+            return 0
+        }
+        selected[i_usize][j_usize] = true;
+
+        let mut ans = 1;
+        let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+        let idx = calc_idx(i_usize, j_usize, grid1[0].len());
+        d_set.union(idx, fa);
+        for (i,j) in des {
+            ans += dfs_largest_island(i, j, grid1, selected,fa,d_set);
+        }
+        ans
+    }else {
+        0
+    }
+}
+// 0 2 => 2
+// 1 2 => 1 * col_len + 2
+fn calc_idx(i:usize,j:usize,colum_len:usize) -> usize {
+    i * colum_len + j
+}
+
+
+
+pub fn contains_cycle(grid: Vec<Vec<char>>) -> bool {
+    let mut visited = vec![vec![false;grid[0].len()];grid.len()];
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            if !visited[i][j] && dfs_contains_cycle(i as i32, j as i32, &grid, &mut visited, grid[i][j], -1){
+                return true
+            }
+        }
+    }
+
+    false
+}
+fn dfs_contains_cycle(i:i32,j:i32,grid:& Vec<Vec<char>>, selected:&mut Vec<Vec<bool>>,current_char:char,from:i32) -> bool {
+    if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if selected[i_usize][j_usize] && grid[i_usize][j_usize] == current_char {
+            return true
+        }
+        if selected[i_usize][j_usize] && grid[i_usize][j_usize] != current_char {
+            return false
+        }
+        selected[i_usize][j_usize] = true;
+        if grid[i_usize][j_usize] != current_char {
+            return false
+        }
+        let dir = [(i + 1,j,1),(i - 1,j,0),(i,j + 1,2),(i,j - 1,3)];
+        let forbiden = get_forbiden(from);
+        for (i,j,from) in dir {
+
+            if forbiden != from && dfs_contains_cycle(i, j, grid, selected, current_char, from) {
+                return true
+            }
+        }
+        false
+    }else {
+        false
+    }
+}
+// 0 1 2 3
+// up down left right
+fn get_forbiden(d:i32) -> i32 {
+    match d {
+        0 => 1,
+        1 => 0,
+        2 => 3,
+        3 => 2,
+        _ =>{-1}
+    }
+}
+
+
+pub fn update_board(mut board: Vec<Vec<char>>, click: Vec<i32>) -> Vec<Vec<char>> {
+    dfs_update_board(&mut board, click[0], click[1]);
+    board
+}
+fn dfs_update_board(board: &mut Vec<Vec<char>>,i:i32,j:i32) {
+    if i >= 0 && j >= 0 && (i as usize) < board.len() && (j as usize) < board[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if board[i_usize][j_usize] != 'E' ||board[i_usize][j_usize] != 'M' {
+            return;
+        }
+        if board[i_usize][j_usize] == 'M' {
+            board[i_usize][j_usize] = 'X';
+            return;
+        }
+
+        let num = num_of_mine(board, i, j);
+        if  num > 0 {
+            board[i_usize][j_usize] = (num as u8 + 48) as char;
+        }else {
+            board[i_usize][j_usize] = 'B';
+            let adjacent = [(i + 1,j),(i - 1,j),(i,j + 1),(i, j - 1),(i + 1,j + 1),(i + 1,j - 1),(i - 1,j + 1),(i + 1,j - 1)];
+            for (i,j) in adjacent {
+                dfs_update_board(board, i, j);
+            }
+        }
+    }
+}
+fn num_of_mine(board: & Vec<Vec<char>>,i:i32,j:i32) -> i32 {
+    let adjacent = [(i + 1,j),(i - 1,j),(i,j + 1),(i, j - 1),(i + 1,j + 1),(i + 1,j - 1),(i - 1,j + 1),(i + 1,j - 1)];
+    let mut ans = 0;
+    for (i, j) in adjacent {
+        if i >= 0 && j >= 0 && (i as usize) < board.len() && (j as usize) < board[0].len() {
+            if board[i as usize][j as usize] =='M' {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+
+#[derive(Default)]
+struct LandCell {
+    p:bool,
+    a:bool,
+    visited:bool,
+    height:i32
+}
+impl LandCell {
+    fn new(height:i32) -> Self {
+        Self {
+            height,
+            p:false,
+            a:false,
+            visited:false
+        }
+    }
+}
+pub fn pacific_atlantic(heights: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let mut heights:Vec<Vec<LandCell>> = heights.into_iter().map(|x| x.into_iter().map(|x|LandCell::new(x)).collect() ).collect();
+    let mut res =vec![];
+    for i in 0..heights.len() {
+        for j in 0..heights[i].len() {
+            if !heights[i][j].visited {
+                let (a,b) = dfs_pacific_atlantic(i, j, &mut heights);
+                if a && b {
+                    res.push(vec![i as i32,j as i32]);
+                }
+            }
+
+        }
+    }
+    res
+}
+fn dfs_pacific_atlantic(i:usize,j:usize,heights: &mut Vec<Vec<LandCell>>) -> (bool,bool) {
+    if heights[i][j].visited {
+        return (heights[i][j].p,heights[i][j].a)
+    }
+    heights[i][j].visited = true;
+    let des = [(i as i32 + 1, j as i32), (i as i32 - 1, j as i32), (i as i32, j as i32 + 1), (i as i32, j as i32 - 1)];
+    for (i_next,j_next) in des {
+        if i_next < 0 || j_next < 0 {
+            heights[i][j].p = true;
+            continue;
+        }
+        if (i_next as usize) >= heights.len() || (j_next as usize) >= heights[0].len() {
+            heights[i][j].a = true;
+            continue;
+        }
+        if heights[i][j].height >= heights[i_next as usize][j_next as usize].height {
+            let (p,a) = dfs_pacific_atlantic(i_next as usize, j_next as usize, heights);
+            heights[i][j].p |= p;
+            heights[i][j].a |= a;
+        }
+    }
+
+    (heights[i][j].p,heights[i][j].a)
+}
+
+pub fn has_valid_path(grid: Vec<Vec<i32>>) -> bool {
+    let mut selected = vec![vec![false; grid[0].len()]; grid.len()];
+    dfs_has_valid_path(0, 0, &grid, &mut selected)
+}
+fn dfs_has_valid_path(
+    i: usize,
+    j: usize,
+    grid: &Vec<Vec<i32>>,
+    selected: &mut Vec<Vec<bool>>,
+) -> bool {
+    if i == grid.len() - 1 && j == grid[0].len() - 1 {
+        return true;
+    }
+    if selected[i][j]  {
+        return false
+    }
+    selected[i][j] = true;
+    let mut ans = false;
+    match grid[i][j] {
+        1 => {
+            // left to right
+            if j + 1 < grid[0].len() {
+                if grid[i][j + 1] == 3 || grid[i][j + 1] == 1  || grid[i][j + 1] == 5 {
+                    ans |= dfs_has_valid_path(i, j + 1, grid, selected);
+                }
+            }
+            // right to left
+            if j > 0 {
+                if grid[i][j - 1] == 4 || grid[i][j - 1] == 1  || grid[i][j - 1] == 6 {
+                    ans |= dfs_has_valid_path(i, j - 1, grid, selected);
+                }
+            }
+        }
+        2 => {
+            // upper to lower
+            if i + 1 < grid.len() {
+                if grid[i + 1][j] == 2 || grid[i + 1][j] == 5  || grid[i + 1][j] == 6 {
+                    ans |= dfs_has_valid_path(i + 1, j, grid, selected);
+                }
+            }
+            // lower to upper
+            if i > 0 {
+                if grid[i - 1][j] == 2 || grid[i - 1][j] == 3 || grid[i - 1][j] == 4 {
+                    ans |= dfs_has_valid_path(i - 1, j, grid, selected);
+                }
+            }
+        }
+        3 => {
+            // left to lower
+            if i + 1 < grid.len() {
+                if grid[i + 1][j] == 2 || grid[i + 1][j] == 5  || grid[i + 1][j] == 6 {
+                    ans |= dfs_has_valid_path(i + 1, j, grid, selected);
+                }
+            }
+            //lower to left
+            if j > 0 {
+                if grid[i][j - 1] == 4 || grid[i][j - 1] == 1  || grid[i][j - 1] == 6 {
+                    ans |= dfs_has_valid_path(i, j - 1, grid, selected);
+                }
+            }
+        }
+        4 => {
+            // right to lower
+            if i + 1 < grid.len() {
+                if grid[i + 1][j] == 2 || grid[i + 1][j] == 5  || grid[i + 1][j] == 6 {
+                    ans |= dfs_has_valid_path(i + 1, j, grid, selected);
+                }
+            }
+            // lower to right
+            if j + 1 < grid[0].len() {
+                if grid[i][j + 1] == 3 || grid[i][j + 1] == 1  || grid[i][j + 1] == 5 {
+                    ans |= dfs_has_valid_path(i, j + 1, grid, selected);
+                }
+            }
+        }
+        5 => {
+            // left to upper
+            if i > 0 {
+                if grid[i - 1][j] == 2 || grid[i - 1][j] == 3  || grid[i - 1][j] == 4 {
+                    ans |= dfs_has_valid_path(i - 1, j, grid, selected);
+                }
+            }
+            // upper to left
+            if j > 0 {
+                if grid[i][j - 1] == 4 || grid[i][j - 1] == 1  || grid[i][j - 1] == 6 {
+                    ans |= dfs_has_valid_path(i, j - 1, grid, selected);
+                }
+            }
+        }
+        6 => {
+            // right to upper
+            if i > 0 {
+                if grid[i - 1][j] == 2 || grid[i - 1][j] == 3  || grid[i - 1][j] == 4 {
+                    ans |= dfs_has_valid_path(i - 1, j, grid, selected);
+                }
+            }
+            // upper to right
+            if j + 1 < grid[0].len() {
+                if grid[i][j + 1] == 3 || grid[i][j + 1] == 1  || grid[i][j + 1] == 5 {
+                    ans |= dfs_has_valid_path(i, j + 1, grid, selected);
+                }
+            }
+        }
+        _ => {
+            unreachable!()
+        }
+    }
+    ans
+}
+
+pub fn count_sub_islands(grid1: Vec<Vec<i32>>, grid2: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    let mut selected = vec![vec![false; grid1.len()]; grid1.len()];
+    for i in 0..grid1.len() {
+        for j in 0..grid1[i].len() {
+            if !selected[i][j] && grid2[i][j] == 1 {
+                if dfs_count_sub_islands(i as i32, j as i32, &grid1, &grid2, &mut selected) {
+                    ans += 1;
+                }
+            }
+        }
+    }
+    ans
+}
+fn dfs_count_sub_islands(
+    i: i32,
+    j: i32,
+    grid1: &Vec<Vec<i32>>,
+    grid2: &Vec<Vec<i32>>,
+    selected: &mut Vec<Vec<bool>>,
+) -> bool {
+    if i >= 0 && j >= 0 && (i as usize) < grid1.len() && (j as usize) < grid1[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if selected[i_usize][j_usize] {
+            return true;
+        }
+        selected[i_usize][j_usize] = true;
+        if grid2[i_usize][j_usize] == 0 {
+            return true;
+        }
+        let mut ans = grid2[i_usize][j_usize] == grid1[i_usize][j_usize];
+        let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+        for (i, j) in des {
+            ans &= dfs_count_sub_islands(i, j, grid1, grid2, selected);
+        }
+        ans
+    } else {
+        true
+    }
+}
+fn get_des(i: i32, j: i32) -> [(i32, i32); 4] {
+    [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
+}
+
+pub fn solve(board: &mut Vec<Vec<char>>) {
+    let mut x = vec![];
+    let mut selected = vec![vec![false; board[0].len()]; board.len()];
+    let len = board.len();
+    let c_len = board[0].len();
+    for i in 0..len {
+        for j in 0..c_len {
+            let mut g = vec![];
+            if dfs_solve(i as i32, j as i32, board, &mut selected, &mut g) {
+                x.append(&mut g);
+            }
+        }
+    }
+    for (i, j) in x {
+        board[i][j] = 'X'
+    }
+}
+fn dfs_solve(
+    i: i32,
+    j: i32,
+    board: &mut Vec<Vec<char>>,
+    selected: &mut Vec<Vec<bool>>,
+    g: &mut Vec<(usize, usize)>,
+) -> bool {
+    if i >= 0 && j >= 0 && (i as usize) < board.len() && (j as usize) < board[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if selected[i_usize][j_usize] {
+            return true;
+        }
+        selected[i_usize][j_usize] = true;
+        if board[i_usize][j_usize] == 'X' {
+            return true;
+        }
+        let mut ans = true;
+        let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+        for (i, j) in des {
+            ans &= dfs_solve(i, j, board, selected, g);
+        }
+        g.push((i_usize, j_usize));
+        ans
+    } else {
+        false
+    }
+}
+
+pub fn closed_island(grid: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    let mut selected = vec![vec![false; grid[0].len()]; grid.len()];
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            if dfs_cloese_island(i as i32, j as i32, &grid, &mut selected) {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+fn dfs_cloese_island(i: i32, j: i32, grid: &Vec<Vec<i32>>, selected: &mut Vec<Vec<bool>>) -> bool {
+    if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() {
+        let i_usize = i as usize;
+        let j_usize = j as usize;
+        if selected[i_usize][j_usize] {
+            return true;
+        }
+        selected[i_usize][j_usize] = true;
+        if grid[i_usize][j_usize] == 1 {
+            return true;
+        }
+        let mut ans = true;
+        let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+        for (i, j) in des {
+            ans &= dfs_cloese_island(i, j, grid, selected);
+        }
+        ans
+    } else {
+        false
+    }
+}
+
+pub fn max_moves(grid: Vec<Vec<i32>>) -> i32 {
+    let mut cache = vec![vec![-1; grid[0].len()]; grid.len()];
+    let mut max = 0;
+    for i in 0..grid.len() {
+        max = max.max(dfs_max_moves(i as i32, 0, &grid, &mut cache))
+    }
+    max
+}
+fn dfs_max_moves(i: i32, j: i32, grid: &Vec<Vec<i32>>, cache: &mut Vec<Vec<i32>>) -> i32 {
+    let i_usize = i as usize;
+    let j_usize = j as usize;
+    if cache[i_usize][j_usize] >= 0 {
+        return cache[i_usize][j_usize];
+    }
+    let current = grid[i_usize][j_usize];
+    let mut m = 0;
+    let des = [(i + 1, j + 1), (i - 1, j + 1), (i, j + 1)];
+    for (i, j) in des {
+        if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() {
+            if grid[i as usize][j as usize] > current {
+                m = m.max(dfs_max_moves(i, j, grid, cache))
+            }
+        }
+    }
+    cache[i_usize][j_usize] = m + 1;
+    m + 1
+}
+
+pub fn num_enclaves(grid: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    let mut selected = vec![vec![false; grid[0].len()]; grid.len()];
+    for i in 0..grid.len() {
+        for j in 0..grid[i].len() {
+            let (n, can_go_out) = dnfs_num_enclaves(i as i32, j as i32, &grid, &mut selected);
+            if !can_go_out {
+                ans += n;
+            }
+        }
+    }
+    ans
+}
+fn dnfs_num_enclaves(
+    i: i32,
+    j: i32,
+    grid: &Vec<Vec<i32>>,
+    selected: &mut Vec<Vec<bool>>,
+) -> (i32, bool) {
+    if i < 0 || j < 0 || (i as usize) >= grid.len() || (j as usize) >= grid[0].len() {
+        return (0, true);
+    }
+    let i_usize = i as usize;
+    let j_usize = j as usize;
+    if selected[i_usize][j_usize] {
+        return (0, false);
+    }
+    selected[i_usize][j_usize] = true;
+    if grid[i_usize][j_usize] == 0 {
+        return (0, false);
+    }
+    let mut ans = (0, false);
+    let des = [(i + 1, j), (i - 1, j), (i, j - 1), (i, j + 1)];
+    for (i, j) in des {
+        let (n, can_go_out) = dnfs_num_enclaves(i, j, grid, selected);
+        ans.0 += n;
+        ans.1 |= can_go_out;
+    }
+    ans
 }
 
 pub fn color_border(mut grid: Vec<Vec<i32>>, row: i32, col: i32, color: i32) -> Vec<Vec<i32>> {
@@ -163,7 +680,12 @@ pub fn island_perimeter(grid: Vec<Vec<i32>>) -> i32 {
                 let j = j as i32;
                 let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
                 for (i, j) in des {
-                    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && grid[i as usize][j as usize] == 1 {
+                    if i >= 0
+                        && (i as usize) < grid.len()
+                        && j >= 0
+                        && (j as usize) < grid[0].len()
+                        && grid[i as usize][j as usize] == 1
+                    {
                         ans += 1;
                     }
                 }
@@ -340,7 +862,6 @@ pub fn num_ways(n: i32, relation: Vec<Vec<i32>>, k: i32) -> i32 {
     for r in relation {
         map.entry(r[0]).or_default().push(r[1]);
     }
-    println!("{:?}", map);
     let mut res = 0;
 
     dfs_num_ways(0, k, &map, &mut res, 0, n - 1);
@@ -355,7 +876,6 @@ fn dfs_num_ways(
     current_people: i32,
     last: i32,
 ) {
-    println!("{} {}", current_people, last);
     if current_people == last {
         *res += 1
     }
@@ -386,7 +906,6 @@ pub fn minimum_cost(n: i32, edges: Vec<Vec<i32>>, query: Vec<Vec<i32>>) -> Vec<i
         .into_iter()
         .map(|x| {
             if d_set.find(x[0] as usize) == d_set.find(x[1] as usize) {
-
                 map[&d_set.find(x[0] as usize)]
             } else {
                 -1

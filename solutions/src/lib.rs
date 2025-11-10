@@ -620,7 +620,6 @@ impl A {
         res
     }
     pub fn get_row(row_index: i32) -> Vec<i32> {
-
         Self::generate(row_index).pop().unwrap()
     }
     pub fn max_profit(prices: Vec<i32>) -> i32 {
@@ -917,10 +916,8 @@ impl A {
         for i in 0..s.len() {
             if word_dict_ref.contains(&&s[0..=i]) {
                 dp[i] = true;
-                if i > 0 {
-                    if dp[i - 1] {
-                        res.pop().unwrap();
-                    }
+                if i > 0 && dp[i - 1] {
+                    res.pop().unwrap();
                 }
                 res.push(s[0..=i].to_string());
             } else {
@@ -1694,21 +1691,21 @@ impl A {
         let s = s.as_bytes();
         let t = t.as_bytes();
         for i in 0..s.len() {
-            if map_s_t.contains_key(&s[i]) {
+            if let std::collections::hash_map::Entry::Vacant(e) = map_s_t.entry(s[i]) {
+                e.insert(t[i]);
+            } else {
                 let v = map_s_t.get(&s[i]).unwrap();
                 if *v != t[i] {
                     return false;
                 }
-            } else {
-                map_s_t.insert(s[i], t[i]);
             }
-            if map_t_s.contains_key(&t[i]) {
+            if let std::collections::hash_map::Entry::Vacant(e) = map_t_s.entry(t[i]) {
+                e.insert(s[i]);
+            } else {
                 let v = map_t_s.get(&t[i]).unwrap();
                 if *v != s[i] {
                     return false;
                 }
-            } else {
-                map_t_s.insert(t[i], s[i]);
             }
         }
         true
@@ -2052,12 +2049,10 @@ impl A {
                                 }
                             }
                             return false;
+                        } else if let Some(node) = node.get(&c_to_search) {
+                            return node.is_world;
                         } else {
-                            if let Some(node) = node.get(&c_to_search) {
-                                return node.is_world
-                            } else {
-                                return false;
-                            }
+                            return false;
                         }
                     }
 
@@ -2069,12 +2064,10 @@ impl A {
                             }
                         }
                         false
+                    } else if let Some(n) = node.get(&c_to_search) {
+                        dfs_search(&n.nexts, current_idx + 1, word)
                     } else {
-                        if let Some(n) = node.get(&c_to_search) {
-                            dfs_search(&n.nexts, current_idx + 1, word)
-                        } else {
-                            false
-                        }
+                        false
                     }
                 }
                 dfs_search(&self.nodes, 0, word.as_bytes())
@@ -2098,7 +2091,9 @@ impl A {
                 if sum == n {
                     res.push(temp.clone());
                     return false;
-                } else { return sum < n }
+                } else {
+                    return sum < n;
+                }
             }
             for i in current..=8 {
                 temp.push((i + 1) as i32);
@@ -2548,7 +2543,7 @@ impl A {
         }
         let mut res = 0;
         fn cal(n: i32, dp: &Vec<u128>, res: &mut i32) {
-            if n < 10 && n >= 1 {
+            if (1..10).contains(&n) {
                 *res += 1;
             }
             let mut i = 0;
@@ -2790,7 +2785,7 @@ impl A {
                 map.remove(&num).unwrap();
             }
         }
-        map.keys().map(|k| *k).collect::<Vec<i32>>()
+        map.keys().copied().collect::<Vec<i32>>()
     }
     //263
     pub fn is_ugly(n: i32) -> bool {
@@ -2828,7 +2823,7 @@ impl A {
                 }
             }
         }
-        heap.pop().unwrap().0 as i32
+        heap.pop().unwrap().0
     }
     //268
     pub fn missing_number(nums: Vec<i32>) -> i32 {
@@ -3357,9 +3352,7 @@ impl A {
                 map.insert(s[i], vec![i]);
             }
         }
-        let mut e = map
-            .into_iter()
-            .collect::<Vec<(u8, Vec<usize>)>>();
+        let mut e = map.into_iter().collect::<Vec<(u8, Vec<usize>)>>();
         e.sort_by(|x, y| x.0.cmp(&y.0));
         let mut next = 0;
         let mut res = vec![];
@@ -3397,7 +3390,7 @@ impl A {
                 let right = &words[j];
                 let x = &sets[i];
                 let y = &sets[j];
-                if x.intersection(y).collect::<Vec<&u8>>().len() != 0 {
+                if !x.intersection(y).collect::<Vec<&u8>>().is_empty() {
                     continue;
                 } else {
                     max = max.max(left.len() * right.len())
@@ -3553,7 +3546,7 @@ impl A {
                     stack.push(node);
                 }
             }
-            if !stack.is_empty() { false } else { true }
+            !(!stack.is_empty())
         }
     }
 
@@ -4341,7 +4334,8 @@ impl A {
                 self.list = self
                     .list
                     .iter()
-                    .filter(|x| self.set.contains(x)).copied()
+                    .filter(|x| self.set.contains(x))
+                    .copied()
                     .collect::<VecDeque<i32>>();
                 let mut rng = rand::thread_rng();
                 let idx = rng.gen_range(0..(self.list.len()));

@@ -867,11 +867,7 @@ impl Solution {
                             self.avaliable.insert(index);
                             res
                         } else {
-                            if let Some(res) = self.stacks[index].pop() {
-                                res
-                            } else {
-                                -1
-                            }
+                            self.stacks[index].pop().unwrap_or(-1)
                         }
                     } else {
                         -1

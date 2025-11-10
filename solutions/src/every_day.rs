@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
+    i32,
     io::Read,
     num,
     os::macos::raw::stat,
@@ -8,6 +9,382 @@ use std::{
 };
 
 use crate::ListNode;
+
+// struct SegTree {
+//     tree: Vec<i64>,
+// }
+// impl SegTree {
+//     fn new(size:usize) -> Self {
+//         let mut tree = vec![0;size * 4 + 7];
+//         Self { tree }
+//     }
+//     /// 0-indexed
+//     fn update_delta(&mut self,idx:usize,delta:i64) {
+//         self.update_delta_dfs(idx + 1, delta, 1, self.tree.len() - 1, 1);
+//     }
+//     fn update_delta_dfs(&mut self,idx:usize,delta:i64,l:usize,r:usize,tree_idx:usize) {
+//         if l == r {
+//             self.tree[tree_idx] += 1;
+//             return;
+//         }
+//         let mid = (l + r) / 2;
+//         if idx <= mid {
+//             self.update_delta_dfs(idx, delta, l, mid, tree_idx * 2);
+//         }else {
+//             self.update_delta_dfs(idx, delta, mid + 1, r, tree_idx * 2 + 1);
+//         }
+//         self.tree[tree_idx] = self.tree[tree_idx * 2] + self.tree[tree_idx * 2 + 1]
+//     }
+//     /// 0-indexed inclusive
+//     fn query(&self,start:usize,end:usize) -> i64{
+//         self.query_dfs(start + 1, end + 1, 1, self.tree.len() - 1, 1)
+//     }
+//     fn query_dfs(&self,start:usize,end:usize,l:usize,r:usize,tree_idx:usize) -> i64{
+//         if start == l && end == r {
+//             return self.tree[tree_idx];
+//         }
+//         let mid = (l + r) /  2;
+//         if end <= mid {
+//             return self.query_dfs(start, end, l, mid, tree_idx * 2);
+//         }else if start > mid {
+//             return self.query_dfs(start, end, mid + 1, r, tree_idx * 2 + 1);
+//         }else {
+//             return self.query_dfs(start, mid, l, mid, tree_idx * 2) + self.query_dfs(mid + 1, end, mid + 1, r, tree_idx * 2 + 1);
+//         }
+//     }
+// }
+//
+//
+pub struct MySegTree {
+    pub nodes: Vec<i64>,
+    tree: Vec<i64>,
+}
+impl MySegTree {
+    pub fn new(nodes: Vec<i64>) -> Self {
+        let len = nodes.len();
+        let mut tree = vec![0; len * 4 + 7];
+        let mut seg_tree = Self { nodes, tree };
+        seg_tree.build(1, len, 1);
+        seg_tree
+    }
+    fn build(&mut self, l: usize, r: usize, idx: usize) {
+        if l == r {
+            self.tree[idx] = self.nodes[l - 1];
+        } else {
+            let mid = (r + l) / 2;
+            self.build(l, mid, idx * 2);
+            self.build(mid + 1, r, idx * 2 + 1);
+            self.tree[idx] = self.tree[idx * 2] + (self.tree[idx * 2 + 1]);
+        }
+    }
+    /// 1-indexed
+    pub fn update_delta(&mut self, idx: usize, delta: i64) {
+        let value = self.nodes[idx - 1] + delta;
+        self.update(idx, value);
+    }
+    /// 1-indexed
+    pub fn update(&mut self, idx: usize, value: i64) {
+        self.nodes[idx - 1] = value;
+        self.update_dfs(idx, 1, self.nodes.len(), value, 1);
+    }
+    fn update_dfs(&mut self, idx: usize, l: usize, r: usize, value: i64, tree_idx: usize) {
+        if l == r {
+            self.tree[tree_idx] = value;
+        } else {
+            let mid = (l + r) / 2;
+            if idx <= mid {
+                self.update_dfs(idx, l, mid, value, tree_idx * 2);
+            } else {
+                self.update_dfs(idx, mid + 1, r, value, tree_idx * 2 + 1);
+            }
+            self.tree[tree_idx] = self.tree[tree_idx * 2] + (self.tree[tree_idx * 2 + 1]);
+        }
+    }
+    fn query_dfs(&self, ql: usize, qr: usize, l: usize, r: usize, tree_idx: usize) -> i64 {
+        if ql == l && qr == r {
+            return self.tree[tree_idx];
+        }
+        let mid = (l + r) / 2;
+        if ql > mid {
+            return self.query_dfs(ql, qr, mid + 1, r, tree_idx * 2 + 1);
+        }
+        if qr <= mid {
+            return self.query_dfs(ql, qr, l, mid, tree_idx * 2);
+        }
+        self.query_dfs(ql, mid, l, mid, tree_idx * 2)
+            + (self.query_dfs(mid + 1, qr, mid + 1, r, tree_idx * 2 + 1))
+    }
+    /// 1-indexed
+    pub fn query(&self, ql: usize, qr: usize) -> i64 {
+        self.query_dfs(ql, qr, 1, self.nodes.len(), 1)
+    }
+}
+
+pub struct TreeArray3 {
+    nums: Vec<i64>,
+    tree: Vec<i64>,
+}
+impl TreeArray3 {
+    ///
+    /// # this tis goo!
+    pub fn new(nums: Vec<i64>) -> Self {
+        let mut tree = vec![0; nums.len() + 1];
+        for (i, &n) in nums.iter().enumerate() {
+            let j = i + 1;
+            tree[j] += n;
+            let next_j = j + Self::next_idx(j);
+            if next_j < tree.len() {
+                tree[next_j] += tree[j];
+            }
+        }
+        let a = 100;
+        Self { tree, nums }
+    }
+    ///
+    /// # idx is the idx in tree_array!!
+    pub fn update(&mut self, mut idx: usize, value: i64) {
+        let mut delta = value - self.nums[idx - 1];
+        self.nums[idx - 1] = value;
+        while idx < self.tree.len() {
+            self.tree[idx] += delta;
+            idx += Self::next_idx(idx);
+        }
+    }
+    /// +1 : delta =  1
+    ///
+    /// -1 : delta = -1
+    pub fn update_delta(&mut self, idx: usize, delta: i64) {
+        let value = self.nums[idx - 1] + delta;
+        self.update(idx, value)
+    }
+    /// # inclusive 1..=idx , 1-indexed!
+    pub fn pre_sum(&self, mut idx: usize) -> i64 {
+        let mut res = 0;
+        idx = idx.min(self.nums.len());
+        while idx > 0 {
+            res += self.tree[idx];
+            idx -= Self::next_idx(idx);
+        }
+        res
+    }
+
+    // #inclusive! start..=end 1-indexed
+    pub fn query(&self, start: usize, end: usize) -> i64 {
+        self.pre_sum(end) - self.pre_sum(start - 1)
+    }
+
+    fn next_idx(idx: usize) -> usize {
+        ((idx as isize) & (-(idx as isize))) as usize
+    }
+}
+
+pub fn min_operations2(nums: Vec<i32>) -> i32 {
+    let mut s:Vec<i32> = vec![];
+    let mut ans = 0;
+    for n in nums {
+        while s.last().map_or(false, |&x| x > n) {
+            s.pop();
+        }
+        if n == 0 {continue;}
+        if s.last().map_or(true, |&x| x < n) {
+            s.push(n);
+            ans += 1;
+        }
+    }
+    ans
+}
+
+pub fn max_path_score(grid: Vec<Vec<i32>>, k: i32) -> i32 {
+    let cost = if grid.last().unwrap().last().copied().unwrap() > 0 {
+        1
+    } else {
+        0
+    };
+    let mut min_cost = vec![vec![-1; grid[cost].len()]; grid.len()];
+    for i in (0..grid.len() - 1).rev() {
+        let cost = if grid[i][grid[0].len() - 1] > 0 { 1 } else { 0 };
+        min_cost[i][grid[0].len() - 1] = min_cost[i + 1][grid[0].len() - 1] + cost;
+    }
+    for i in (0..grid[0].len() - 1).rev() {
+        let cost = if grid[grid[0].len() - 1][i] > 0 { 1 } else { 0 };
+        min_cost[grid[0].len() - 1][i] = min_cost[grid[0].len() - 1][i + 1] + cost;
+    }
+    for i in (0..grid.len() - 1).rev() {
+        for j in (0..grid[0].len() - 1).rev() {
+            let cost = if grid[i][j] > 0 { 1 } else { 0 };
+            min_cost[i][j] = min_cost[i][j + 1].min(min_cost[i + 1][j]) + cost;
+        }
+    }
+    let mut res = -1;
+    dfs_max_path_score(0, 0, &grid, k, &mut res, 0, &min_cost);
+
+    res
+}
+
+fn dfs_max_path_score(
+    i: i32,
+    j: i32,
+    grid: &Vec<Vec<i32>>,
+    k: i32,
+    res: &mut i32,
+    current_score: i32,
+    min: &Vec<Vec<i32>>,
+) {
+    if i >= 0 && j >= 0 && (i as usize) < grid.len() && (j as usize) < grid[0].len() && k >= 0 {
+        let cost = if grid[i as usize][j as usize] > 0 {
+            1
+        } else {
+            0
+        };
+        let score = grid[i as usize][j as usize];
+        if i as usize == grid.len() - 1 && j as usize == grid[0].len() - 1 && k >= cost {
+            *res = (*res).max(current_score + score);
+            return;
+        }
+        if min[i as usize][j as usize] > k {
+            return;
+        }
+        dfs_max_path_score(i + 1, j, grid, k - cost, res, current_score + score, min);
+        dfs_max_path_score(i, j + 1, grid, k - cost, res, current_score + score, min);
+    }
+}
+
+pub fn minimum_distance(nums: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut m: HashMap<i32, Vec<usize>> = HashMap::new();
+    for (i, n) in nums.into_iter().enumerate() {
+        m.entry(n).or_default().push(i);
+    }
+    let mut min = i32::MAX;
+
+    for (_, idxs) in m {
+        if idxs.len() >= 3 {
+            for i in 2..idxs.len() {
+                let value =
+                    (idxs[i] - idxs[i - 1]) + (idxs[i] - idxs[i - 2]) + (idxs[i - 1] - idxs[i - 2]);
+                min = min.min(value as i32);
+            }
+        }
+    }
+
+    if min == i32::MAX { -1 } else { min }
+}
+
+pub fn count_majority_subarrays2(mut nums: Vec<i32>, target: i32) -> i64 {
+    nums.iter_mut().for_each(|x| {
+        if *x != target {
+            *x = -1;
+        } else {
+            *x = 1;
+        }
+    });
+    let mut ans = 0;
+    let mut s_tree = TreeArray3::new(vec![0; nums.len() * 2]);
+    s_tree.update_delta(nums.len(), 1);
+    let len = nums.len();
+    let mut sum = 0;
+    for n in nums {
+        sum += n;
+        ans += s_tree.query(0, (sum - 1 + len as i32) as usize);
+        s_tree.update_delta((sum + len as i32) as usize, 1);
+    }
+    ans
+}
+
+pub fn longest_subarray(mut nums: Vec<i32>) -> i32 {
+    nums.insert(0, i32::MIN);
+    let mut l = 0;
+    let mut r = 1;
+    let mut op = true;
+    let mut ans = 0;
+    let mut break_point = 0;
+    let mut break_point_value = 0;
+    while r < nums.len() {
+        while r < nums.len() && nums[r] >= nums[r - 1] {
+            r += 1;
+        }
+        if r < nums.len() && op {
+            break_point = r;
+            break_point_value = nums[r];
+            op = false;
+            nums[r] = nums[r - 1];
+        } else {
+            ans = ans.max(r - l);
+            op = true;
+            nums[break_point] = break_point_value;
+            l = break_point;
+        }
+    }
+    nums.reverse();
+    let mut l = 0;
+    let mut r = 1;
+    let mut op = true;
+    while r < nums.len() {
+        while r < nums.len() && nums[r] <= nums[r - 1] {
+            r += 1;
+        }
+        if r < nums.len() && op {
+            break_point = r;
+            break_point_value = nums[r];
+            op = false;
+            nums[r] = nums[r - 1];
+        } else {
+            ans = ans.max(r - l);
+            op = true;
+            nums[break_point] = break_point_value;
+            l = break_point;
+        }
+    }
+
+    ans as _
+}
+
+pub fn count_majority_subarrays(nums: Vec<i32>, target: i32) -> i32 {
+    let mut pre_sum = vec![0; nums.len() + 1];
+    for (i, &n) in nums.iter().enumerate() {
+        if n == target {
+            pre_sum[i] = pre_sum[i - 1] + 1;
+        } else {
+            pre_sum[i] = pre_sum[i - 1];
+        }
+    }
+    let mut ans = 0;
+    for i in 1..=nums.len() {
+        for j in 0..i {
+            let len = i - j;
+            let need = len / 2;
+            if pre_sum[i] - pre_sum[j] > need {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+
+pub fn min_moves(nums: Vec<i32>) -> i32 {
+    let max = nums.iter().max().copied().unwrap();
+    let mut ans = 0;
+    for n in nums {
+        ans += max - n;
+    }
+    ans
+}
+
+pub fn count_operations(mut num1: i32, mut num2: i32) -> i32 {
+    let mut ans = 0;
+    while num1 != 0 && num2 != 0 {
+        if num1 > num2 {
+            let times = num1 / num2;
+            num1 = num1 % num2;
+            ans += times;
+        } else {
+            let times = num2 / num1;
+            num2 = num2 % num1;
+            ans += times;
+        }
+    }
+    ans
+}
 pub fn max_power(stations: Vec<i32>, r: i32, k: i32) -> i64 {
     let mut diff = vec![0; stations.len() + 1];
     for (i, &s) in stations.iter().enumerate() {
@@ -62,9 +439,20 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
             max_accurance_nums_map.entry(v).or_default().insert(k);
             sum += k * v;
             used += 1;
-        } else {
-            if let Some(mut e) = max_accurance_nums_map.first_entry() {
-                if *e.key() < v {
+        } else if let Some(mut e) = max_accurance_nums_map.first_entry() {
+            if *e.key() < v {
+                sum -= *e.key() * e.get().first().copied().unwrap();
+                unsued_accurance_nums_map
+                    .entry(*e.key())
+                    .or_default()
+                    .insert(e.get_mut().pop_first().unwrap());
+                if e.get().is_empty() {
+                    max_accurance_nums_map.pop_first();
+                }
+                max_accurance_nums_map.entry(v).or_default().insert(k);
+                sum += v * k;
+            } else if *e.key() == v {
+                if *e.get().first().unwrap() < k {
                     sum -= *e.key() * e.get().first().copied().unwrap();
                     unsued_accurance_nums_map
                         .entry(*e.key())
@@ -73,26 +461,13 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
                     if e.get().is_empty() {
                         max_accurance_nums_map.pop_first();
                     }
-                    max_accurance_nums_map.entry(v).or_default().insert(k);
                     sum += v * k;
-                } else if *e.key() == v {
-                    if *e.get().first().unwrap() < k {
-                        sum -= *e.key() * e.get().first().copied().unwrap();
-                        unsued_accurance_nums_map
-                            .entry(*e.key())
-                            .or_default()
-                            .insert(e.get_mut().pop_first().unwrap());
-                        if e.get().is_empty() {
-                            max_accurance_nums_map.pop_first();
-                        }
-                        sum += v * k;
-                        max_accurance_nums_map.entry(v).or_default().insert(k);
-                    } else {
-                        unsued_accurance_nums_map.entry(v).or_default().insert(k);
-                    }
+                    max_accurance_nums_map.entry(v).or_default().insert(k);
                 } else {
                     unsued_accurance_nums_map.entry(v).or_default().insert(k);
                 }
+            } else {
+                unsued_accurance_nums_map.entry(v).or_default().insert(k);
             }
         }
     }
@@ -190,60 +565,58 @@ pub fn find_x_sum2(nums: Vec<i32>, k: i32, x: i32) -> Vec<i64> {
             if last.get().is_empty() {
                 unsued_accurance_nums_map.pop_last();
             }
-        } else {
-            if max_minus || unsed_add {
-                if let Some(mut e_max_min) = max_accurance_nums_map.first_entry() {
-                    if let Some(mut e_min_max) = unsued_accurance_nums_map.last_entry() {
-                        if e_max_min.key() < e_min_max.key() {
-                            if e_max_min.get().len() == 1 {
-                                let mut r = max_accurance_nums_map.pop_first().unwrap();
-                                sum -= r.0 * r.1.last().copied().unwrap();
-                                let new = e_min_max.get_mut().pop_last().unwrap();
-                                sum += new * *e_min_max.key();
-                                max_accurance_nums_map
-                                    .entry(*e_min_max.key())
-                                    .or_default()
-                                    .insert(new);
-                                if e_min_max.get().is_empty() {
-                                    unsued_accurance_nums_map.pop_last();
-                                }
-                                unsued_accurance_nums_map
-                                    .entry(r.0)
-                                    .or_default()
-                                    .insert(r.1.pop_first().unwrap());
-                            } else {
-                                let k = *e_max_min.key();
-                                let min_one = e_max_min.get_mut().pop_first().unwrap();
-                                sum -= min_one * k;
-                                let new = e_min_max.get_mut().pop_last().unwrap();
-                                sum += new * *e_min_max.key();
-                                max_accurance_nums_map
-                                    .entry(*e_min_max.key())
-                                    .or_default()
-                                    .insert(new);
-                                if e_min_max.get().is_empty() {
-                                    unsued_accurance_nums_map.pop_last();
-                                }
-                                unsued_accurance_nums_map
-                                    .entry(k)
-                                    .or_default()
-                                    .insert(min_one);
+        } else if max_minus || unsed_add {
+            if let Some(mut e_max_min) = max_accurance_nums_map.first_entry() {
+                if let Some(mut e_min_max) = unsued_accurance_nums_map.last_entry() {
+                    if e_max_min.key() < e_min_max.key() {
+                        if e_max_min.get().len() == 1 {
+                            let mut r = max_accurance_nums_map.pop_first().unwrap();
+                            sum -= r.0 * r.1.last().copied().unwrap();
+                            let new = e_min_max.get_mut().pop_last().unwrap();
+                            sum += new * *e_min_max.key();
+                            max_accurance_nums_map
+                                .entry(*e_min_max.key())
+                                .or_default()
+                                .insert(new);
+                            if e_min_max.get().is_empty() {
+                                unsued_accurance_nums_map.pop_last();
                             }
-                        } else if e_max_min.key() == e_min_max.key() {
-                            if e_max_min.get().first().unwrap() < e_min_max.get().last().unwrap() {
-                                let a = e_max_min.get_mut().pop_first().unwrap();
-                                let b = e_min_max.get_mut().pop_last().unwrap();
-                                sum -= a * *e_max_min.key();
-                                sum += b * *e_max_min.key();
-                                e_max_min.get_mut().insert(b);
-                                e_min_max.get_mut().insert(a);
-                                if e_min_max.get().is_empty() {
-                                    unsued_accurance_nums_map.pop_last();
-                                }
-                                if e_max_min.get().is_empty() {
-                                    max_accurance_nums_map.pop_first();
-                                }
+                            unsued_accurance_nums_map
+                                .entry(r.0)
+                                .or_default()
+                                .insert(r.1.pop_first().unwrap());
+                        } else {
+                            let k = *e_max_min.key();
+                            let min_one = e_max_min.get_mut().pop_first().unwrap();
+                            sum -= min_one * k;
+                            let new = e_min_max.get_mut().pop_last().unwrap();
+                            sum += new * *e_min_max.key();
+                            max_accurance_nums_map
+                                .entry(*e_min_max.key())
+                                .or_default()
+                                .insert(new);
+                            if e_min_max.get().is_empty() {
+                                unsued_accurance_nums_map.pop_last();
                             }
+                            unsued_accurance_nums_map
+                                .entry(k)
+                                .or_default()
+                                .insert(min_one);
+                        }
+                    } else if e_max_min.key() == e_min_max.key()
+                        && e_max_min.get().first().unwrap() < e_min_max.get().last().unwrap()
+                    {
+                        let a = e_max_min.get_mut().pop_first().unwrap();
+                        let b = e_min_max.get_mut().pop_last().unwrap();
+                        sum -= a * *e_max_min.key();
+                        sum += b * *e_max_min.key();
+                        e_max_min.get_mut().insert(b);
+                        e_min_max.get_mut().insert(a);
+                        if e_min_max.get().is_empty() {
+                            unsued_accurance_nums_map.pop_last();
+                        }
+                        if e_max_min.get().is_empty() {
+                            max_accurance_nums_map.pop_first();
                         }
                     }
                 }
@@ -627,7 +1000,7 @@ fn bank() {
         }
 
         fn is_valaid_account(&self, account: i32) -> bool {
-            self.account.len() <= account as usize - 1
+            self.account.len() < account as usize
         }
         fn transfer(&mut self, account1: i32, account2: i32, money: i64) -> bool {
             if self.is_valaid_account(account1) && self.is_valaid_account(account2) {

@@ -143,7 +143,7 @@ impl Solution {
         if start == res.len() {
             return "0".to_string();
         }
-        (&res[start..]).to_string()
+        res[start..].to_string()
     }
 
     //405
@@ -1306,11 +1306,11 @@ impl Solution {
         let mut dp = vec![false; s.len()];
         let s = s.as_str();
         for i in 0..s.len() {
-            if word_dict.contains(&(&s[0..=i]).to_string()) {
+            if word_dict.contains(&s[0..=i].to_string()) {
                 dp[i] = true;
             } else {
                 for j in 0..i {
-                    if dp[j] && word_dict.contains(&(&s[j + 1..=i]).to_string()) {
+                    if dp[j] && word_dict.contains(&s[j + 1..=i].to_string()) {
                         dp[i] = true
                     }
                 }
@@ -1676,7 +1676,10 @@ impl Solution {
         println!("{:?}", dest_from_node2);
         let mut min = usize::MAX;
         for i in 0..dest_from_node1.len() {
-            if dest_from_node1[i] != nodes.len() && dest_from_node2[i] != nodes.len() && min > dest_from_node1[i].max(dest_from_node2[i]) {
+            if dest_from_node1[i] != nodes.len()
+                && dest_from_node2[i] != nodes.len()
+                && min > dest_from_node1[i].max(dest_from_node2[i])
+            {
                 min = dest_from_node1[i].max(dest_from_node2[i]);
                 res = i;
             }
@@ -1877,7 +1880,7 @@ impl Solution {
                     for i in nums.iter().filter(|x| !current.contains(x)) {
                         c *= *i as i64;
                     }
-                    return c == target
+                    return c == target;
                 } else {
                     return false;
                 }
@@ -1980,16 +1983,10 @@ impl Solution {
             if q.all(|x| {
                 if x.len() != 1 && x.starts_with("0") || x.is_empty() {
                     false
+                } else if let Ok(p) = x.parse::<i32>() {
+                    !(!(0..=255).contains(&p))
                 } else {
-                    if let Ok(p) = x.parse::<i32>() {
-                        if !(0..=255).contains(&p) {
-                            false
-                        } else {
-                            true
-                        }
-                    } else {
-                        false
-                    }
+                    false
                 }
             }) {
                 "IPv4".to_string()
@@ -2092,7 +2089,7 @@ impl Solution {
         } else {
             res[ratings.len() - 1] = 1;
         }
-        
+
         res.iter().sum::<i32>()
     }
     //337 dp
@@ -2733,7 +2730,9 @@ impl Solution {
 
     //500
     pub fn find_words(words: Vec<String>) -> Vec<String> {
-        let map = [2, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, 2, 3, 3, 1, 1, 1, 1, 2, 1, 1, 3, 1, 3, 1, 3];
+        let map = [
+            2, 3, 3, 2, 1, 2, 2, 2, 1, 2, 2, 2, 3, 3, 1, 1, 1, 1, 2, 1, 1, 3, 1, 3, 1, 3,
+        ];
         words
             .into_iter()
             .filter(|x| {
