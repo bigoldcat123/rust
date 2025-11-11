@@ -8,6 +8,198 @@ use std::{
     ptr,
 };
 
+pub fn min_flips(mat: Vec<Vec<i32>>) -> i32 {
+    let mut used = vec![];
+    let mut q = vec![mat];
+    let mut ans = 0;
+    while !q.is_empty() {
+        let pq = q.split_off(0);
+        for p in pq {
+            used.push(p.clone());
+            if p.iter().flatten().sum::<i32>() == 0 {
+                return ans
+            }
+            for i in 0..p.len() {
+                for j in 0..p[0].len() {
+                    let mut candidate = p.clone();
+                    candidate[i][j] = (candidate[i][j] + 1) % 2;
+                    let i = i as i32;let j = j as i32;
+                    let des = [(i - 1,j),(i + 1,j),(i, j + 1),(i, j - 1)];
+                    for (i,j) in des {
+                        if i >= 0 && j >= 0 && (i as usize) < candidate.len() && (j as usize) < candidate[0].len() {
+                            candidate[i as usize][j as usize] = (candidate[i as usize][j as usize] + 1) % 2;
+                        }
+                    }
+                    if !used.contains(&candidate) {
+                        q.push(candidate);
+                    }
+                }
+            }
+            ans += 1;
+        }
+    }
+    -1
+}
+
+pub fn min_mutation(start_gene: String, end_gene: String, bank: Vec<String>) -> i32 {
+    let mut used = vec![];
+    let mut q = vec![&start_gene];
+    let mut ans = 0;
+    while !q.is_empty() {
+        let mut pq = q.split_off(0);
+        for c in pq {
+            if c == &end_gene {
+                return ans;
+            }
+            used.push(c);
+            for b in bank.iter() {
+                if !used.contains(&b) && can_mutate(c, b) {
+                    q.push(b);
+                }
+            }
+        }
+        ans += 1;
+    }
+    -1
+}
+fn can_mutate(from: &str, to: &str) -> bool {
+    from.chars().zip(to.chars()).filter(|(x, y)| x != y).count() == 1
+}
+
+pub fn ball_game(num: i32, plate: Vec<String>) -> Vec<Vec<i32>> {
+    use std::collections::HashSet;
+    let plate: Vec<&[u8]> = plate.iter().map(|x| x.as_bytes()).collect();
+    let mut ans = vec![];
+    for j in 1..plate[0].len() - 1 {
+        // up down
+        if plate[0][j] == b'.'
+            && dfs_ball_game(0, j as i32, &plate, (1, 0), &mut HashSet::new(), num)
+        {
+            ans.push(vec![0 as i32, j as i32]);
+        }
+        if plate[plate.len() - 1][j] == b'.'
+            && dfs_ball_game(
+                plate.len() as i32 - 1,
+                j as i32,
+                &plate,
+                (-1, 0),
+                &mut HashSet::new(),
+                num,
+            )
+        {
+            ans.push(vec![plate.len() as i32 - 1, j as i32]);
+        }
+    }
+    for i in 1..plate[0].len() - 1 {
+        // left right
+        if plate[i][plate[0].len() - 1] == b'.'
+            && dfs_ball_game(
+                i as i32,
+                plate[0].len() as i32 - 1,
+                &plate,
+                (0, -1),
+                &mut HashSet::new(),
+                num,
+            )
+        {
+            ans.push(vec![i as i32, plate[0].len() as i32 - 1]);
+        }
+        if plate[i][0] == b'.'
+            && dfs_ball_game(i as i32, 0, &plate, (0, 1), &mut HashSet::new(), num)
+        {
+            ans.push(vec![i as i32, 0]);
+        }
+    }
+    ans
+}
+fn dfs_ball_game(
+    i: i32,
+    j: i32,
+    plate: &Vec<&[u8]>,
+    step: (i32, i32),
+    visited: &mut HashSet<(usize, usize)>,
+    steps: i32,
+) -> bool {
+    if i >= 0 && j >= 0 && (i as usize) < plate.len() && (j as usize) < plate[0].len() {
+        let iusize = i as usize;
+        let jusize = j as usize;
+        if !visited.insert((iusize, jusize)) || steps < 0 {
+            return false;
+        }
+        match plate[iusize][jusize] as char {
+            'E' => {
+                let step = turn_dir(step, 'E');
+            }
+            'W' => {
+                let step = turn_dir(step, 'W');
+            }
+            'O' => return true,
+            _ => {}
+        }
+        return dfs_ball_game(i + step.0, j + step.1, plate, step, visited, steps - 1);
+    } else {
+        false
+    }
+}
+fn turn_dir(orign_step: (i32, i32), signal: char) -> (i32, i32) {
+    match orign_step {
+        (0, 1) => {
+            if signal == 'E' {
+                (1, 0)
+            } else {
+                (-1, 0)
+            }
+        } //go right
+        (1, 0) => {
+            if signal == 'E' {
+                (0, -1)
+            } else {
+                (0, 1)
+            }
+        } //go down
+        (-1, 0) => {
+            if signal == 'E' {
+                (0, 1)
+            } else {
+                (0, -1)
+            }
+        } //go up
+        (0, -1) => {
+            if signal == 'E' {
+                (-1, 0)
+            } else {
+                (1, 0)
+            }
+        } //go left
+        (_, _) => unreachable!(),
+    }
+}
+
+pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
+    let mut dp = vec![vec![vec![0; m as usize + 1]; n as usize + 1]; strs.len() + 1]; // i j k => current str , n (one), m(zero)
+    let strs: Vec<(usize, usize)> = strs
+        .into_iter()
+        .map(|x| {
+            let zeroes = x.chars().filter(|&x| x == '0').count();
+            (zeroes, x.len() - zeroes)
+        })
+        .collect();
+    for i in 1..=strs.len() {
+        for o in 0..=n as usize {
+            for z in 0..=m as usize {
+                dp[i][o][z] = dp[i - 1][o][z];
+                if strs[i - 1].0 <= z && strs[i - 1].1 <= o {
+                    dp[i][o][z] = dp[i][o][z].max(dp[i - 1][o - strs[i - 1].1][z - strs[i - 1].0]);
+                }
+            }
+        }
+    }
+    dp.last()
+        .map(|x| x.last().map(|x| x.last().unwrap()).unwrap())
+        .copied()
+        .unwrap()
+}
+
 use crate::ListNode;
 
 // struct SegTree {
@@ -179,13 +371,15 @@ impl TreeArray3 {
 }
 
 pub fn min_operations2(nums: Vec<i32>) -> i32 {
-    let mut s:Vec<i32> = vec![];
+    let mut s: Vec<i32> = vec![];
     let mut ans = 0;
     for n in nums {
         while s.last().map_or(false, |&x| x > n) {
             s.pop();
         }
-        if n == 0 {continue;}
+        if n == 0 {
+            continue;
+        }
         if s.last().map_or(true, |&x| x < n) {
             s.push(n);
             ans += 1;

@@ -4,6 +4,8 @@ use solutions::graph::num_ways;
 
 #[test]
 fn hello() {
-    let res = num_ways(5, vec![vec![0, 4], vec![1, 2]], 5);
-    println!("{}", res);
+    let a = vec![
+        vec![vec![1,2,3],vec![1,2,3]]
+    ];
+    assert!(a.contains(&vec![vec![1,2,3],vec![1,2,3]]));
 }
