@@ -7,6 +7,35 @@ use std::{
     os::macos::raw::stat,
     ptr,
 };
+pub fn give_me_random_array(len:usize,max:i32,min:i32) -> Vec<i32>{
+    let mut res = vec![0_i32;len];
+    for i in 0..len {
+        let r:i32 = rand::random_range(min..=max);
+        res[i] = r;
+    }
+    return res
+}
+
+pub fn min_operations(mut nums: Vec<i32>) -> i32 {
+    if nums.contains(&1) {
+        return nums.len() as i32 - 1;
+    }
+    for i in 0..nums.len() - 1 {
+        let gcd_ = gcd(nums[i], nums[i + 1]);
+        if gcd_ == 1 {
+            return nums.len() as i32;
+        }
+    }
+    -1
+}
+pub fn gcd(mut a: i32, mut b: i32) -> i32 {
+    while b != 0 {
+        let p = b;
+        b = a % b;
+        a = p;
+    }
+    a
+}
 
 pub fn min_flips(mat: Vec<Vec<i32>>) -> i32 {
     let mut used = vec![];
@@ -17,17 +46,23 @@ pub fn min_flips(mat: Vec<Vec<i32>>) -> i32 {
         for p in pq {
             used.push(p.clone());
             if p.iter().flatten().sum::<i32>() == 0 {
-                return ans
+                return ans;
             }
             for i in 0..p.len() {
                 for j in 0..p[0].len() {
                     let mut candidate = p.clone();
                     candidate[i][j] = (candidate[i][j] + 1) % 2;
-                    let i = i as i32;let j = j as i32;
-                    let des = [(i - 1,j),(i + 1,j),(i, j + 1),(i, j - 1)];
-                    for (i,j) in des {
-                        if i >= 0 && j >= 0 && (i as usize) < candidate.len() && (j as usize) < candidate[0].len() {
-                            candidate[i as usize][j as usize] = (candidate[i as usize][j as usize] + 1) % 2;
+                    let i = i as i32;
+                    let j = j as i32;
+                    let des = [(i - 1, j), (i + 1, j), (i, j + 1), (i, j - 1)];
+                    for (i, j) in des {
+                        if i >= 0
+                            && j >= 0
+                            && (i as usize) < candidate.len()
+                            && (j as usize) < candidate[0].len()
+                        {
+                            candidate[i as usize][j as usize] =
+                                (candidate[i as usize][j as usize] + 1) % 2;
                         }
                     }
                     if !used.contains(&candidate) {
@@ -1286,7 +1321,7 @@ pub fn max_sum_of_squares(num: i32, mut sum: i32) -> String {
     String::from_utf8(res.into_iter().map(|x| (x + 48) as u8).collect()).unwrap()
 }
 
-pub fn min_operations(mut nums1: Vec<i32>, nums2: Vec<i32>) -> i64 {
+pub fn min_operations22(mut nums1: Vec<i32>, nums2: Vec<i32>) -> i64 {
     let last = nums2.last().copied().unwrap();
     let mut i = 0;
     let mut min_operations = i64::MAX;

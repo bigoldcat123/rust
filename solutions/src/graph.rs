@@ -41,6 +41,41 @@ impl DSet {
         self.size[x]
     }
 }
+pub fn sliding_puzzle(board: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashSet;
+    let mut used = HashSet::new();
+    let mut ans = 0;
+    let mut p = HashSet::from([board]);
+    let mut res = vec![vec![1,2,3],vec![4,5,0]];
+    while !p.is_empty() {
+        for pp in p.drain().collect::<Vec<Vec<Vec<i32>>>>() {
+            if pp == res {
+                return ans
+            }
+            used.insert(pp.clone());
+            for i in 0..pp.len() {
+                for j in 0..pp[0].len() {
+                    if pp[i][j] == 0 {
+                        let i = i as i32;let j = j as i32;
+                        let des = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)];
+                        for (i_t,j_t) in des {
+                            if i_t >= 0 && j_t >= 0 && (i_t as usize) < pp.len() && (j_t as usize) < pp[0].len() {
+                                let mut x = pp.clone();
+                                x[i as usize][j as usize] = x[i_t as usize][j_t as usize];
+                                x[i_t as usize][j_t as usize] = 0;
+                                if !p.contains(&x) && !used.contains(&x) {
+                                    p.insert(x);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ans += 1;
+    }
+    -1
+}
 
 pub fn largest_island(grid: Vec<Vec<i32>>) -> i32 {
     let mut d_set = DSet::new(grid.len() * grid[0].len());

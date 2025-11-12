@@ -1,11 +1,20 @@
 #![allow(arithmetic_overflow)]
 
-use solutions::graph::num_ways;
+use std::collections::HashMap;
+
+use solutions::every_day::give_me_random_array;
+
+
 
 #[test]
 fn hello() {
-    let a = vec![
-        vec![vec![1,2,3],vec![1,2,3]]
-    ];
-    assert!(a.contains(&vec![vec![1,2,3],vec![1,2,3]]));
+    let a = give_me_random_array(40, 10000, 0);
+    println!("{a:?}");
+}
+
+#[test]
+fn a() {
+    let mut map = HashMap::new();
+    map.insert("k", 1);
+    println!("{}",map["k"]);
 }
