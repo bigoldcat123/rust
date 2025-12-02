@@ -7,13 +7,279 @@ use std::{
     os::macos::raw::stat,
     ptr,
 };
-pub fn give_me_random_array(len:usize,max:i32,min:i32) -> Vec<i32>{
-    let mut res = vec![0_i32;len];
+macro_rules! cov {
+    (usize) => {
+        |x| x as usize
+    };
+}
+
+
+pub fn count_trapezoids(points: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashMap;
+    let mut map:HashMap<i32, i32> = HashMap::new();
+    for p in points {
+        *map.entry(p[1]).or_default() += 1
+    }
+    let mut ans = 0;
+    let n = map.into_iter().map(|x|x.1).map(|x| (1 + x) * (x - 1) / 2 ).map(cov!(usize)).collect::<Vec<_>>();
+    let mut sum = n.iter().sum::<usize>();
+
+    for x in n {
+        sum -= x;
+        ans += x * sum;
+    }
+    (ans % 1000_000_007) as i32
+}
+
+
+
+
+pub fn min_subarray(nums: Vec<i32>, p: i32) -> i32 {
+    use std::collections::HashMap;
+
+    let mut sum = nums.iter().map(|&x| x as usize).sum::<usize>();
+    let q = (sum % p as usize) as i32;
+    if q == 0 {
+        return 0
+    }
+    let len = nums.len() as i32;
+    let mut ans = i32::MAX;
+    let mut current_sum = 0;
+    let mut map = HashMap::new();
+    map.insert(0, -1);
+    for (i,n) in nums.into_iter().enumerate() {
+        current_sum += n as usize;
+        let qq = (current_sum % p as usize) as i32;
+        if qq >= q {
+            if let Some(pre_idx) = map.get(&(qq - q)) {
+                ans = ans.min(i as i32 - pre_idx);
+            }
+        }else if qq < q {
+            if let Some(pre_idx) = map.get(&(qq + (p - q))) {
+                ans = ans.min(i as i32 - pre_idx);
+            }
+        }
+        map.insert(qq, i as i32);
+    }
+
+    if ans >= len {-1}else{ans}
+}
+pub fn max_subarray_sum(nums: Vec<i32>, k: i32) -> i64 {
+    let k = k as usize;
+    let mut map = vec![i64::MIN;nums.len()];
+    let mut ans = i64::MIN;
+    let mut sum = 0;
+    for (i,n) in nums.into_iter().enumerate() {
+        sum += n as i64;
+        let target = k - (i % k);
+        ans = ans.max(sum - map[target]);
+        map[i % k] = map[i % k].min(sum);
+    }
+    ans
+}
+
+pub fn smallest_repunit_div_by_k(k: i32) -> i32 {
+    if k % 2 == 0 {
+        return -1
+    }
+    let mut ans = 1;
+    let mut x = 1;
+    while x % k != 0 {
+        ans += 1;
+        x = ((x << 1) % k) + 1;
+    }
+    ans
+}
+
+macro_rules! 干 {
+    (让 $a:ident = $e:expr) => {
+        let $a = $e;
+    };
+}
+
+pub fn 神奇的数字(大地瓜: Vec<i32>) -> Vec<bool> {
+ let mut x = 1;
+ let 一个字符串 = "阿斯顿";
+ 干!(让 你 = 100);
+
+
+
+
+ let mut y = vec![0;大地瓜.len() + 1];
+ for i in 0..大地瓜.len() {
+     y[i + 1] = (y[i] << 1 + 大地瓜[i]) %  5;
+ }
+ y.into_iter().skip(1).map(|x| x == 0).collect()
+}
+// 1 0 1 0 1
+// 1
+// 1 0
+// 1 0 1
+// 1 0 1 0
+// 1 0 1 0 1
+
+pub fn max_sum_div_three(nums: Vec<i32>) -> i32 {
+    let mut map = vec![vec![i32::MAX];3];
+    for &n in nums.iter() {
+        map[(n % 3) as usize].push(n);
+    }
+    let mut ans = nums.into_iter().sum::<i32>();
+    map.iter_mut().for_each(|x| x.sort());
+    if ans % 3 == 1 {
+        let mut a = (ans - map[1][0]);
+        if map[2].len() > 1 {
+            a = a.max(ans - map[2][0] - map[2][1]);
+        }
+        ans = a;
+    }
+    if ans % 3 == 2 {
+        let mut a = ans.max(ans - map[2][0]);
+        if map[1].len() > 1 {
+            a = a.max(ans - map[1][0] - map[1][1]);
+        }
+        ans = a;
+    }
+    ans.max(0)
+}
+pub fn minimum_operations(nums: Vec<i32>) -> i32 {
+ nums.into_iter().map(|x| (x % 3).min(3 - (x % 3))).sum()
+}
+pub fn count_palindromic_subsequence(s: String) -> i32 {
+    use std::collections::HashSet;
+    let s:Vec<usize> = s.chars().map(|x| x as u8 as usize - 97).collect();
+    let mut set = HashSet::new();
+    let mut pre_sum = vec![
+        vec![0;26]
+    ];
+    for &i in s.iter() {
+        let mut pre = pre_sum.last().cloned().unwrap();
+        pre[i] += 1;
+        pre_sum.push(pre);
+    }
+    let mut res = 0;
+    for &i in &s[1..s.len() - 1] {
+        let pre = pre_sum[i].iter().zip(pre_sum[0].iter()).map(|(&a,b)| {
+            a - b
+        });
+        let post = pre_sum.last().unwrap().iter().zip(pre_sum[i].iter()).map(|(&a,b)| {
+            a - b
+        });
+        for (l,r) in pre.enumerate().zip(post.enumerate()).filter(|(a,b)| a.1 > 0 && b.1 > 0) {
+            if set.insert((l.0,i,r.0)) {
+                res += 1;
+            }
+        }
+    }
+    println!("{:?}",set);
+    res as _
+}
+
+
+pub fn find_final_value(nums: Vec<i32>, mut original: i32) -> i32 {
+    use std::collections::HashSet;
+    let set: HashSet<i32> = HashSet::from_iter(nums.into_iter());
+    while set.contains(&original) {
+        original *= 2;
+    }
+    original
+}
+pub fn is_one_bit_character(bits: Vec<i32>) -> bool {
+    if bits.last().copied().unwrap() != 0 {
+        return false;
+    } else {
+        let bits = &bits[..bits.len() - 1];
+        let mut i = 0;
+        while i < bits.len() {
+            if bits[i] == 1 {
+                i += 2;
+            } else {
+                i += 1;
+            }
+        }
+        i == bits.len()
+    }
+}
+pub fn k_length_apart(nums: Vec<i32>, k: i32) -> bool {
+    let mut l = 0;
+    let mut r = 0;
+    while r < nums.len() {
+        while l < nums.len() && nums[l] == 1 {
+            l += 1;
+        }
+        r = l;
+        while r < nums.len() && nums[r] == 0 {
+            r += 1;
+        }
+        let len = r - l;
+        if r < nums.len() && len < k as _ {
+            return false;
+        }
+    }
+    true
+}
+pub fn num_sub(s: String) -> i32 {
+    let mut s = s.as_bytes();
+    let mut ans = 0;
+    let mut l = 0;
+    let mut r = l;
+    while r < s.len() {
+        while r < s.len() && s[r] == b'0' {
+            r += 1;
+        }
+        l = r;
+        while r < s.len() && s[r] == b'1' {
+            r += 1;
+        }
+        let len = (r - l);
+        ans += (1 + len) * len / 2;
+    }
+    ans as i32
+}
+
+pub fn range_add_queries(n: i32, queries: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let mut res = vec![vec![0; n as usize]; n as usize];
+    for q in queries {
+        let x1 = q[0] as usize;
+        let y1 = q[1] as usize;
+        let x2 = q[2] as usize;
+        let y2 = q[3] as usize;
+        for i in x1..=x2 {
+            res[i][y1] += 1;
+            if y2 + 1 < res[0].len() {
+                res[i][y2 + 1] -= 1;
+            }
+        }
+    }
+    for i in 0..res.len() {
+        for j in 1..res[0].len() {
+            res[i][j] = res[i][j] + res[i][j - 1];
+        }
+    }
+    res
+}
+
+pub fn max_operations(s: String) -> i32 {
+    let s = s.as_bytes();
+    let mut ans = 0;
+    let mut pre_one_count = 0;
+    for i in 0..s.len() - 1 {
+        if s[i] == b'1' {
+            pre_one_count += 1;
+        }
+        if s[i + 1] == b'0' && s[i] == b'1' {
+            ans += pre_one_count;
+        }
+    }
+    ans
+}
+/// inclusive
+pub fn give_me_random_array(len: usize, max: i32, min: i32) -> Vec<i32> {
+    let mut res = vec![0_i32; len];
     for i in 0..len {
-        let r:i32 = rand::random_range(min..=max);
+        let r: i32 = rand::random_range(min..=max);
         res[i] = r;
     }
-    return res
+    return res;
 }
 
 pub fn min_operations(mut nums: Vec<i32>) -> i32 {

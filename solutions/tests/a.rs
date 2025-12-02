@@ -4,12 +4,23 @@ use std::collections::HashMap;
 
 use solutions::every_day::give_me_random_array;
 
-
+macro_rules! 干 {
+    (让 $a:ident 等于 $e:expr) => {
+        let $a = $e;
+    };
+}
 
 #[test]
 fn hello() {
-    let a = give_me_random_array(40, 10000, 0);
-    println!("{a:?}");
+    干!{让 你 等于 "一个神奇的数字"};
+    println!("{} {} ",你,i32::MAX);
+
+
+    let mut a = vec![];
+    for _ in 0..10 {
+        a.push(give_me_random_array(2, 1000, -1000));
+    }
+    println!("{:?}",a);
 }
 
 #[test]
