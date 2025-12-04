@@ -7,21 +7,73 @@ use std::{
     os::macos::raw::stat,
     ptr,
 };
+
 macro_rules! cov {
     (usize) => {
         |x| x as usize
     };
 }
 
+pub fn count_collisions(directions: String) -> i32 {
+    let mut stack = vec![];
+    let dir = directions.as_bytes();
+    let mut ans = 0;
+    for &d in dir {
+        if stack.is_empty() {
+            stack.push(d);
+        } else {
+            match d {
+                b'R' => {
+                    stack.push(d);
+                }
+                b'L' => {
+                    if let Some(&l) = stack.last() {
+                        if l == b'R' {
+                            while let Some(&l) = stack.last() {
+                                if l == b'R' {
+                                    stack.pop();
+                                    ans += 1;
+                                }
+                            }
+                            ans += 1;
+                            stack.push(b'S');
+                        } else if l == b'S' {
+                            ans += 1;
+                        }
+                    }
+                }
+                b'S' => {
+                    let l = stack.last().copied().unwrap();
+                    if l == b'R' {
+                        while let Some(&l) = stack.last() {
+                            if l == b'R' {
+                                stack.pop();
+                                ans += 1;
+                            }
+                        }
+                    }
+                    stack.push(d);
+                }
+                _ => unreachable!(),
+            }
+        }
+    }
+    ans
+}
 
 pub fn count_trapezoids(points: Vec<Vec<i32>>) -> i32 {
     use std::collections::HashMap;
-    let mut map:HashMap<i32, i32> = HashMap::new();
+    let mut map: HashMap<i32, i32> = HashMap::new();
     for p in points {
         *map.entry(p[1]).or_default() += 1
     }
     let mut ans = 0;
-    let n = map.into_iter().map(|x|x.1).map(|x| (1 + x) * (x - 1) / 2 ).map(cov!(usize)).collect::<Vec<_>>();
+    let n = map
+        .into_iter()
+        .map(|x| x.1)
+        .map(|x| (1 + x) * (x - 1) / 2)
+        .map(cov!(usize))
+        .collect::<Vec<_>>();
     let mut sum = n.iter().sum::<usize>();
 
     for x in n {
@@ -31,30 +83,27 @@ pub fn count_trapezoids(points: Vec<Vec<i32>>) -> i32 {
     (ans % 1000_000_007) as i32
 }
 
-
-
-
 pub fn min_subarray(nums: Vec<i32>, p: i32) -> i32 {
     use std::collections::HashMap;
 
     let mut sum = nums.iter().map(|&x| x as usize).sum::<usize>();
     let q = (sum % p as usize) as i32;
     if q == 0 {
-        return 0
+        return 0;
     }
     let len = nums.len() as i32;
     let mut ans = i32::MAX;
     let mut current_sum = 0;
     let mut map = HashMap::new();
     map.insert(0, -1);
-    for (i,n) in nums.into_iter().enumerate() {
+    for (i, n) in nums.into_iter().enumerate() {
         current_sum += n as usize;
         let qq = (current_sum % p as usize) as i32;
         if qq >= q {
             if let Some(pre_idx) = map.get(&(qq - q)) {
                 ans = ans.min(i as i32 - pre_idx);
             }
-        }else if qq < q {
+        } else if qq < q {
             if let Some(pre_idx) = map.get(&(qq + (p - q))) {
                 ans = ans.min(i as i32 - pre_idx);
             }
@@ -62,14 +111,14 @@ pub fn min_subarray(nums: Vec<i32>, p: i32) -> i32 {
         map.insert(qq, i as i32);
     }
 
-    if ans >= len {-1}else{ans}
+    if ans >= len { -1 } else { ans }
 }
 pub fn max_subarray_sum(nums: Vec<i32>, k: i32) -> i64 {
     let k = k as usize;
-    let mut map = vec![i64::MIN;nums.len()];
+    let mut map = vec![i64::MIN; nums.len()];
     let mut ans = i64::MIN;
     let mut sum = 0;
-    for (i,n) in nums.into_iter().enumerate() {
+    for (i, n) in nums.into_iter().enumerate() {
         sum += n as i64;
         let target = k - (i % k);
         ans = ans.max(sum - map[target]);
@@ -80,7 +129,7 @@ pub fn max_subarray_sum(nums: Vec<i32>, k: i32) -> i64 {
 
 pub fn smallest_repunit_div_by_k(k: i32) -> i32 {
     if k % 2 == 0 {
-        return -1
+        return -1;
     }
     let mut ans = 1;
     let mut x = 1;
@@ -98,18 +147,15 @@ macro_rules! 干 {
 }
 
 pub fn 神奇的数字(大地瓜: Vec<i32>) -> Vec<bool> {
- let mut x = 1;
- let 一个字符串 = "阿斯顿";
- 干!(让 你 = 100);
+    let mut x = 1;
+    let 一个字符串 = "阿斯顿";
+    干!(让 你 = 100);
 
-
-
-
- let mut y = vec![0;大地瓜.len() + 1];
- for i in 0..大地瓜.len() {
-     y[i + 1] = (y[i] << 1 + 大地瓜[i]) %  5;
- }
- y.into_iter().skip(1).map(|x| x == 0).collect()
+    let mut y = vec![0; 大地瓜.len() + 1];
+    for i in 0..大地瓜.len() {
+        y[i + 1] = (y[i] << 1 + 大地瓜[i]) % 5;
+    }
+    y.into_iter().skip(1).map(|x| x == 0).collect()
 }
 // 1 0 1 0 1
 // 1
@@ -119,7 +165,7 @@ pub fn 神奇的数字(大地瓜: Vec<i32>) -> Vec<bool> {
 // 1 0 1 0 1
 
 pub fn max_sum_div_three(nums: Vec<i32>) -> i32 {
-    let mut map = vec![vec![i32::MAX];3];
+    let mut map = vec![vec![i32::MAX]; 3];
     for &n in nums.iter() {
         map[(n % 3) as usize].push(n);
     }
@@ -142,15 +188,13 @@ pub fn max_sum_div_three(nums: Vec<i32>) -> i32 {
     ans.max(0)
 }
 pub fn minimum_operations(nums: Vec<i32>) -> i32 {
- nums.into_iter().map(|x| (x % 3).min(3 - (x % 3))).sum()
+    nums.into_iter().map(|x| (x % 3).min(3 - (x % 3))).sum()
 }
 pub fn count_palindromic_subsequence(s: String) -> i32 {
     use std::collections::HashSet;
-    let s:Vec<usize> = s.chars().map(|x| x as u8 as usize - 97).collect();
+    let s: Vec<usize> = s.chars().map(|x| x as u8 as usize - 97).collect();
     let mut set = HashSet::new();
-    let mut pre_sum = vec![
-        vec![0;26]
-    ];
+    let mut pre_sum = vec![vec![0; 26]];
     for &i in s.iter() {
         let mut pre = pre_sum.last().cloned().unwrap();
         pre[i] += 1;
@@ -158,22 +202,29 @@ pub fn count_palindromic_subsequence(s: String) -> i32 {
     }
     let mut res = 0;
     for &i in &s[1..s.len() - 1] {
-        let pre = pre_sum[i].iter().zip(pre_sum[0].iter()).map(|(&a,b)| {
-            a - b
-        });
-        let post = pre_sum.last().unwrap().iter().zip(pre_sum[i].iter()).map(|(&a,b)| {
-            a - b
-        });
-        for (l,r) in pre.enumerate().zip(post.enumerate()).filter(|(a,b)| a.1 > 0 && b.1 > 0) {
-            if set.insert((l.0,i,r.0)) {
+        let pre = pre_sum[i]
+            .iter()
+            .zip(pre_sum[0].iter())
+            .map(|(&a, b)| a - b);
+        let post = pre_sum
+            .last()
+            .unwrap()
+            .iter()
+            .zip(pre_sum[i].iter())
+            .map(|(&a, b)| a - b);
+        for (l, r) in pre
+            .enumerate()
+            .zip(post.enumerate())
+            .filter(|(a, b)| a.1 > 0 && b.1 > 0)
+        {
+            if set.insert((l.0, i, r.0)) {
                 res += 1;
             }
         }
     }
-    println!("{:?}",set);
+    println!("{:?}", set);
     res as _
 }
-
 
 pub fn find_final_value(nums: Vec<i32>, mut original: i32) -> i32 {
     use std::collections::HashSet;
