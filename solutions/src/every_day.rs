@@ -1,12 +1,339 @@
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-    i32,
-    io::Read,
-    num,
-    os::macos::raw::stat,
-    ptr,
-};
+use std::collections::{HashMap, HashSet};
+macro_rules! block {
+    ($tail:ident,$head:ident) => {};
+}
+pub fn minimum_moves(grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut ans = 0;
+    let mut q: VecDeque<((i32, i32), (i32, i32))> = VecDeque::from([((0, 0), (0, 1))]);
+    let mut vis = HashSet::from([((0, 0), (0, 1))]);
+    let len = grid.len() as i32;
+
+    while !q.is_empty() {
+        for (tail, head) in q.split_off(0) {
+            if tail == (len - 1, len - 2) && head == (len - 1, len - 1) {
+                return ans;
+            }
+            let (down_tail, down_head) = ((tail.0 + 1, tail.1), (head.0 + 1, head.1));
+            //go down
+            if down_tail.0 < len
+                && down_head.0 < len
+                && grid[down_head.0 as usize][down_head.1 as usize] != 1
+                && grid[down_tail.0 as usize][down_tail.1 as usize] != 1
+                && vis.insert((down_tail, down_head))
+            {
+                q.push_back((down_tail, down_head));
+            }
+            let (right_tail, right_head) = ((tail.0, tail.1 + 1), (head.0, head.1 + 1));
+            //go right
+            if right_tail.0 < len
+                && right_head.0 < len
+                && grid[right_head.0 as usize][right_head.1 as usize] != 1
+                && grid[right_tail.0 as usize][right_tail.1 as usize] != 1
+                && vis.insert((right_tail, right_head))
+            {
+                q.push_back((right_tail, right_head));
+            }
+            // horizontal
+            if head.0 == tail.0 {
+                let (clock_tail, clock_head) = (tail, (head.0 + 1, head.1 - 1));
+                if clock_tail.0 < len
+                    && clock_head.0 < len
+                    && grid[down_head.0 as usize][down_head.1 as usize] != 1
+                    && grid[down_tail.0 as usize][down_tail.1 as usize] != 1
+                    && vis.insert((clock_tail, clock_head))
+                {
+                    q.push_back((clock_tail, clock_head));
+                }
+            }else {//vervical
+                let (ant_clock_tail, ant_clock_head) = (tail, (head.0 - 1, head.1 + 1));
+                if ant_clock_tail.0 < len
+                    && ant_clock_head.0 < len
+                    && grid[right_head.0 as usize][right_head.1 as usize] != 1
+                    && grid[right_tail.0 as usize][right_tail.1 as usize] != 1
+                    && vis.insert((ant_clock_tail, ant_clock_head))
+                {
+                    q.push_back((ant_clock_tail, ant_clock_head));
+                }
+            }
+        }
+        ans += 1;
+    }
+
+    -1
+}
+
+pub fn snakes_and_ladders(board: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let len = board.len();
+    let max = len * len;
+    let mut reference = vec![(0, 0); max + 1];
+    let mut q = VecDeque::from([1]);
+    let mut vis = HashSet::from([1]);
+    let mut ans = 0;
+    while !q.is_empty() {
+        for i in q.split_off(0) {
+            if i == max {
+                return ans;
+            }
+            for next in i + 1..=i + 6 {
+                if next <= max {
+                    let (i, j) = cal_ref(len, next);
+                    if board[i][j] != -1 {
+                        if vis.insert(board[i][j] as usize) {
+                            q.push_back(board[i][j] as usize);
+                        }
+                    } else {
+                        if vis.insert(next) {
+                            q.push_back(next);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    -1
+}
+fn cal_ref(n: usize, number: usize) -> (usize, usize) {
+    let mut line = number / n;
+    if number % n == 0 {
+        line -= 1;
+    };
+    let mut extra = number - line * n;
+    // high -> low
+    if line % 2 != 0 {
+        extra = n - extra + 1;
+    }
+    (n - line - 1, extra - 1)
+}
+pub fn get_descent_periods(prices: Vec<i32>) -> i64 {
+    let mut l = 0;
+    let mut r = 0;
+    let mut ans = 0;
+    while r < prices.len() {
+        r += 1;
+        while r < prices.len() && prices[r] == prices[r - 1] - 1 {
+            r += 1;
+        }
+        let x = r - l;
+        ans += (1 + x) * x / 2;
+        l = r;
+    }
+    ans as _
+}
+
+pub fn number_of_ways(corridor: String) -> i32 {
+    let mut num_of_seats = corridor.chars().filter(|&x| x == 'S').count();
+    if num_of_seats % 2 != 0 {
+        return 0;
+    } else {
+        let corridor = corridor.as_bytes();
+        let mut l = 0;
+        let mut r = 0;
+        let mut counted = num_of_seats;
+        let mut res = 1;
+        while r != corridor.len() && counted > 2 {
+            // search for 2 seats
+            let mut seats = 0;
+            while seats < 2 {
+                if corridor[r] == b'S' {
+                    counted -= 1;
+                    seats += 1;
+                }
+                r += 1;
+            }
+            let mut ok = 1;
+            while corridor[r] != b'S' {
+                r += 1;
+                ok += 1;
+            }
+            res *= ok;
+        }
+        res
+    }
+}
+
+pub fn validate_coupons(
+    code: Vec<String>,
+    business_line: Vec<String>,
+    is_active: Vec<bool>,
+) -> Vec<String> {
+    let mut res = vec![vec![]; 4];
+    for i in 0..code.len() {
+        if is_valaid_code(&code[i]) && isvalaid_business_line(&business_line[i]) && is_active[i] {
+            res[idx(&business_line[i])].push(code[i].to_string());
+        }
+    }
+    res.iter_mut().for_each(|x| x.sort());
+    res.into_iter().flatten().collect()
+}
+fn idx(line: &str) -> usize {
+    match line {
+        "electronics" => 0,
+        "grocery" => 1,
+        "pharmacy" => 2,
+        "restaurant" => 3,
+        _ => 1,
+    }
+}
+fn isvalaid_business_line(line: &str) -> bool {
+    match line {
+        "electronics" => true,
+        "grocery" => true,
+        "pharmacy" => true,
+        "restaurant" => true,
+        _ => false,
+    }
+}
+fn is_valaid_code(code: &str) -> bool {
+    code.as_bytes()
+        .iter()
+        .all(|&c| c >= b'z' && c <= b'a' || c >= b'Z' && c <= b'A' || c == b'_')
+}
+
+pub fn find_rotate_steps(ring: String, key: String) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+
+    let ring = ring.as_bytes();
+    let key = key.as_bytes();
+    let mut key_idx = 0;
+    let mut q = HashSet::new(); // (step, current ring_idx)
+    q.insert(clock_wise(0, ring, key[key_idx]));
+    q.insert(anti_clock_wise(0, ring, key[key_idx]));
+    let mut ans = key.len() as i32;
+
+    key_idx += 1;
+    while !q.is_empty() && key_idx < key.len() {
+        let mut x = vec![];
+        for (step, ring_idx) in q.drain() {
+            let (step2, idx) = clock_wise(ring_idx, ring, key[key_idx]);
+            x.push((step + step2, idx));
+            let (step2, idx) = anti_clock_wise(ring_idx, ring, key[key_idx]);
+            x.push((step + step2, idx));
+        }
+        key_idx += 1;
+        q.extend(x.into_iter());
+    }
+    let min = q.iter().map(|x| x.0).min().unwrap();
+
+    ans + min
+}
+fn clock_wise(mut current: i32, ring: &[u8], key: u8) -> (i32, i32) {
+    let mut step = 0;
+    while ring[current as usize] != key {
+        current = (current + 1) % ring.len() as i32;
+        step += 1;
+    }
+    (step, current)
+}
+fn anti_clock_wise(mut current: i32, ring: &[u8], key: u8) -> (i32, i32) {
+    let mut step = 0;
+    while ring[current as usize] != key {
+        current = (current - 1 + ring.len() as i32) % ring.len() as i32;
+        step += 1;
+    }
+    (step, current)
+}
+pub fn count_covered_buildings(n: i32, mut buildings: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashSet;
+    buildings.sort_by(|a, b| a[0].cmp(&b[0]).then(a[1].cmp(&b[1])));
+    let mut ans = 0;
+    let mut l = 0;
+    let mut r = 1;
+    let mut set = HashSet::new();
+    while r < buildings.len() {
+        let mut v = vec![];
+        while r < buildings.len() && buildings[r][0] == buildings[l][0] {
+            v.push((buildings[r][0], buildings[r][1]));
+        }
+        v.pop();
+        set.extend(v.into_iter());
+        l = r;
+        r = l + 1;
+    }
+    buildings.sort_by(|a, b| a[1].cmp(&b[1]).then(a[0].cmp(&b[0])));
+    let mut ans = 0;
+    let mut l = 0;
+    let mut r = 1;
+    let mut set2 = HashSet::new();
+    while r < buildings.len() {
+        let mut v = vec![];
+        while r < buildings.len() && buildings[r][1] == buildings[l][1] {
+            v.push((buildings[r][0], buildings[r][1]));
+        }
+        v.pop();
+        set2.extend(v.into_iter());
+        l = r;
+        r = l + 1;
+    }
+    set.intersection(&set2).count() as _
+}
+
+pub fn count_permutations(complexity: Vec<i32>) -> i32 {
+    let min = complexity[0];
+    if complexity[1..].iter().all(|&x| {
+        println!("{} {}", x, min);
+        x < min
+    }) {
+        let mut res = complexity.len() - 1;
+        for i in 1..complexity.len() - 1 {
+            res = (res * i) % 1_000_000_007;
+        }
+        (res as i32).max(1)
+    } else {
+        0
+    }
+}
+
+pub fn special_triplets(nums: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut pre_map: HashMap<i32, usize> = HashMap::new();
+    let mut post_map: HashMap<i32, usize> = HashMap::new();
+    for &n in &nums[1..] {
+        *post_map.entry(n).or_default() += 1;
+    }
+    pre_map.insert(nums[0], 1);
+    let mut ans = 0;
+
+    for i in 1..nums.len() - 1 {
+        *post_map.entry(nums[i]).or_default() -= 1;
+        let target = nums[i] * 2;
+        ans += *pre_map.entry(target).or_default() * *post_map.entry(target).or_default();
+        *pre_map.entry(nums[i]).or_default() += 1;
+    }
+    (ans % 1000_000_007) as i32
+}
+
+pub fn count_triples(n: i32) -> i32 {
+    use std::collections::HashSet;
+    let mut x: Vec<i32> = (1..=n).map(|x| x * x).collect();
+    let mut set: HashSet<i32> = HashSet::from_iter(x[1..].iter().copied());
+    let mut ans = 0;
+    for i in 1..x.len() - 1 {
+        set.remove(&x[i]);
+        for j in 0..i {
+            let target = x[i] + x[j];
+            if set.contains(&target) {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+pub fn count_partitions(nums: Vec<i32>) -> i32 {
+    let mut post_sum = nums.iter().sum::<i32>();
+    let mut ans = 0;
+    let mut pre_sum = 0;
+    let len = nums.len();
+    for n in &nums[..len - 1] {
+        pre_sum += n;
+        post_sum -= n;
+        if (pre_sum - post_sum) % 2 == 0 {
+            ans += 1;
+        }
+    }
+    ans
+}
 
 macro_rules! cov {
     (usize) => {

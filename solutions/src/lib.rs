@@ -17,6 +17,7 @@ pub mod segment_tree;
 pub mod segment_tree_questions;
 pub mod tire;
 pub mod tree_array;
+pub mod bfs;
 use log::info;
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
