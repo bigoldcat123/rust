@@ -1,7 +1,65 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     i32,
 };
+
+pub fn watched_videos_by_friends(watched_videos: Vec<Vec<String>>, friends: Vec<Vec<i32>>, id: i32, level: i32) -> Vec<String> {
+    use std::collections::{HashSet, VecDeque};
+
+    let mut q = VecDeque::from([id as usize]);
+    let mut l = 0;
+    let mut vis = HashSet::from([id as usize]);
+    while !q.is_empty() && l < level {
+        for p in q.split_off(0) {
+            for &n in friends[p].iter() {
+                if vis.insert(n as usize) {
+                    q.push_back(n as usize);
+                }
+            }
+        }
+        l += 1;
+    }
+    let mut map:HashMap<&String,i32> = std::collections::HashMap::new();
+    for p in q {
+        for v in watched_videos[p].iter() {
+            *map.entry(v).or_default() += 1;
+        }
+    }
+    let mut v:Vec<(&String,i32)> = map.into_iter().collect();
+    v.sort_by(|a,b| a.1.cmp(&b.1).then(a.0.cmp(b.0)));
+
+    v.into_iter().map(|x| x.0).cloned().collect()
+}
+
+pub fn shortest_distance_after_queries(n: i32, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    let mut g = vec![vec![]; n as usize];
+    for i in 0..g.len() - 1 {
+        g[i].push(i + 1);
+    }
+    let mut ans = vec![];
+    for (from, to) in queries.into_iter().map(|x| (x[0] as usize, x[1] as usize)) {
+        g[from].push(to);
+        ans.push(cal_shortest_path(&g));
+    }
+
+    ans
+}
+fn cal_shortest_path(g: &Vec<Vec<usize>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([0]);
+    let mut step = 0;
+    while !q.is_empty() {
+        for i in q.split_off(0) {
+            if i == g.len() - 1 {
+                return step;
+            }
+            for &n in g[i].iter() {
+                q.push_back(n);
+            }
+        }
+    }
+    0
+}
 
 struct InfectedArea {
     area: Vec<(usize, usize)>,
