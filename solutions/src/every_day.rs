@@ -1,6 +1,93 @@
-use std::collections::{HashMap, HashSet};
-macro_rules! block {
-    ($tail:ident,$head:ident) => {};
+use std::{
+    collections::{HashMap, HashSet},
+    io::BufRead,
+};
+
+pub fn min_moves2(mut balance: Vec<i32>) -> i64 {
+    let mut balance = balance.into_iter().map(|x| x as i64).collect::<Vec<i64>>();
+    let sum = balance.iter().sum::<i64>();
+    if sum < 0 {
+        return -1;
+    }
+    let mut ans = 0;
+    let mut neg_idx = 0;
+    for i in 0..balance.len() {
+        if balance[i] < 0 {
+            neg_idx = i as i32;
+            break;
+        }
+    }
+    let mut l = neg_idx - 1;
+    let mut r = neg_idx + 1;
+    let len = balance.len() as i32;
+    while balance[neg_idx as usize].is_negative() {
+        if balance[cal_idx(l, len)] > 0 {
+            if balance[cal_idx(l, len)] <= -balance[neg_idx as usize] {
+                balance[neg_idx as usize] += balance[cal_idx(l, len)];
+                ans += (neg_idx - l) as i64 * balance[cal_idx(l, len)];
+                l -= 1;
+            }else {
+                ans += (neg_idx - l) as i64 *  balance[neg_idx as usize].abs();
+                break;
+            }
+        }
+        if balance[cal_idx(r, len)] > 0 {
+            if balance[cal_idx(r, len)] <= -balance[neg_idx as usize] {
+                balance[neg_idx as usize] += balance[cal_idx(r, len)];
+                ans += (r - neg_idx) as i64 * balance[cal_idx(r, len)];
+                l -= 1;
+            }else {
+                ans += (r - neg_idx) as i64 *  balance[neg_idx as usize].abs();
+                break;
+            }
+        }
+    }
+    ans
+}
+fn cal_idx(idx: i32, len: i32) -> usize {
+    if idx >= 0 && idx < len {
+        return idx as usize;
+    } else if idx < 0 {
+        (len + idx) as usize
+    } else {
+        (idx - len) as usize
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_name() {
+        let a = vec![1,2,3,4,5];
+        for i in -5..a.len() as i32 * 2 {
+            println!("{}",a[cal_idx(i, a.len() as i32)])
+        }
+    }
+}
+
+pub fn reverse_words(mut s: String) -> String {
+    unsafe {
+        let s = s.as_mut_vec();
+        let mut s = s.split_mut(|&x| x == b' ');
+        let a = s.next().unwrap();
+        let cal_fn = |x: &&u8| match x {
+            b'a' => true,
+            b'e' => true,
+            b'i' => true,
+            b'o' => true,
+            b'u' => true,
+            _ => false,
+        };
+        let n = a.iter().filter(cal_fn).count();
+        for word in s {
+            if word.iter().filter(cal_fn).count() == n {
+                word.reverse();
+            }
+        }
+    }
+    s
 }
 pub fn minimum_moves(grid: Vec<Vec<i32>>) -> i32 {
     use std::collections::{HashSet, VecDeque};
@@ -45,7 +132,8 @@ pub fn minimum_moves(grid: Vec<Vec<i32>>) -> i32 {
                 {
                     q.push_back((clock_tail, clock_head));
                 }
-            }else {//vervical
+            } else {
+                //vervical
                 let (ant_clock_tail, ant_clock_head) = (tail, (head.0 - 1, head.1 + 1));
                 if ant_clock_tail.0 < len
                     && ant_clock_head.0 < len

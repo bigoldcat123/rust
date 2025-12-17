@@ -1,33 +1,309 @@
-use std::collections::{HashSet, VecDeque};
+use std::{
+    collections::{HashSet, VecDeque},
+    i32,
+};
 
+struct InfectedArea {
+    area: Vec<(usize, usize)>,
+    next: i32,
+}
 
+pub fn contain_virus(mut is_infected: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::new();
+    collect_virus(&mut q, &is_infected);
+    let mut ans = 0;
+    while !q.is_empty() {
+        q.make_contiguous().sort_by_key(|x| x.next);
+        let protect = q.pop_back().unwrap();
+        ans += add_wall(protect, &mut is_infected);
+        infect(&mut q, &mut is_infected);
+        collect_virus(&mut q, &is_infected);
+    }
+    ans
+}
+fn infect(q: &mut VecDeque<InfectedArea>, is_infected: &mut Vec<Vec<i32>>) {
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    for area in q.split_off(0) {
+        for (i, j) in area.area {
+            for &(di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && i < is_infected.len() as i32
+                    && j >= 0
+                    && j < is_infected[0].len() as i32
+                {
+                    if is_infected[i as usize][j as usize] == 0 {
+                        is_infected[i as usize][j as usize] = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+fn add_wall(protect: InfectedArea, is_infected: &mut Vec<Vec<i32>>) -> i32 {
+    let mut walls = 0;
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    for (i, j) in protect.area {
+        for &(di, dj) in d.iter() {
+            let i = i as i32 + di;
+            let j = j as i32 + dj;
+            if i >= 0 && i < is_infected.len() as i32 && j >= 0 && j < is_infected[0].len() as i32 {
+                if is_infected[i as usize][j as usize] == 0 {
+                    walls += 1;
+                }
+            }
+        }
+        is_infected[i][j] = 2;
+    }
+    walls
+}
+
+fn collect_virus(q: &mut VecDeque<InfectedArea>, is_infected: &Vec<Vec<i32>>) {
+    let mut vis = HashSet::new();
+
+    let mut all_infected = true;
+    for i in 0..is_infected.len() {
+        for j in 0..is_infected[0].len() {
+            if is_infected[i][j] == 1 {
+                let mut area = InfectedArea {
+                    area: Vec::new(),
+                    next: 0,
+                };
+                dfs_collect_virus(i as i32, j as i32, &is_infected, &mut vis, &mut area);
+                if !area.area.is_empty() {
+                    q.push_back(area);
+                }
+            }
+            if is_infected[i][j] == 0 {
+                all_infected = false;
+            }
+        }
+    }
+    if all_infected {
+        q.clear();
+    }
+}
+fn dfs_collect_virus(
+    i: i32,
+    j: i32,
+    is_infected: &Vec<Vec<i32>>,
+    vis: &mut HashSet<(usize, usize)>,
+    area: &mut InfectedArea,
+) {
+    if i >= 0
+        && (i as usize) < is_infected.len()
+        && j >= 0
+        && (j as usize) < is_infected[0].len()
+        && is_infected[i as usize][j as usize] == 1
+        && !vis.insert((i as usize, j as usize))
+    {
+        area.area.push((i as usize, j as usize));
+        let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+        for (di, dj) in d {
+            let i = di + i;
+            let j = dj + j;
+            if i >= 0
+                && (i as usize) < is_infected.len()
+                && j >= 0
+                && (j as usize) < is_infected[0].len()
+                && is_infected[i as usize][j as usize] == 0
+            {
+                area.next += 1;
+            }
+        }
+        dfs_collect_virus(i + 1, j, is_infected, vis, area);
+        dfs_collect_virus(i - 1, j, is_infected, vis, area);
+        dfs_collect_virus(i, j + 1, is_infected, vis, area);
+        dfs_collect_virus(i, j - 1, is_infected, vis, area);
+    }
+}
+
+pub fn maximum_safeness_factor(mut grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut thieves = VecDeque::new();
+    let mut vis = HashSet::new();
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            if grid[i][j] == 1 {
+                thieves.push_back((i as i32, j as i32));
+                vis.insert((i as i32, j as i32));
+            }
+        }
+    }
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+    let mut r = 0;
+    let mut safety = 0;
+    while !thieves.is_empty() {
+        for (i, j) in thieves.split_off(0) {
+            grid[i as usize][j as usize] = safety;
+            r = safety;
+            for (di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && (i as usize) < grid.len()
+                    && j >= 0
+                    && (j as usize) < grid[0].len()
+                    && vis.insert((i, j))
+                {
+                    thieves.push_back((i, j));
+                }
+            }
+        }
+        safety += 1;
+    }
+
+    let mut l = 0;
+    while l <= r {
+        let mid = (r + l) / 2;
+        if check(mid, &grid) {
+            r = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    l
+}
+
+fn check(max: i32, grid: &Vec<Vec<i32>>) -> bool {
+    if grid[0][0] < max {
+        return false;
+    }
+    let mut p = VecDeque::from([(0, 0)]);
+    let mut vis = HashSet::from([(0, 0)]);
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    while !p.is_empty() {
+        for (i, j) in p.split_off(0) {
+            if i == grid.len() - 1 && j == grid[0].len() - 1 {
+                return true;
+            }
+            for (di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && (i as usize) < grid.len()
+                    && j >= 0
+                    && (j as usize) < grid[0].len()
+                    && vis.insert((i, j))
+                    && grid[i as usize][j as usize] >= max
+                {
+                    p.push_back((i as usize, j as usize));
+                }
+            }
+        }
+    }
+    false
+}
+
+pub fn cut_off_tree(forest: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([(0, 0)]);
+    let mut vis = HashSet::from([(0, 0)]);
+
+    let mut trees = vec![(0, 0, -1)];
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    while !q.is_empty() {
+        for (i, j) in q.split_off(0) {
+            if forest[i][j] > 1 {
+                trees.push((i as i32, j as i32, forest[i][j]));
+            }
+            for (di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && (i as usize) < forest.len()
+                    && j >= 0
+                    && (j as usize) < forest[0].len()
+                    && vis.insert((i, j))
+                    && forest[i as usize][j as usize] > 0
+                {
+                    q.push_back((i as usize, j as usize));
+                }
+            }
+        }
+    }
+    if forest.iter().flatten().filter(|&&x| x > 1).count() != trees.len() - 1 {
+        return -1;
+    }
+    trees.sort_by_key(|x| x.2);
+
+    let mut ans = 0;
+    for i in 0..trees.len() - 1 {
+        ans += find_next(
+            &forest,
+            (trees[i].0, trees[i].1),
+            (trees[i + 1].0, trees[i + 1].1),
+        )
+    }
+    ans
+}
+fn find_next(forest: &Vec<Vec<i32>>, from: (i32, i32), to: (i32, i32)) -> i32 {
+    let mut steps = 0;
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([from]);
+    let mut vis = HashSet::from([from]);
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    while !q.is_empty() {
+        for (i, j) in q.split_off(0) {
+            if to == (i, j) {
+                return steps;
+            }
+            for (di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && (i as usize) < forest.len()
+                    && j >= 0
+                    && (j as usize) < forest[0].len()
+                    && vis.insert((i, j))
+                    && forest[i as usize][j as usize] > 0
+                {
+                    q.push_back((i, j));
+                }
+            }
+        }
+    }
+    steps
+}
 
 pub fn shortest_path(grid: Vec<Vec<i32>>, k: i32) -> i32 {
-    use std::collections::{VecDeque,HashSet};
+    use std::collections::{HashSet, VecDeque};
 
-    let mut qs = vec![(VecDeque::new());k as usize + 1];
-    qs[k as usize].push_back((0_i32,0_i32));
+    let mut qs = vec![(VecDeque::new()); k as usize + 1];
+    qs[k as usize].push_back((0_i32, 0_i32));
     let mut vis = HashSet::new();
-    vis.insert((0_i32,0_i32));
-            let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+    vis.insert((0_i32, 0_i32));
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
 
     let mut ans = 0;
     while qs.iter().any(|x| !x.is_empty()) {
-        println!("{:?}",qs);
+        println!("{:?}", qs);
         for q_i in 0..qs.len() {
             let pq = qs[q_i].split_off(0);
-            for (i,j) in pq {
-                if i as usize== grid.len() - 1&& j as usize == grid[0].len() - 1 {
-                    return ans
+            for (i, j) in pq {
+                if i as usize == grid.len() - 1 && j as usize == grid[0].len() - 1 {
+                    return ans;
                 }
-                for (di,dj) in d.iter() {
+                for (di, dj) in d.iter() {
                     let i = di + i;
                     let j = dj + j;
-                    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && vis.insert((i,j)) {
+                    if i >= 0
+                        && (i as usize) < grid.len()
+                        && j >= 0
+                        && (j as usize) < grid[0].len()
+                        && vis.insert((i, j))
+                    {
                         if grid[i as usize][j as usize] == 0 {
-                            qs[q_i].push_back((i,j));
-                        }else if q_i > 0 {
-                            qs[q_i - 1].push_back((i,j));
+                            qs[q_i].push_back((i, j));
+                        } else if q_i > 0 {
+                            qs[q_i - 1].push_back((i, j));
                         }
                     }
                 }
@@ -38,33 +314,48 @@ pub fn shortest_path(grid: Vec<Vec<i32>>, k: i32) -> i32 {
     -1
 }
 
-
-pub fn highest_ranked_k_items(grid: Vec<Vec<i32>>, pricing: Vec<i32>, start: Vec<i32>, k: i32) -> Vec<Vec<i32>> {
+pub fn highest_ranked_k_items(
+    grid: Vec<Vec<i32>>,
+    pricing: Vec<i32>,
+    start: Vec<i32>,
+    k: i32,
+) -> Vec<Vec<i32>> {
     use std::collections::{HashSet, VecDeque};
     let mut ans = vec![];
     let mut q = VecDeque::new();
     let mut vis = HashSet::new();
-    q.push_back((start[0],start[1]));
-    vis.insert((start[0],start[1]));
+    q.push_back((start[0], start[1]));
+    vis.insert((start[0], start[1]));
     let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
 
     let mut des = 0;
     while !q.is_empty() {
-        q.make_contiguous().sort_by(|&(i1,j1),&(i2,j2)| {
-            grid[i1 as usize][j1 as usize].cmp(&grid[i2 as usize][j2 as usize])
+        q.make_contiguous().sort_by(|&(i1, j1), &(i2, j2)| {
+            grid[i1 as usize][j1 as usize]
+                .cmp(&grid[i2 as usize][j2 as usize])
                 .then(i1.cmp(&i2))
-                .then(j1.cmp(&j2)).reverse()
+                .then(j1.cmp(&j2))
+                .reverse()
         });
-        for (i,j) in q.split_off(0) {
-            for &(di,dj) in d.iter() {
+        for (i, j) in q.split_off(0) {
+            for &(di, dj) in d.iter() {
                 let i = di + i;
                 let j = dj + j;
-                if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && vis.insert((i,j)) && grid[i as usize][j as usize] != 0 {
+                if i >= 0
+                    && (i as usize) < grid.len()
+                    && j >= 0
+                    && (j as usize) < grid[0].len()
+                    && vis.insert((i, j))
+                    && grid[i as usize][j as usize] != 0
+                {
                     if ans.len() == k as usize {
-                        return ans
+                        return ans;
                     }
-                    if grid[i as usize][j as usize] != 1 && grid[i as usize][j as usize] >= pricing[0] && grid[i as usize][j as usize]  <= pricing[1] {
-                        ans.push(vec!(i,j));
+                    if grid[i as usize][j as usize] != 1
+                        && grid[i as usize][j as usize] >= pricing[0]
+                        && grid[i as usize][j as usize] <= pricing[1]
+                    {
+                        ans.push(vec![i, j]);
                     }
                 }
             }
@@ -81,7 +372,7 @@ pub fn shortest_bridge(grid: Vec<Vec<i32>>) -> i32 {
     for i in 0..grid.len() {
         for j in 0..grid[0].len() {
             if grid[i][j] == 1 {
-                dfs(i as i32, j as i32, &grid, &mut q,&mut vis);
+                dfs(i as i32, j as i32, &grid, &mut q, &mut vis);
             }
         }
         if !q.is_empty() {
@@ -92,15 +383,20 @@ pub fn shortest_bridge(grid: Vec<Vec<i32>>) -> i32 {
 
     let mut ans = 0;
     while !q.is_empty() {
-        for (i,j) in q.split_off(0) {
-            for &(di,dj) in d.iter() {
+        for (i, j) in q.split_off(0) {
+            for &(di, dj) in d.iter() {
                 let i = di + i;
                 let j = dj + j;
-                if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && vis.insert((i,j)) {
-                    if grid[i as usize][j as usize] == 1  {
-                        return ans
+                if i >= 0
+                    && (i as usize) < grid.len()
+                    && j >= 0
+                    && (j as usize) < grid[0].len()
+                    && vis.insert((i, j))
+                {
+                    if grid[i as usize][j as usize] == 1 {
+                        return ans;
                     }
-                    q.push_back((i,j));
+                    q.push_back((i, j));
                 }
             }
         }
@@ -116,10 +412,16 @@ fn dfs(
     q: &mut VecDeque<(i32, i32)>,
     vis: &mut HashSet<(i32, i32)>,
 ) {
-    if i >= 0 && (i as usize) < grid.len() && j >= 0 && (j as usize) < grid[0].len() && vis.insert((i,j)) && grid[i as usize][j as usize] == 1 {
-        q.push_back((i,j));
+    if i >= 0
+        && (i as usize) < grid.len()
+        && j >= 0
+        && (j as usize) < grid[0].len()
+        && vis.insert((i, j))
+        && grid[i as usize][j as usize] == 1
+    {
+        q.push_back((i, j));
         let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
-        for (di,dj) in d {
+        for (di, dj) in d {
             dfs(i + di, j + dj, grid, q, vis);
         }
     }
