@@ -3,7 +3,362 @@ use std::{
     i32,
 };
 
-pub fn watched_videos_by_friends(watched_videos: Vec<Vec<String>>, friends: Vec<Vec<i32>>, id: i32, level: i32) -> Vec<String> {
+pub fn min_cost(grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::VecDeque;
+
+    let mut dis = grid.clone();
+    dis.iter_mut().for_each(|x| x.fill(i32::MAX));
+    dis[0][0] = 0;
+    let mut ans = 0;
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    let mut q = VecDeque::from([(0usize, 0usize)]);
+    while let Some((i, j)) = q.pop_front() {
+        if i == grid.len() - 1 && j == grid[0].len() - 1 {
+            return dis[i][j];
+        }
+        let (di, dj) = match grid[i][j] {
+            1 => {
+                // right
+                (0, 1)
+            }
+            2 => {
+                // left
+                (0, -1)
+            }
+            3 => {
+                // low
+                (-1, 0)
+            }
+            _ => {
+                // up
+                (1, 0)
+            }
+        };
+        let ni = i as i32 + di;
+        let nj = j as i32 + dj;
+        if ni >= 0
+            && (ni as usize) < grid.len()
+            && nj >= 0
+            && (nj as usize) < grid[0].len()
+            && dis[ni as usize][nj as usize] > dis[i][j]
+        {
+            dis[ni as usize][nj as usize] = dis[i][j];
+            q.push_front((ni as usize, nj as usize));
+        }
+        for (di, dj) in d.iter().filter(|&&x| x != (ni, nj)) {
+            let ni = i as i32 + di;
+            let nj = j as i32 + dj;
+            if ni >= 0 && (ni as usize) < grid.len() && nj >= 0 && (nj as usize) < grid[0].len() && dis[ni as usize][nj as usize] > dis[i][j] + 1{
+                dis[ni as usize][nj as usize] = dis[i][j] + 1;
+                q.push_back((ni as usize, nj as usize));
+            }
+        }
+    }
+
+    *dis.last().unwrap().last().unwrap()
+}
+
+pub fn minimum_obstacles(grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashMap, VecDeque};
+
+    let mut ans = grid.clone();
+    ans.iter_mut().for_each(|x| x.fill(i32::MAX));
+
+    let mut q = VecDeque::from([(0, 0, grid[0][0])]);
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    while !q.is_empty() {
+        for (i, j, r) in q.split_off(0) {
+            if ans[i as usize][j as usize] > r {
+                ans[i as usize][j as usize] = r;
+            }
+            let mut map: HashMap<(i32, i32), i32> = HashMap::new();
+            for (di, dj) in d.iter() {
+                let ni = i + di;
+                let nj = j + dj;
+                if ni >= 0
+                    && (ni as usize) < grid.len()
+                    && nj >= 0
+                    && (nj as usize) < grid[0].len()
+                    && ans[ni as usize][nj as usize] > r + grid[ni as usize][nj as usize]
+                {
+                    ans[i as usize][j as usize] = r + grid[ni as usize][nj as usize];
+                    map.insert((ni, nj), r + grid[ni as usize][nj as usize]);
+                }
+            }
+            for ((i, j), r) in map {
+                q.push_back((i, j, r));
+            }
+        }
+    }
+    ans.last().unwrap().last().unwrap().clone()
+}
+
+// pub fn minimum_obstacles(grid: Vec<Vec<i32>>) -> i32 {
+//     use std::collections::VecDeque;
+
+//     let mut q = VecDeque::from([(0, 0, grid[0][0])]);
+//     let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+//     let mut ans = i32::MAX;
+//     while !q.is_empty() {
+//         for (i, j, r) in q.split_off(0) {
+//             if i as usize == grid.len() - 1 && j as usize == grid[0].len() - 1 {
+//                 ans = ans.min(r);
+//             }
+//             for (di, dj) in d.iter() {
+//                 let ni = i + di;
+//                 let nj = j + dj;
+//                 if ni >= 0
+//                     && (ni as usize) < grid.len()
+//                     && nj >= 0
+//                     && (nj as usize) < grid[0].len()
+//                     && ans > r + grid[ni as usize][nj as usize]
+//                 {
+//                     q.push_back((ni, nj, r + grid[ni as usize][nj as usize]));
+//                 }
+//             }
+//         }
+//     }
+//     ans
+// }
+
+pub fn find_safe_walk(grid: Vec<Vec<i32>>, health: i32) -> bool {
+    use std::collections::{HashSet, VecDeque};
+    let mut vis = HashSet::from([(0, 0)]);
+    let mut q = VecDeque::from([(0, 0, health)]);
+    let d = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
+
+    while !q.is_empty() {
+        for (i, j, h) in q.split_off(0) {
+            if i as usize == grid.len() - 1 && j as usize == grid[0].len() - 1 {
+                return true;
+            }
+            for (di, dj) in d.iter() {
+                let i = i + di;
+                let j = j + dj;
+                if i >= 0
+                    && (i as usize) < grid.len()
+                    && j >= 0
+                    && (j as usize) < grid[0].len()
+                    && vis.insert((i, j))
+                    && h - grid[i as usize][j as usize] >= 1
+                {
+                    q.push_back((i, j, h - -grid[i as usize][j as usize]));
+                }
+            }
+        }
+    }
+    false
+}
+
+pub fn num_buses_to_destination(routes: Vec<Vec<i32>>, source: i32, target: i32) -> i32 {
+    use std::collections::{HashMap, HashSet, VecDeque};
+    let mut stop_buses: HashMap<i32, Vec<usize>> = HashMap::new();
+    for (bus, r) in routes.iter().enumerate() {
+        for &stop in r {
+            stop_buses.entry(stop).or_default().push(bus);
+        }
+    }
+
+    if source == target {
+        return 0;
+    }
+    if !stop_buses.contains_key(&source) {
+        return -1;
+    }
+    let mut vis: HashSet<usize> = HashSet::from_iter(stop_buses[&source].iter().copied());
+    let mut q = VecDeque::from_iter(stop_buses[&source].iter().copied());
+
+    let routes: Vec<HashSet<i32>> = routes
+        .into_iter()
+        .map(|x| HashSet::from_iter(x.into_iter()))
+        .collect();
+
+    let mut ans = 1;
+
+    while !q.is_empty() {
+        for bus in q.split_off(0) {
+            if routes[bus].contains(&target) {
+                return ans;
+            }
+            for stop in routes[bus].iter() {
+                for &b in stop_buses[stop].iter() {
+                    if vis.insert(b) {
+                        q.push_back(b);
+                    }
+                }
+            }
+        }
+        ans += 1;
+    }
+
+    ans
+}
+
+pub fn find_shortest_cycle(n: i32, edges: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut ans = i32::MAX;
+    let mut map = vec![vec![]; n as usize];
+    for e in edges {
+        map[e[0] as usize].push(e[1] as usize);
+        map[e[1] as usize].push(e[0] as usize);
+    }
+    for i in 0..n as usize {
+        let mut q = VecDeque::from([(i, -1_i32)]);
+        let mut dis = vec![-1; n as usize];
+        dis[i] = 0;
+        let mut step = 0;
+        while !q.is_empty() {
+            let (n, fa) = q.pop_front().unwrap();
+            for &next in map[n].iter() {
+                if dis[next] == -1 {
+                    dis[next] = dis[n] + 1;
+                    q.push_back((next, n as i32));
+                } else if next as i32 != fa {
+                    ans = ans.min(dis[next] + dis[n] + 1);
+                }
+            }
+        }
+    }
+    if ans == i32::MAX { -1 } else { ans }
+}
+
+pub fn network_becomes_idle(edges: Vec<Vec<i32>>, patience: Vec<i32>) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut min_dis = vec![0; patience.len()];
+    let mut map = vec![vec![]; patience.len()];
+    for e in edges {
+        map[e[0] as usize].push(e[1] as usize);
+        map[e[1] as usize].push(e[0] as usize);
+    }
+    let mut ans = 0;
+    let mut step = 0;
+    let mut q = VecDeque::from([0_usize]);
+    let mut vis = HashSet::from([0_usize]);
+    while !q.is_empty() {
+        for n in q.split_off(0) {
+            min_dis[n] = step;
+            for &next in map[n].iter() {
+                if vis.insert(next) {
+                    q.push_back(next);
+                }
+            }
+        }
+        step += 1;
+    }
+    let mut ans = 0;
+    for (i, d) in min_dis.into_iter().skip(1).enumerate() {
+        ans = ans.max(d * 2 + (d * 2) / patience[i] - 1)
+    }
+
+    ans
+}
+
+pub fn shortest_alternating_paths(
+    n: i32,
+    red_edges: Vec<Vec<i32>>,
+    blue_edges: Vec<Vec<i32>>,
+) -> Vec<i32> {
+    use std::collections::{HashSet, VecDeque};
+    let mut blue_edges_map: Vec<Vec<i32>> = vec![vec![]; n as usize];
+    let mut red_edges_map: Vec<Vec<i32>> = vec![vec![]; n as usize];
+    for e in red_edges {
+        red_edges_map[e[0] as usize].push(e[1]);
+    }
+    for e in blue_edges {
+        blue_edges_map[e[0] as usize].push(e[1]);
+    }
+    let mut ans = vec![0; n as usize];
+    for end in 1..ans.len() {
+        let mut q = VecDeque::new();
+        let mut vis = HashSet::from([('r', 0), ('b', 0)]);
+        for &e in blue_edges_map[0].iter() {
+            if vis.insert(('b', e)) {
+                q.push_back(('b', e));
+            }
+        }
+        for &e in red_edges_map[0].iter() {
+            if vis.insert(('r', e)) {
+                q.push_back(('r', e));
+            }
+        }
+
+        let mut step = 1;
+        let mut is_ok = true;
+        while !q.is_empty() && is_ok {
+            for (color, e) in q.split_off(0) {
+                if e == end as i32 {
+                    ans[end] = step;
+                    is_ok = false;
+                    break;
+                }
+                if color == 'r' {
+                    for &e in blue_edges_map[e as usize].iter() {
+                        if vis.insert(('b', e)) {
+                            q.push_back(('b', e));
+                        }
+                    }
+                } else {
+                    for &e in red_edges_map[e as usize].iter() {
+                        if vis.insert(('r', e)) {
+                            q.push_back(('r', e));
+                        }
+                    }
+                }
+            }
+            step += 1;
+        }
+    }
+
+    ans
+}
+
+pub fn count_of_pairs(n: i32, x: i32, y: i32) -> Vec<i32> {
+    use std::collections::{HashSet, VecDeque};
+    let mut ans = vec![0; n as usize];
+    for start_house in 1..=n {
+        let mut step = 0;
+        let mut q = VecDeque::from([start_house]);
+        let mut vis = HashSet::from([start_house]);
+        while !q.is_empty() {
+            for h in q.split_off(0) {
+                if h == 1 || h == n {
+                    if h == 1 && vis.insert(h + 1) {
+                        q.push_back(h + 1);
+                    }
+                    if h == n && vis.insert(h - 1) {
+                        q.push_back(h - 1);
+                    }
+                } else {
+                    if vis.insert(h - 1) {
+                        q.push_back(h - 1);
+                    }
+                    if vis.insert(h + 1) {
+                        q.push_back(h + 1);
+                    }
+                }
+                if h == x || h == y {
+                    if h == x && vis.insert(y) {
+                        q.push_back(y);
+                    }
+                    if h == y && vis.insert(x) {
+                        q.push_back(x);
+                    }
+                }
+            }
+            ans[step as usize] += q.len() as i32;
+            step += 1;
+        }
+    }
+    ans
+}
+pub fn watched_videos_by_friends(
+    watched_videos: Vec<Vec<String>>,
+    friends: Vec<Vec<i32>>,
+    id: i32,
+    level: i32,
+) -> Vec<String> {
     use std::collections::{HashSet, VecDeque};
 
     let mut q = VecDeque::from([id as usize]);
@@ -19,14 +374,14 @@ pub fn watched_videos_by_friends(watched_videos: Vec<Vec<String>>, friends: Vec<
         }
         l += 1;
     }
-    let mut map:HashMap<&String,i32> = std::collections::HashMap::new();
+    let mut map: HashMap<&String, i32> = std::collections::HashMap::new();
     for p in q {
         for v in watched_videos[p].iter() {
             *map.entry(v).or_default() += 1;
         }
     }
-    let mut v:Vec<(&String,i32)> = map.into_iter().collect();
-    v.sort_by(|a,b| a.1.cmp(&b.1).then(a.0.cmp(b.0)));
+    let mut v: Vec<(&String, i32)> = map.into_iter().collect();
+    v.sort_by(|a, b| a.1.cmp(&b.1).then(a.0.cmp(b.0)));
 
     v.into_iter().map(|x| x.0).cloned().collect()
 }

@@ -3,6 +3,76 @@ use std::{
     io::BufRead,
 };
 
+pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
+    let mut len = strs[0].len();
+    let mut ans = 0;
+    let mut str = strs.iter_mut().map(|mut x| unsafe {
+        x.as_mut_vec()
+    }).collect::<Vec<_>>();
+    for i in 0..len {
+        let mut is_sorted = true;
+        let mut some_equal = false;
+        for j in 1..str.len() {
+            if str[j][i] < str[j - 1][i] {
+                is_sorted = false;
+                break;
+            }else if str[j][i] == str[j - 1][i] {
+                some_equal = true;
+            }
+        }
+        if !is_sorted {
+            for j in 0..str.len() {
+                str[j][i] = 0;
+            }
+            ans += 1;
+        }else if some_equal {
+            let mut s = true;
+            for ii in 1..str.len() {
+                if &str[ii][i..] < &str[ii - 1][i..] {
+                    s = false;
+                    break;
+                }
+            }
+            if s {
+                break;
+            }
+        }
+    }
+    ans
+}
+
+pub fn str_str(haystack: String, needle: String) -> i32 {
+    let mut hystack = haystack.as_bytes();
+    let mut needle = needle.as_bytes();
+    let mut next = vec![0;needle.len()];
+    let mut len = 0;
+    let mut i = 1;
+    while i < needle.len() {
+        if needle[i] == needle[len] {
+            len += 1;
+            next[i] = len;
+            i += 1;
+        }else if len == 0 {
+            next[i] = len;
+            i += 1;
+        }else {
+            len = next[len - 1];
+        }
+    }
+    let mut i = 0;
+    let mut j = 0;
+    for i in 0..hystack.len() {
+        while j < needle.len()&& j + i < hystack.len() && needle[j] == hystack[i + j] {
+            j += 1;
+        }
+        if j == needle.len() {
+            return i as i32
+        }
+        j = next[j];
+    }
+    -1
+}
+
 pub fn min_moves2(mut balance: Vec<i32>) -> i64 {
     let mut balance = balance.into_iter().map(|x| x as i64).collect::<Vec<i64>>();
     let sum = balance.iter().sum::<i64>();

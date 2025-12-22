@@ -9,6 +9,13 @@ macro_rules! 干 {
         let $a = $e;
     };
 }
+#[test]
+fn feature() {
+    let a = [1,2,3];
+    let b = [2,-1,-100];
+    println!("{}",a > b);
+
+}
 
 #[test]
 fn hello() {
