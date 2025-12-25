@@ -11,9 +11,10 @@ macro_rules! 干 {
 }
 #[test]
 fn feature() {
-    let a = [1,2,3];
-    let b = [2,-1,-100];
-    println!("{}",a > b);
+    let a = [1,1,1,1,1,3,3,3];
+    let a = a.binary_search(&2);
+    println!("{:?}",a);
+
 
 }
 

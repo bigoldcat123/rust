@@ -3,6 +3,130 @@ use std::{
     i32,
 };
 
+pub fn minimum_jumps(forbidden: Vec<i32>, a: i32, b: i32, x: i32) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([(0,0)]);
+    let mut forbidden:HashSet<i32> = HashSet::from_iter(forbidden.into_iter());
+    let mut vis = HashSet::from([(0,0)]);
+    let mut steps = 0;
+    while !q.is_empty() {
+        for (p,dir) in q.split_off(0) {
+            if p == x {
+                return steps
+            }
+            if vis.insert((p + a,1)) && !forbidden.contains(&(p + a)) {
+                q.push_back((p + a,1));
+            }
+            if dir == 1 {
+                if p - b >= 0 && vis.insert((p - b,0)) && !forbidden.contains(&(p - b)) {
+                    q.push_back((p - b,0));
+                }
+            }
+        }
+        steps += 1;
+    }
+    -1
+}
+
+pub fn minimum_operations(nums: Vec<i32>, start: i32, goal: i32) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([start]);
+    let mut vis = HashSet::from([start]);
+    let mut step = 0;
+    while !q.is_empty() {
+        for p in q.split_off(0) {
+            if p == goal {
+                return step
+            }
+            if p >= 0 && p <= 1000 {
+                for &n in nums.iter() {
+                    if vis.insert(p + n) {
+                        q.push_back(p + n);
+                    }
+                    if vis.insert(p - n) {
+                        q.push_back(p - n);
+                    }
+                    if vis.insert(p ^ n) {
+                        q.push_back(p ^ n);
+                    }
+                }
+            }
+        }
+    }
+    -1
+
+}
+
+pub fn min_jumps(arr: Vec<i32>) -> i32 {
+    use std::collections::{HashSet, VecDeque,HashMap};
+    let mut map:HashMap<i32, Vec<usize>> = HashMap::new();
+    for (i,&n) in arr.iter().enumerate() {
+        map.entry(n).or_default().push(i);
+    };
+    let mut q = VecDeque::from([0_usize]);
+    let mut vis = HashSet::from([0_usize]);
+    let mut ans = 0;
+    while !q.is_empty() {
+        for i in q.split_off(0) {
+            if i == arr.len() - 1 {
+                return ans
+            }
+            for &n in map[&arr[i]].iter() {
+                if vis.insert(n) {
+                    q.push_back(n);
+                }
+            }
+            if let Some(e) = map.remove(&arr[i]) {
+                for n in e {
+                    if vis.insert(n) {
+                        q.push_back(n);
+                    }
+                }
+            }
+            if i + 1 < arr.len() && vis.insert(i + 1) {
+                q.push_back(i + 1);
+            }
+            if i > 0 && vis.insert(i - 1) {
+                q.push_back(i - 1);
+            }
+        }
+        ans += 1;
+    }
+    0
+}
+
+pub fn minimum_operations_to_make_equal(x: i32, y: i32) -> i32 {
+    use std::collections::{HashSet, VecDeque};
+    let mut q = VecDeque::from([x]);
+    let mut vis = HashSet::from([x]);
+    let mut step = 0;
+    while !q.is_empty() {
+        for x in q.split_off(0) {
+            if x == y {
+                return step;
+            }
+            if x % 11 == 0 {
+                if vis.insert(x / 11) {
+                    q.push_back(x / 11);
+                }
+            }
+            if x % 5 == 0 {
+                if vis.insert(x / 5) {
+                    q.push_back(x / 5);
+                }
+            }
+            if vis.insert(x + 1) {
+                q.push_back(x + 1);
+            }
+            if vis.insert(x - 1) {
+                q.push_back(x - 1);
+            }
+        }
+        step += 1;
+    }
+    -1
+}
+
 pub fn min_cost(grid: Vec<Vec<i32>>) -> i32 {
     use std::collections::VecDeque;
 
@@ -49,7 +173,12 @@ pub fn min_cost(grid: Vec<Vec<i32>>) -> i32 {
         for (di, dj) in d.iter().filter(|&&x| x != (ni, nj)) {
             let ni = i as i32 + di;
             let nj = j as i32 + dj;
-            if ni >= 0 && (ni as usize) < grid.len() && nj >= 0 && (nj as usize) < grid[0].len() && dis[ni as usize][nj as usize] > dis[i][j] + 1{
+            if ni >= 0
+                && (ni as usize) < grid.len()
+                && nj >= 0
+                && (nj as usize) < grid[0].len()
+                && dis[ni as usize][nj as usize] > dis[i][j] + 1
+            {
                 dis[ni as usize][nj as usize] = dis[i][j] + 1;
                 q.push_back((ni as usize, nj as usize));
             }

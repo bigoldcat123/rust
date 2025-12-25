@@ -8,6 +8,7 @@ use std::{
     rc::Rc,
     vec,
 };
+pub mod topology;
 pub mod dijoint_set;
 pub mod every_day;
 pub mod five;

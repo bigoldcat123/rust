@@ -3,6 +3,50 @@ use std::{
     io::BufRead,
 };
 
+pub fn minimum_boxes(apple: Vec<i32>, mut capacity: Vec<i32>) -> i32 {
+    let mut sum = apple.iter().sum::<i32>();
+    let mut ans = 0 ;
+    capacity.sort();
+    for c in capacity.iter().rev() {
+        if sum <= 0 {
+            break ;
+        }
+        sum -= c;
+        ans += 1;
+    }
+    ans
+}
+
+pub fn max_two_events(mut events: Vec<Vec<i32>>) -> i32 {
+    events.sort_by(|a,b| a[0].cmp(&b[0]).then(a[1].cmp(&b[1])));
+    let mut ans = 0;
+    let mut max = vec![events[events.len() - 1][2];events.len()];
+    for i in (0..events.len() - 1).rev() {
+        max[i] = max[i + 1].max(events[i][2]);
+    }
+    for i in 0..events.len() {
+        let endtime = events[i][1] + 1;
+        let a = match events.binary_search_by_key(&endtime, |x| x[1]) {
+            Ok(i)=> {
+                max[i]
+            }
+            Err(i) => {
+                if i < max.len() {
+                    max[i]
+                }else {
+                    0
+                }
+            }
+        };
+        ans = ans.max(a + events[i][2]);
+    }
+    ans
+}
+
+// fn binart_search() {
+
+// }
+
 pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
     let mut len = strs[0].len();
     let mut ans = 0;
