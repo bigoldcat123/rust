@@ -1,8 +1,88 @@
 use std::{
-    collections::{HashMap, HashSet},
-    io::BufRead,
+    collections::{HashMap, HashSet}, i32, io::BufRead
 };
 
+pub fn most_booked(n: i32, mut meetings: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{BTreeSet,BTreeMap};
+    let mut avaliable_house = BTreeSet::from_iter((0..n as usize).into_iter());
+    let mut current_day = 0_usize;
+    let mut house_cnt = vec![0;n as usize];
+    let mut on_meeting_endtime:BTreeMap<usize,Vec<usize>> = BTreeMap::new();
+    meetings.sort_by_key(|x|x[0]);
+
+    for (i,m) in meetings.into_iter().enumerate() {
+        if current_day < m[0] as usize {
+            current_day = m[0] as usize
+        }
+
+        while let Some((end_time2,room)) = on_meeting_endtime.pop_first() {
+            if end_time2 as usize <= current_day{
+                avaliable_house.extend(room);
+            }else {
+                on_meeting_endtime.insert(end_time2,room);
+                break;
+            }
+        }
+
+        let duration = (m[1] - m[0]) as usize;
+        if let Some(room) =  avaliable_house.pop_first() {
+            house_cnt[room] += 1;
+            on_meeting_endtime.entry(current_day + duration).or_default().push(room);
+        }else {
+            let (end_time,room) = on_meeting_endtime.pop_first().unwrap();
+            avaliable_house.extend(room);
+
+            while let Some((end_time2,room)) = on_meeting_endtime.pop_first() {
+                if end_time == end_time2 {
+                    avaliable_house.extend(room);
+                }else {
+                    on_meeting_endtime.insert(end_time,room);
+                    break;
+                }
+            }
+            current_day = end_time;
+            let h = avaliable_house.pop_first().unwrap();
+            house_cnt[h] += 1;
+            on_meeting_endtime.entry(current_day + duration).or_default().push(h);
+
+        }
+    }
+    let mut ans = 0;
+    let mut max = 0;
+    for (i,&n) in house_cnt.iter().enumerate() {
+        if n > max {
+            max = n;
+            ans = i as i32;
+        }
+    }
+    ans
+}
+
+pub fn best_closing_time(customers: String) -> i32 {
+    let customers = customers.as_bytes();
+    let mut totoal_time = customers.len();
+    let mut pre_sum_y = vec![0];
+    for (i,n) in customers.iter().enumerate() {
+        if *n == b'Y' {
+            pre_sum_y[i + 1] = pre_sum_y[i] + 1;
+        }else {
+            pre_sum_y[i + 1] = pre_sum_y[i];
+        }
+    }
+    let mut ans = i32::MAX;
+    let mut p = i32::MAX;
+    for i in 0..=customers.len() {
+        let before = i;
+        let after = totoal_time - i;
+        let before_n = before  - pre_sum_y[before];
+        let after_Y = after - pre_sum_y[pre_sum_y.len() - 1] - pre_sum_y[i];
+        if p as usize > before_n + after_Y {
+            p = (before_n + after_Y) as i32;
+            ans = i as i32;
+        }
+    }
+    ans
+}
 pub fn minimum_boxes(apple: Vec<i32>, mut capacity: Vec<i32>) -> i32 {
     let mut sum = apple.iter().sum::<i32>();
     let mut ans = 0 ;
