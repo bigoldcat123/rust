@@ -1,7 +1,47 @@
 use std::{
     collections::{HashMap, HashSet}, i32, io::BufRead
 };
-
+pub fn pyramid_transition(bottom: String, allowed: Vec<String>) -> bool {
+    use std::collections::HashMap;
+    let mut map:HashMap<(u8,u8), Vec<u8>> = HashMap::new();
+    let bottom = bottom.as_bytes();
+    let allowed = allowed.iter().map(|s| s.as_bytes()).collect::<Vec<_>>();
+    for a in allowed {
+        map.entry((a[0],a[1])).or_default().push(a[2]);
+    }
+    dfs_search(&bottom, &map)
+}
+fn dfs_search(bottom:&[u8],map:&HashMap<(u8,u8), Vec<u8>>) -> bool {
+    if bottom.len() == 1 {
+        return true
+    }
+    let mut cand:Vec<Vec<u8>> = vec![vec![];bottom.len() - 1];
+    for i in 0..bottom.len() - 1 {
+        if let Some(x) = map.get(&(bottom[i],bottom[i+1])) {
+            cand[i].extend(x);
+        }else {
+            return false
+        }
+    }
+    let mut c = vec![];
+    dfs_c(&cand, &mut c, 0, &mut vec![]);
+    for b in c {
+        if dfs_search(&b, map) {
+            return true
+        }
+    }
+    false
+}
+fn dfs_c(cand:&Vec<Vec<u8>>,r:&mut Vec<Vec<u8>>,i:usize,temp:&mut Vec<u8>) {
+    if i == cand.len(){
+        r.push(temp.clone());
+        return;
+    }
+    for &c in cand[i].iter() {
+        temp.push(c);
+        dfs_c(cand, r, i + 1, temp);
+    }
+}
 pub fn most_booked(n: i32, mut meetings: Vec<Vec<i32>>) -> i32 {
     use std::collections::{BTreeSet,BTreeMap};
     let mut avaliable_house = BTreeSet::from_iter((0..n as usize).into_iter());
