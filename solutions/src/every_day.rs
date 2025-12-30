@@ -1,39 +1,105 @@
 use std::{
-    collections::{HashMap, HashSet}, i32, io::BufRead
+    collections::{HashMap, HashSet},
+    i32,
+    io::BufRead,
 };
+
+pub fn num_magic_squares_inside(grid: Vec<Vec<i32>>) -> i32 {
+    let mut map = vec![0; 10];
+    if grid.len() < 3 || grid[0].len() < 3 {
+        return 0;
+    }
+    let mut ans = 0;
+    for i in 0..grid.len() - 3 {
+        fill_map(i, &mut map, &grid);
+        if condition1(&map) && condition2(i, 0, &grid) {
+            ans += 1;
+        }
+        for j in 1..grid[0].len() - 3 {
+            for last_i in 0..3 {
+                if grid[i + last_i][j - 1] <= 9 {
+                    map[grid[i + last_i][j - 1] as usize] -= 1;
+                }
+            }
+            for new_i in 0..3 {
+                if grid[i + new_i][j + 2] <= 9 {
+                    map[grid[i + new_i][j + 2] as usize] += 1;
+                }
+            }
+            if condition1(&map) && condition2(i, j, &grid) {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+fn condition2(i: usize, j: usize, grid: &Vec<Vec<i32>>) -> bool {
+    let sum = grid[i].iter().skip(j).take(3).sum::<i32>();
+    let sum2 = grid[i][j] + grid[i + 1][j + 1] + grid[i + 2][j + 2];
+    let sum3 = grid[i][j + 2] + grid[i + 1][j + 1] + grid[i + 2][j];
+    let mut s1 = 0;
+    let mut s2 = 0;
+    let mut s3 = 0;
+    for i in i..i + 3 {
+        s1 += grid[i][j];
+        s2 += grid[i][j + 1];
+        s3 += grid[i][j + 2];
+    }
+    sum == grid[i + 1].iter().skip(j).take(3).sum::<i32>()
+        && sum == grid[i + 2].iter().skip(j).take(3).sum::<i32>()
+        && sum == sum2
+        && sum == sum3
+        && s1 == s2
+        && s2 == s3
+        && sum == s3
+}
+fn condition1(map: &Vec<i32>) -> bool {
+    map.iter().skip(1).all(|&x| x == 1)
+}
+fn fill_map(i: usize, map: &mut Vec<i32>, grid: &Vec<Vec<i32>>) {
+    map.fill(0);
+    for i in i..i + 3 {
+        for j in 0..i + 3 {
+            if grid[i][j] <= 9 {
+                map[grid[i][j] as usize] += 1;
+            }
+        }
+    }
+}
+
 pub fn pyramid_transition(bottom: String, allowed: Vec<String>) -> bool {
     use std::collections::HashMap;
-    let mut map:HashMap<(u8,u8), Vec<u8>> = HashMap::new();
+    let mut map: HashMap<(u8, u8), Vec<u8>> = HashMap::new();
     let bottom = bottom.as_bytes();
     let allowed = allowed.iter().map(|s| s.as_bytes()).collect::<Vec<_>>();
     for a in allowed {
-        map.entry((a[0],a[1])).or_default().push(a[2]);
+        map.entry((a[0], a[1])).or_default().push(a[2]);
     }
     dfs_search(&bottom, &map)
 }
-fn dfs_search(bottom:&[u8],map:&HashMap<(u8,u8), Vec<u8>>) -> bool {
+fn dfs_search(bottom: &[u8], map: &HashMap<(u8, u8), Vec<u8>>) -> bool {
     if bottom.len() == 1 {
-        return true
+        return true;
     }
-    let mut cand:Vec<Vec<u8>> = vec![vec![];bottom.len() - 1];
+    let mut cand: Vec<Vec<u8>> = vec![vec![]; bottom.len() - 1];
     for i in 0..bottom.len() - 1 {
-        if let Some(x) = map.get(&(bottom[i],bottom[i+1])) {
+        if let Some(x) = map.get(&(bottom[i], bottom[i + 1])) {
             cand[i].extend(x);
-        }else {
-            return false
+        } else {
+            return false;
         }
     }
     let mut c = vec![];
     dfs_c(&cand, &mut c, 0, &mut vec![]);
     for b in c {
         if dfs_search(&b, map) {
-            return true
+            return true;
         }
     }
     false
 }
-fn dfs_c(cand:&Vec<Vec<u8>>,r:&mut Vec<Vec<u8>>,i:usize,temp:&mut Vec<u8>) {
-    if i == cand.len(){
+fn dfs_c(cand: &Vec<Vec<u8>>, r: &mut Vec<Vec<u8>>, i: usize, temp: &mut Vec<u8>) {
+    if i == cand.len() {
         r.push(temp.clone());
         return;
     }
@@ -43,53 +109,58 @@ fn dfs_c(cand:&Vec<Vec<u8>>,r:&mut Vec<Vec<u8>>,i:usize,temp:&mut Vec<u8>) {
     }
 }
 pub fn most_booked(n: i32, mut meetings: Vec<Vec<i32>>) -> i32 {
-    use std::collections::{BTreeSet,BTreeMap};
+    use std::collections::{BTreeMap, BTreeSet};
     let mut avaliable_house = BTreeSet::from_iter((0..n as usize).into_iter());
     let mut current_day = 0_usize;
-    let mut house_cnt = vec![0;n as usize];
-    let mut on_meeting_endtime:BTreeMap<usize,Vec<usize>> = BTreeMap::new();
-    meetings.sort_by_key(|x|x[0]);
+    let mut house_cnt = vec![0; n as usize];
+    let mut on_meeting_endtime: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    meetings.sort_by_key(|x| x[0]);
 
-    for (i,m) in meetings.into_iter().enumerate() {
+    for (i, m) in meetings.into_iter().enumerate() {
         if current_day < m[0] as usize {
             current_day = m[0] as usize
         }
 
-        while let Some((end_time2,room)) = on_meeting_endtime.pop_first() {
-            if end_time2 as usize <= current_day{
+        while let Some((end_time2, room)) = on_meeting_endtime.pop_first() {
+            if end_time2 as usize <= current_day {
                 avaliable_house.extend(room);
-            }else {
-                on_meeting_endtime.insert(end_time2,room);
+            } else {
+                on_meeting_endtime.insert(end_time2, room);
                 break;
             }
         }
 
         let duration = (m[1] - m[0]) as usize;
-        if let Some(room) =  avaliable_house.pop_first() {
+        if let Some(room) = avaliable_house.pop_first() {
             house_cnt[room] += 1;
-            on_meeting_endtime.entry(current_day + duration).or_default().push(room);
-        }else {
-            let (end_time,room) = on_meeting_endtime.pop_first().unwrap();
+            on_meeting_endtime
+                .entry(current_day + duration)
+                .or_default()
+                .push(room);
+        } else {
+            let (end_time, room) = on_meeting_endtime.pop_first().unwrap();
             avaliable_house.extend(room);
 
-            while let Some((end_time2,room)) = on_meeting_endtime.pop_first() {
+            while let Some((end_time2, room)) = on_meeting_endtime.pop_first() {
                 if end_time == end_time2 {
                     avaliable_house.extend(room);
-                }else {
-                    on_meeting_endtime.insert(end_time,room);
+                } else {
+                    on_meeting_endtime.insert(end_time, room);
                     break;
                 }
             }
             current_day = end_time;
             let h = avaliable_house.pop_first().unwrap();
             house_cnt[h] += 1;
-            on_meeting_endtime.entry(current_day + duration).or_default().push(h);
-
+            on_meeting_endtime
+                .entry(current_day + duration)
+                .or_default()
+                .push(h);
         }
     }
     let mut ans = 0;
     let mut max = 0;
-    for (i,&n) in house_cnt.iter().enumerate() {
+    for (i, &n) in house_cnt.iter().enumerate() {
         if n > max {
             max = n;
             ans = i as i32;
@@ -102,10 +173,10 @@ pub fn best_closing_time(customers: String) -> i32 {
     let customers = customers.as_bytes();
     let mut totoal_time = customers.len();
     let mut pre_sum_y = vec![0];
-    for (i,n) in customers.iter().enumerate() {
+    for (i, n) in customers.iter().enumerate() {
         if *n == b'Y' {
             pre_sum_y[i + 1] = pre_sum_y[i] + 1;
-        }else {
+        } else {
             pre_sum_y[i + 1] = pre_sum_y[i];
         }
     }
@@ -114,7 +185,7 @@ pub fn best_closing_time(customers: String) -> i32 {
     for i in 0..=customers.len() {
         let before = i;
         let after = totoal_time - i;
-        let before_n = before  - pre_sum_y[before];
+        let before_n = before - pre_sum_y[before];
         let after_Y = after - pre_sum_y[pre_sum_y.len() - 1] - pre_sum_y[i];
         if p as usize > before_n + after_Y {
             p = (before_n + after_Y) as i32;
@@ -125,11 +196,11 @@ pub fn best_closing_time(customers: String) -> i32 {
 }
 pub fn minimum_boxes(apple: Vec<i32>, mut capacity: Vec<i32>) -> i32 {
     let mut sum = apple.iter().sum::<i32>();
-    let mut ans = 0 ;
+    let mut ans = 0;
     capacity.sort();
     for c in capacity.iter().rev() {
         if sum <= 0 {
-            break ;
+            break;
         }
         sum -= c;
         ans += 1;
@@ -138,22 +209,20 @@ pub fn minimum_boxes(apple: Vec<i32>, mut capacity: Vec<i32>) -> i32 {
 }
 
 pub fn max_two_events(mut events: Vec<Vec<i32>>) -> i32 {
-    events.sort_by(|a,b| a[0].cmp(&b[0]).then(a[1].cmp(&b[1])));
+    events.sort_by(|a, b| a[0].cmp(&b[0]).then(a[1].cmp(&b[1])));
     let mut ans = 0;
-    let mut max = vec![events[events.len() - 1][2];events.len()];
+    let mut max = vec![events[events.len() - 1][2]; events.len()];
     for i in (0..events.len() - 1).rev() {
         max[i] = max[i + 1].max(events[i][2]);
     }
     for i in 0..events.len() {
         let endtime = events[i][1] + 1;
         let a = match events.binary_search_by_key(&endtime, |x| x[1]) {
-            Ok(i)=> {
-                max[i]
-            }
+            Ok(i) => max[i],
             Err(i) => {
                 if i < max.len() {
                     max[i]
-                }else {
+                } else {
                     0
                 }
             }
@@ -170,9 +239,10 @@ pub fn max_two_events(mut events: Vec<Vec<i32>>) -> i32 {
 pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
     let mut len = strs[0].len();
     let mut ans = 0;
-    let mut str = strs.iter_mut().map(|mut x| unsafe {
-        x.as_mut_vec()
-    }).collect::<Vec<_>>();
+    let mut str = strs
+        .iter_mut()
+        .map(|mut x| unsafe { x.as_mut_vec() })
+        .collect::<Vec<_>>();
     for i in 0..len {
         let mut is_sorted = true;
         let mut some_equal = false;
@@ -180,7 +250,7 @@ pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
             if str[j][i] < str[j - 1][i] {
                 is_sorted = false;
                 break;
-            }else if str[j][i] == str[j - 1][i] {
+            } else if str[j][i] == str[j - 1][i] {
                 some_equal = true;
             }
         }
@@ -189,7 +259,7 @@ pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
                 str[j][i] = 0;
             }
             ans += 1;
-        }else if some_equal {
+        } else if some_equal {
             let mut s = true;
             for ii in 1..str.len() {
                 if &str[ii][i..] < &str[ii - 1][i..] {
@@ -208,7 +278,7 @@ pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
 pub fn str_str(haystack: String, needle: String) -> i32 {
     let mut hystack = haystack.as_bytes();
     let mut needle = needle.as_bytes();
-    let mut next = vec![0;needle.len()];
+    let mut next = vec![0; needle.len()];
     let mut len = 0;
     let mut i = 1;
     while i < needle.len() {
@@ -216,21 +286,21 @@ pub fn str_str(haystack: String, needle: String) -> i32 {
             len += 1;
             next[i] = len;
             i += 1;
-        }else if len == 0 {
+        } else if len == 0 {
             next[i] = len;
             i += 1;
-        }else {
+        } else {
             len = next[len - 1];
         }
     }
     let mut i = 0;
     let mut j = 0;
     for i in 0..hystack.len() {
-        while j < needle.len()&& j + i < hystack.len() && needle[j] == hystack[i + j] {
+        while j < needle.len() && j + i < hystack.len() && needle[j] == hystack[i + j] {
             j += 1;
         }
         if j == needle.len() {
-            return i as i32
+            return i as i32;
         }
         j = next[j];
     }
@@ -260,8 +330,8 @@ pub fn min_moves2(mut balance: Vec<i32>) -> i64 {
                 balance[neg_idx as usize] += balance[cal_idx(l, len)];
                 ans += (neg_idx - l) as i64 * balance[cal_idx(l, len)];
                 l -= 1;
-            }else {
-                ans += (neg_idx - l) as i64 *  balance[neg_idx as usize].abs();
+            } else {
+                ans += (neg_idx - l) as i64 * balance[neg_idx as usize].abs();
                 break;
             }
         }
@@ -270,8 +340,8 @@ pub fn min_moves2(mut balance: Vec<i32>) -> i64 {
                 balance[neg_idx as usize] += balance[cal_idx(r, len)];
                 ans += (r - neg_idx) as i64 * balance[cal_idx(r, len)];
                 l -= 1;
-            }else {
-                ans += (r - neg_idx) as i64 *  balance[neg_idx as usize].abs();
+            } else {
+                ans += (r - neg_idx) as i64 * balance[neg_idx as usize].abs();
                 break;
             }
         }
@@ -294,9 +364,9 @@ mod tests {
 
     #[test]
     fn test_name() {
-        let a = vec![1,2,3,4,5];
+        let a = vec![1, 2, 3, 4, 5];
         for i in -5..a.len() as i32 * 2 {
-            println!("{}",a[cal_idx(i, a.len() as i32)])
+            println!("{}", a[cal_idx(i, a.len() as i32)])
         }
     }
 }
