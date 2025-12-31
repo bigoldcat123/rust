@@ -4,6 +4,63 @@ use std::{
     io::BufRead,
 };
 
+pub fn latest_day_to_cross(row: i32, col: i32, cells: Vec<Vec<i32>>) -> i32 {
+    let mut grid = vec![vec![0; col as usize]; row as usize];
+    let mut l = 0;
+    let mut r = cells.len() - 1;
+    let mut last_time = 0;
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        if check2(&mut grid, mid, &cells) {
+            r = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    l as i32
+}
+fn check2(grid: &mut Vec<Vec<i32>>, day: usize, cells: &Vec<Vec<i32>>) -> bool {
+    use std::collections::{HashSet, VecDeque};
+    grid.iter_mut().for_each(|x| x.fill(0));
+
+    for i in 0..=day {
+        let r = cells[i][0] as usize - 1;
+        let c = cells[i][1] as usize - 1;
+        grid[r][c] = 1;
+    }
+    let mut q = VecDeque::new();
+    let mut vis = HashSet::new();
+    for i in 0..grid[0].len() {
+        if grid[0][i] == 0 {
+            q.push_back((0, i));
+            vis.insert((0, i));
+        }
+    }
+    let d = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+    while !q.is_empty() {
+        for (i, j) in q.split_off(0) {
+            if i == grid.len() - 1 {
+                return true;
+            }
+            for &(di, dj) in d.iter() {
+                let i = i as i32 + di;
+                let j = j as i32 + dj;
+                if i >= 0
+                    && i < grid.len() as i32
+                    && j >= 0
+                    && j < grid[0].len() as i32
+                    && grid[i as usize][j as usize] == 0
+                    && !vis.contains(&(i as usize, j as usize))
+                {
+                    q.push_back((i as usize, j as usize));
+                    vis.insert((i as usize, j as usize));
+                }
+            }
+        }
+    }
+    false
+}
+
 pub fn num_magic_squares_inside(grid: Vec<Vec<i32>>) -> i32 {
     let mut map = vec![0; 10];
     if grid.len() < 3 || grid[0].len() < 3 {
