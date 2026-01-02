@@ -4,6 +4,25 @@ use std::{
     io::BufRead,
 };
 
+pub fn plus_one(mut digits: Vec<i32>) -> Vec<i32> {
+    digits.insert(0, 0);
+    let len = digits.len();
+    let mut c = digits[len - 1] == 9;
+    digits[len - 1] = (digits[len - 1] + 1) % 10;
+    let mut i = len - 2;
+    while c {
+        digits[i] = (digits[i] + 1) % 10;
+        if digits[i] != 0 {
+            c = false;
+        }
+    };
+    if digits[0] == 0 {
+        digits.remove(0);
+    }
+    digits
+
+}
+
 pub fn latest_day_to_cross(row: i32, col: i32, cells: Vec<Vec<i32>>) -> i32 {
     let mut grid = vec![vec![0; col as usize]; row as usize];
     let mut l = 0;
