@@ -1,16 +1,203 @@
+use std::{i32, os::unix::raw::uid_t};
+
+fn eratosthenes(n: usize) -> (Vec<bool>, Vec<usize>) {
+    if n < 2 {
+        return (vec![false; n + 1], Vec::new());
+    }
+    let mut is_prime = vec![true; n + 1];
+    is_prime[0] = false;
+    is_prime[1] = false;
+
+    let mut primes = Vec::new();
+
+    for i in 2..=n {
+        if is_prime[i] {
+            primes.push(i);
+            // 防止 i * i 溢出：使用 checked_mul 或转为 u64
+            if i as u64 * i as u64 > n as u64 {
+                continue;
+            }
+            // 从 i*i 开始标记合数
+            let mut j = i * i;
+            while j <= n {
+                is_prime[j] = false;
+                j += i;
+            }
+        }
+    }
+
+    (is_prime, primes)
+}
+pub fn min_operations(n: i32, m: i32) -> i32 {
+    use std::collections::{VecDeque,HashMap,BinaryHeap};
+    let mut step = 1;
+    let mut d = vec![];
+    while step <= n {
+        d.push(step);
+        step *= 10;
+    }
+    let (is_prime, primes) = eratosthenes(10000);
+    let mut map: HashMap<i32, Vec<i32>> = HashMap::new();
+    let mut q = VecDeque::new();
+    if !is_prime[n as usize] {
+        q.push_back(n);
+    }
+    if is_prime[m as usize] {
+        return -1
+    }
+    let mut vis = vec![false;10000];
+    while !q.is_empty() {
+        for n in q.split_off(0) {
+            vis[n as usize] = true;
+
+            for &d in d.iter() {
+                let digit = (n / d) % 10;
+                if digit > 0 && !is_prime[(n - d) as usize]{
+                    if !vis[(n - d) as usize]  {
+                        q.push_back(n - d);
+                        vis[(n - d) as usize] = true;
+                    }
+                    map.entry(n).or_default().push(n - d);
+                }
+                if digit < 9 && !is_prime[(n + d) as usize]{
+                    if !vis[(n + d) as usize] {
+                        q.push_back(n + d);
+                        vis[(n + d) as usize] = true;
+
+                    }
+                    map.entry(n).or_default().push(n + d);
+                }
+            }
+        }
+    }
+    let mut inf = i32::MAX / 2;
+    let mut dis = vec![inf;10000];
+    dis[n as usize] = 0;
+    let mut heap = BinaryHeap::new();
+    heap.push((0,n as usize));
+    while let Some((cost,n)) = heap.pop() {
+        let cost = -cost;
+        if cost > dis[n] {
+            continue;
+        }
+        for &next in map.get(&(n as i32)).unwrap_or(&vec![]) {
+            let new_cost = cost + next;
+            if dis[next as usize] > new_cost {
+                dis[next as usize] = new_cost;
+                heap.push((-new_cost, next as usize));
+            }
+        }
+    }
+    dis[m as usize]
+}
+
+pub fn minimum_cost(start: Vec<i32>, target: Vec<i32>, special_roads: Vec<Vec<i32>>) -> i32 {
+    use std::collections::{BinaryHeap, HashMap};
+    let inf = i32::MAX / 2;
+    let mut map: HashMap<(i32, i32), Vec<((i32, i32), i32)>> = HashMap::new();
+    let mut dis = HashMap::new();
+    for special in special_roads.iter() {
+        let (x1, y1, x2, y2, cost) = (special[0], special[1], special[2], special[3], special[4]);
+        map.entry((x1, y1)).or_default().push(((x2, y2), cost));
+        map.entry((start[0], start[1]))
+            .or_default()
+            .push(((x1, y1), (start[0] - x1).abs() + (start[1] - y1).abs()));
+
+        dis.insert((x1, y1), inf);
+        dis.insert((x2, y2), inf);
+        map.entry((x2, y2)).or_default().push((
+            (target[0], target[1]),
+            (target[0] - x2).abs() + (target[1] - y2).abs(),
+        ));
+    }
+    for i in 0..special_roads.len() {
+        for j in 0..special_roads.len() {
+            if j == i {
+                continue;
+            }
+            let (x1, y1, x2, y2) = (
+                special_roads[i][2],
+                special_roads[i][3],
+                special_roads[j][0],
+                special_roads[j][1],
+            );
+            map.entry((x1, y1))
+                .or_default()
+                .push(((x1, y1), (x1 - x2).abs() + (y1 - y2).abs()));
+        }
+    }
+    map.entry((start[0], start[1])).or_default().push((
+        (target[0], target[1]),
+        (start[0] - target[0]).abs() + (start[1] - target[1]).abs(),
+    ));
+    dis.insert((start[0], start[1]), 0);
+    dis.insert((target[0], target[1]), inf);
+    let mut heap = BinaryHeap::new();
+    heap.push((0, (start[0], start[1])));
+    // println!("{:?}", map);
+    while let Some((cost, i)) = heap.pop() {
+        // println!("{:?}",heap);
+        let cost = -cost;
+        if cost > dis[&i] {
+            continue;
+        }
+        for &((x2, y2), cost2) in map.get(&i).unwrap_or(&vec![]) {
+            let new_cost = cost + cost2;
+            // println!("{} {} {} {} {}",x2,y2,cost2,new_cost,dis[&i]);
+            if new_cost < dis[&(x2, y2)] {
+                *dis.entry((x2, y2)).or_default() = new_cost;
+                heap.push((-new_cost, (x2, y2)));
+            }
+        }
+    }
+    // println!("{:?}", dis);
+    dis[&(target[0], target[1])]
+}
+
+pub fn swim_in_water(grid: Vec<Vec<i32>>) -> i32 {
+    use std::collections::BinaryHeap;
+
+    let n = grid.len();
+    let mut inf = i32::MAX / 2;
+
+    let mut dis = vec![vec![inf; n]; n];
+    let mut heap = BinaryHeap::new();
+    let d = [(1, 0), (0, 1), (-1, 0), (0, -1)];
+    dis[0][0] = grid[0][0];
+    heap.push((-grid[0][0], (0, 0)));
+    while let Some((cost, (i, j))) = heap.pop() {
+        let cost = -cost;
+        if cost > dis[i][j] {
+            continue;
+        }
+        for &(dx, dy) in &d {
+            let x = i as i32 + dx;
+            let y = j as i32 + dy;
+            if x < 0 || x >= n as i32 || y < 0 || y >= n as i32 {
+                continue;
+            }
+            let x = x as usize;
+            let y = y as usize;
+            let new_cost = cost.max(grid[x][y]);
+            if new_cost < dis[x][y] {
+                dis[x][y] = new_cost;
+                heap.push((-new_cost, (x, y)));
+            }
+        }
+    }
+    dis[n - 1][n - 1]
+}
 
 pub fn find_answer(n: i32, edges: Vec<Vec<i32>>) -> Vec<bool> {
-    use std::collections::{BinaryHeap, VecDeque,HashMap};
+    use std::collections::{BinaryHeap, HashMap, VecDeque};
     let mut map = vec![vec![]; n as usize];
     let mut edge_idx_map = HashMap::new();
-    for (i,e) in edges.iter().enumerate() {
+    for (i, e) in edges.iter().enumerate() {
         let (u, v, w) = (e[0] as usize, e[1] as usize, e[2]);
         map[u].push((v, w));
         map[v].push((u, w));
-        edge_idx_map.insert((u,v),i);
-
+        edge_idx_map.insert((u, v), i);
     }
-
 
     let mut inf = i32::MAX / 2;
     let mut dis = vec![inf; n as usize];
@@ -30,8 +217,8 @@ pub fn find_answer(n: i32, edges: Vec<Vec<i32>>) -> Vec<bool> {
             }
         }
     }
-    let mut ans = vec![false;n as usize];
-    let mut ans2 = vec![false;edges.len()];
+    let mut ans = vec![false; n as usize];
+    let mut ans2 = vec![false; edges.len()];
     let mut q = VecDeque::new();
     if dis[0] != inf {
         q.push_back(0);
@@ -39,10 +226,10 @@ pub fn find_answer(n: i32, edges: Vec<Vec<i32>>) -> Vec<bool> {
     }
     while !q.is_empty() {
         for node in q.split_off(0) {
-            for &(next_node,cost) in map[node].iter() {
+            for &(next_node, cost) in map[node].iter() {
                 if dis[next_node] == dis[node] - cost && !ans[next_node] {
                     q.push_back(next_node);
-                    ans2[*edge_idx_map.get(&(node,next_node)).unwrap()] = true;
+                    ans2[*edge_idx_map.get(&(node, next_node)).unwrap()] = true;
                     ans[next_node] = true;
                 }
             }
