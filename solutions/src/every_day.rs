@@ -4,6 +4,30 @@ use std::{
     io::BufRead,
 };
 
+pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
+    let max = nums.iter().max().unwrap();
+    let (is_prime, primes) = eratosthenes(*max as usize);
+    println!("{:?}",primes);
+    let mut sum = 0;
+    for n in nums {
+        let n = n as usize;
+        if !is_prime[n] {
+            for i in 2.. {
+                if i < is_prime.len() && is_prime[i] && n % i == 0 {
+                    let d = n / i;
+                    if ((d < is_prime.len() && is_prime[d]) || i * i == d) && i != d{
+                        sum += n;
+                        break;
+                    }else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    sum as _
+}
+
 pub fn plus_one(mut digits: Vec<i32>) -> Vec<i32> {
     digits.insert(0, 0);
     let len = digits.len();
@@ -1347,7 +1371,7 @@ pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
         .unwrap()
 }
 
-use crate::ListNode;
+use crate::{ListNode, eratosthenes};
 
 // struct SegTree {
 //     tree: Vec<i64>,

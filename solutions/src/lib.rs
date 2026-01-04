@@ -22,6 +22,36 @@ pub mod bfs;
 pub mod dijkstra;
 use log::info;
 
+
+pub fn eratosthenes(n: usize) -> (Vec<bool>, Vec<usize>) {
+    if n < 2 {
+        return (vec![false; n + 1], Vec::new());
+    }
+    let mut is_prime = vec![true; n + 1];
+    is_prime[0] = false;
+    is_prime[1] = false;
+
+    let mut primes = Vec::new();
+
+    for i in 2..=n {
+        if is_prime[i] {
+            primes.push(i);
+            // 防止 i * i 溢出：使用 checked_mul 或转为 u64
+            if i as u64 * i as u64 > n as u64 {
+                continue;
+            }
+            // 从 i*i 开始标记合数
+            let mut j = i * i;
+            while j <= n {
+                is_prime[j] = false;
+                j += i;
+            }
+        }
+    }
+
+    (is_prime, primes)
+}
+
 use rand::Rng;
 #[derive(Debug, PartialEq, Eq)]
 pub enum NestedInteger {

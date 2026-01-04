@@ -1,35 +1,110 @@
 use std::{i32, os::unix::raw::uid_t};
 
-fn eratosthenes(n: usize) -> (Vec<bool>, Vec<usize>) {
-    if n < 2 {
-        return (vec![false; n + 1], Vec::new());
+use crate::eratosthenes;
+
+pub fn find_the_city(n: i32, edges: Vec<Vec<i32>>, distance_threshold: i32) -> i32 {
+    let mut ans = 0;
+    let mut min_reachable_cities = usize::MAX;
+    let inf = i32::MAX / 2;
+    let n = n as usize;
+    let mut map = vec![vec![];n];
+    for e in edges {
+        let u = e[0] as usize;
+        let v = e[1] as usize;
+        let w = e[2];
+        map[u].push((v, w));
+        map[v].push((u, w));
     }
-    let mut is_prime = vec![true; n + 1];
-    is_prime[0] = false;
-    is_prime[1] = false;
-
-    let mut primes = Vec::new();
-
-    for i in 2..=n {
-        if is_prime[i] {
-            primes.push(i);
-            // 防止 i * i 溢出：使用 checked_mul 或转为 u64
-            if i as u64 * i as u64 > n as u64 {
-                continue;
+    for i in 0..n {
+        let mut dis = vec![inf;n];
+        dis[i] = 0;
+        let mut vis = vec![false;n];
+        loop {
+            let mut min_cost = inf;
+            let mut min_cost_node = 0;
+            for i in 0..n {
+                if !vis[n] && dis[n] < min_cost {
+                    min_cost = dis[n];
+                    min_cost_node = n;
+                }
             }
-            // 从 i*i 开始标记合数
-            let mut j = i * i;
-            while j <= n {
-                is_prime[j] = false;
-                j += i;
+            if min_cost > distance_threshold {
+                break;
+            }
+            for (next_node,cost) in map[min_cost_node].iter() {
+                let new_cost = min_cost + cost;
+                if new_cost < dis[*next_node] {
+                    dis[*next_node] = new_cost;
+                }
+            }
+        }
+        let reachable_cities = dis.iter().filter(|&&x| x <= distance_threshold).count();
+        if reachable_cities <= min_reachable_cities {
+            min_reachable_cities = reachable_cities;
+            ans = i as i32;
+        }
+    }
+    ans
+}
+
+pub fn second_minimum(n: i32, edges: Vec<Vec<i32>>, time: i32, change: i32) -> i32 {
+    use std::collections::BinaryHeap;
+    let mut map = vec![vec![]; n as usize];
+    for e in edges {
+        let u = e[0] as usize - 1;
+        let v = e[1] as usize - 1;
+        map[u].push(v);
+        map[v].push(u);
+    }
+    let mut heap = BinaryHeap::new();
+    let mut inf = i32::MAX / 2;
+
+    let mut dis = vec![inf; n as usize];
+    dis[n as usize - 1] = 0;
+    heap.push((0, n as usize - 1));
+
+    while let Some((cost, node)) = heap.pop() {
+        let mut cost = -cost;
+        if cost > dis[node] {
+            continue;
+        }
+        if (cost / change) % 2 != 0 {
+            cost += change - (cost % change);
+        }
+        for &next in &map[node] {
+            let next_cost = cost + time;
+            if next_cost < dis[next] {
+                dis[next] = next_cost;
+                heap.push((-next_cost, next));
             }
         }
     }
+    println!("{:?}", dis);
 
-    (is_prime, primes)
+    let mut x = vec![];
+    for &n in map[0].iter() {
+        x.push((dis[n],n));
+    }
+    println!("{:?}", x);
+    x.sort_by_key(|x|x.0);
+    if x.len() == 1 || x.first().unwrap().0 == x.last().unwrap().0 {
+        let mut dep =
+
+        return dis[0];
+    } else {
+        let x = x.iter().filter(|x_| x_.0 == x[0].0).collect::<Vec<_>>();
+        let dis = x[0].0;
+        if (dis / change) % 2 == 0 {
+            return dis + time;
+        } else {
+            return dis + change - (dis % change) + time;
+        }
+    }
+    0
 }
+
 pub fn min_operations(n: i32, m: i32) -> i32 {
-    use std::collections::{VecDeque,HashMap,BinaryHeap};
+    use std::collections::{BinaryHeap, HashMap, VecDeque};
     let mut step = 1;
     let mut d = vec![];
     while step <= n {
@@ -43,27 +118,26 @@ pub fn min_operations(n: i32, m: i32) -> i32 {
         q.push_back(n);
     }
     if is_prime[m as usize] {
-        return -1
+        return -1;
     }
-    let mut vis = vec![false;10000];
+    let mut vis = vec![false; 10000];
     while !q.is_empty() {
         for n in q.split_off(0) {
             vis[n as usize] = true;
 
             for &d in d.iter() {
                 let digit = (n / d) % 10;
-                if digit > 0 && !is_prime[(n - d) as usize]{
-                    if !vis[(n - d) as usize]  {
+                if digit > 0 && !is_prime[(n - d) as usize] {
+                    if !vis[(n - d) as usize] {
                         q.push_back(n - d);
                         vis[(n - d) as usize] = true;
                     }
                     map.entry(n).or_default().push(n - d);
                 }
-                if digit < 9 && !is_prime[(n + d) as usize]{
+                if digit < 9 && !is_prime[(n + d) as usize] {
                     if !vis[(n + d) as usize] {
                         q.push_back(n + d);
                         vis[(n + d) as usize] = true;
-
                     }
                     map.entry(n).or_default().push(n + d);
                 }
@@ -71,11 +145,11 @@ pub fn min_operations(n: i32, m: i32) -> i32 {
         }
     }
     let mut inf = i32::MAX / 2;
-    let mut dis = vec![inf;10000];
+    let mut dis = vec![inf; 10000];
     dis[n as usize] = 0;
     let mut heap = BinaryHeap::new();
-    heap.push((0,n as usize));
-    while let Some((cost,n)) = heap.pop() {
+    heap.push((0, n as usize));
+    while let Some((cost, n)) = heap.pop() {
         let cost = -cost;
         if cost > dis[n] {
             continue;
