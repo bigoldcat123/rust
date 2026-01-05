@@ -4,10 +4,39 @@ use std::{
     io::BufRead,
 };
 
+pub fn max_matrix_sum(matrix: Vec<Vec<i32>>) -> i64 {
+    let mut ans = matrix
+        .iter()
+        .flatten()
+        .map(|x| (x.abs()) as i64)
+        .sum::<i64>();
+    if matrix.iter().flatten().any(|&x| x == 0) {
+        return ans
+    }
+    let min = matrix.iter().flatten().map(|x| x.abs()).min().unwrap() as i64;
+    let m: Vec<_> = matrix
+        .iter()
+        .filter(|x| x.iter().filter(|&&num| num < 0).count() > 0)
+        .map(|x| {
+            let a = x.iter().filter(|&&num| num < 0);
+            let max = a.clone().max().unwrap_or(&0);
+            let cnt = a.count();
+            (max, cnt)
+        })
+        .collect();
+    println!("{:?}", m);
+
+    if m.iter().map(|x| x.1).sum::<usize>() % 2 == 0 {
+        ans
+    } else {
+        ans - min * 2
+    }
+}
+
 pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
     let max = nums.iter().max().unwrap();
     let (is_prime, primes) = eratosthenes(*max as usize);
-    println!("{:?}",primes);
+    println!("{:?}", primes);
     let mut sum = 0;
     for n in nums {
         let n = n as usize;
@@ -15,10 +44,10 @@ pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
             for i in 2.. {
                 if i < is_prime.len() && is_prime[i] && n % i == 0 {
                     let d = n / i;
-                    if ((d < is_prime.len() && is_prime[d]) || i * i == d) && i != d{
+                    if ((d < is_prime.len() && is_prime[d]) || i * i == d) && i != d {
                         sum += n;
                         break;
-                    }else {
+                    } else {
                         break;
                     }
                 }
@@ -39,12 +68,11 @@ pub fn plus_one(mut digits: Vec<i32>) -> Vec<i32> {
         if digits[i] != 0 {
             c = false;
         }
-    };
+    }
     if digits[0] == 0 {
         digits.remove(0);
     }
     digits
-
 }
 
 pub fn latest_day_to_cross(row: i32, col: i32, cells: Vec<Vec<i32>>) -> i32 {
