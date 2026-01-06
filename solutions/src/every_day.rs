@@ -1,8 +1,37 @@
 use std::{
+    cell::RefCell,
     collections::{HashMap, HashSet},
     i32,
     io::BufRead,
+    rc::Rc,
 };
+pub fn max_level_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    use std::collections::VecDeque;
+    let mut ans = 1;
+    let mut max_sum = i32::MIN;
+    let mut q = VecDeque::new();
+    let mut level = 1;
+    q.push_back(root.unwrap().clone());
+    while !q.is_empty() {
+        let mut sum = 0;
+        for c in q.split_off(0) {
+            let c_borrow = c.borrow();
+            sum += c_borrow.val;
+            if let Some(left) = c_borrow.left.as_ref() {
+                q.push_back(left.clone());
+            }
+            if let Some(right) = c_borrow.right.as_ref() {
+                q.push_back(right.clone());
+            }
+        }
+        if sum > max_sum {
+            ans = level;
+            max_sum = sum;
+        }
+        level += 1;
+    }
+    ans
+}
 
 pub fn max_matrix_sum(matrix: Vec<Vec<i32>>) -> i64 {
     let mut ans = matrix
@@ -11,7 +40,7 @@ pub fn max_matrix_sum(matrix: Vec<Vec<i32>>) -> i64 {
         .map(|x| (x.abs()) as i64)
         .sum::<i64>();
     if matrix.iter().flatten().any(|&x| x == 0) {
-        return ans
+        return ans;
     }
     let min = matrix.iter().flatten().map(|x| x.abs()).min().unwrap() as i64;
     let m: Vec<_> = matrix
@@ -1399,7 +1428,7 @@ pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
         .unwrap()
 }
 
-use crate::{ListNode, eratosthenes};
+use crate::{ListNode, TreeNode, eratosthenes};
 
 // struct SegTree {
 //     tree: Vec<i64>,

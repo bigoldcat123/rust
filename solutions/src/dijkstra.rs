@@ -2,12 +2,85 @@ use std::{i32, os::unix::raw::uid_t};
 
 use crate::eratosthenes;
 
+pub fn minimum_cost2(
+    source: String,
+    target: String,
+    original: Vec<char>,
+    changed: Vec<char>,
+    cost: Vec<i32>,
+) -> i64 {
+    use std::collections::{HashMap};
+    let mut map:Vec<HashMap<usize, i64>> = vec![HashMap::new(); 26];
+    for i in 0..original.len() {
+        let u = original[i] as usize - 97;
+        let v = changed[i] as usize - 97;
+        let c = cost[i] as i64;
+        if let Some(x) = map[u].get_mut(&v) {
+            *x = (*x).min(c);
+        } else {
+            map[u].insert(v, c);
+        }
+    }
+    let mut min_dis:HashMap<(usize,usize), i64> = HashMap::new();
+    let mut done = vec![false;26];
+    let source:Vec<usize> = source.as_bytes().into_iter().map(|&x| x as usize - 97).collect();
+    let target:Vec<usize> = target.as_bytes().into_iter().map(|&x| x as usize - 97).collect();
+    let mut ans = 0;
+    for i in 0..source.len() {
+        if source[i] != target[i] {
+            if done[i] {
+                if let Some(dis) = min_dis.get(&(source[i],target[i])) {
+                    ans += dis;
+                }else{
+                    return -1
+                }
+            }else {
+
+                let inf = i64::MAX /  2;
+                let mut dis = vec![inf; 26];
+                let mut vis = vec![false;26];
+                dis[i] = 0;
+
+                loop {
+                    let mut min = inf;
+                    let mut min_idx = 0;
+                    for j in 0..26 {
+                        if !vis[j] && dis[j] < min {
+                            min = dis[j];
+                            min_idx = j;
+                        }
+                    }
+                    if min == inf {
+                        break;
+                    }
+                    min_dis.insert((i,min_idx), min);
+                    vis[min_idx] = true;
+                    for (&v,& c) in map[min_idx].iter() {
+                        if dis[v] > dis[min_idx] + c {
+                            dis[v] = dis[min_idx] + c;
+                        }
+                    }
+                }
+                if let Some(dis) = min_dis.get(&(source[i],target[i])) {
+                    ans += dis;
+                }else{
+                    return -1
+                }
+
+                done[i] = true;
+            }
+
+        }
+    }
+    ans
+}
+
 pub fn find_the_city(n: i32, edges: Vec<Vec<i32>>, distance_threshold: i32) -> i32 {
     let mut ans = 0;
     let mut min_reachable_cities = usize::MAX;
     let inf = i32::MAX / 2;
     let n = n as usize;
-    let mut map = vec![vec![];n];
+    let mut map = vec![vec![]; n];
     for e in edges {
         let u = e[0] as usize;
         let v = e[1] as usize;
@@ -16,9 +89,9 @@ pub fn find_the_city(n: i32, edges: Vec<Vec<i32>>, distance_threshold: i32) -> i
         map[v].push((u, w));
     }
     for i in 0..n {
-        let mut dis = vec![inf;n];
+        let mut dis = vec![inf; n];
         dis[i] = 0;
-        let mut vis = vec![false;n];
+        let mut vis = vec![false; n];
         loop {
             let mut min_cost = inf;
             let mut min_cost_node = 0;
@@ -31,7 +104,7 @@ pub fn find_the_city(n: i32, edges: Vec<Vec<i32>>, distance_threshold: i32) -> i
             if min_cost > distance_threshold {
                 break;
             }
-            for (next_node,cost) in map[min_cost_node].iter() {
+            for (next_node, cost) in map[min_cost_node].iter() {
                 let new_cost = min_cost + cost;
                 if new_cost < dis[*next_node] {
                     dis[*next_node] = new_cost;
@@ -83,14 +156,12 @@ pub fn second_minimum(n: i32, edges: Vec<Vec<i32>>, time: i32, change: i32) -> i
 
     let mut x = vec![];
     for &n in map[0].iter() {
-        x.push((dis[n],n));
+        x.push((dis[n], n));
     }
     println!("{:?}", x);
-    x.sort_by_key(|x|x.0);
+    x.sort_by_key(|x| x.0);
     if x.len() == 1 || x.first().unwrap().0 == x.last().unwrap().0 {
-        let mut dep =
-
-        return dis[0];
+        let mut dep = return dis[0];
     } else {
         let x = x.iter().filter(|x_| x_.0 == x[0].0).collect::<Vec<_>>();
         let dis = x[0].0;
