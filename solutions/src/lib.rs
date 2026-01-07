@@ -8,6 +8,8 @@ use std::{
     rc::Rc,
     vec,
 };
+pub mod eulerian_path;
+pub mod spanning_tree;
 pub mod topology;
 pub mod dijoint_set;
 pub mod every_day;

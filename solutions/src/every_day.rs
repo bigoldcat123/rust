@@ -5,6 +5,29 @@ use std::{
     io::BufRead,
     rc::Rc,
 };
+
+pub fn max_product2(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut sums = vec![];
+    dfs_search2(root, &mut sums);
+    let last = sums.pop().unwrap();
+    let mut ans = 0;
+    for n in sums {
+        ans = ans.max(n * (last - n));
+    }
+    (ans % 1000000007) as _
+}
+fn dfs_search2(root:Option<Rc<RefCell<TreeNode>>>,sums:&mut Vec<i64>) -> i64{
+    if let Some(root) = root {
+        let root = root.borrow();
+        let left = dfs_search2(root.left.clone(), sums);
+        let right = dfs_search2(root.right.clone(), sums);
+        let sum = left + right;
+        sums.push(sum);
+        sum + root.val as i64
+    }else {
+        0
+    }
+}
 pub fn max_level_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     use std::collections::VecDeque;
     let mut ans = 1;
