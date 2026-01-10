@@ -6,6 +6,54 @@ use std::{
     rc::Rc,
 };
 
+pub fn minimum_delete_sum(s1: String, s2: String) -> i32 {
+    let s1 = s1.as_bytes();
+    let s2 = s2.as_bytes();
+    let mut dp = vec![vec![0;s2.len() + 1];s1.len() + 1];
+    for i in 0..s1.len() {
+        dp[i + 1][0] = s1[i] as i32 + dp[i][0];
+    }
+    for j in 0..s2.len() {
+        dp[0][j + 1] = s2[j] as i32 + dp[0][j];
+    }
+    for i in 0..s1.len() {
+        for j in 0..s2.len() {
+            if s1[i] == s2[j] {
+                dp[i + 1][j + 1] = dp[i][j] + s1[i] as i32;
+            } else {
+                dp[i + 1][j + 1] = dp[i + 1][j].min(dp[i][j + 1]);
+            }
+        }
+    }
+    dp[s1.len()][s2.len()]
+}
+pub fn subtree_with_all_deepest(
+    root: Option<Rc<RefCell<TreeNode>>>,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    use std::collections::VecDeque;
+    dfs_subtree_with_all_deepest(root, 0).1
+}
+fn dfs_subtree_with_all_deepest(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    deep: i32,
+) -> (i32, Option<Rc<RefCell<TreeNode>>>) {
+    if let Some(root) = root {
+        let (ld, ln) = dfs_subtree_with_all_deepest(root.borrow().left.clone(), deep + 1);
+        let (rd, rn) = dfs_subtree_with_all_deepest(root.borrow().right.clone(), deep + 1);
+        println!("{} -> {} {}", root.borrow().val, ld, rd);
+
+        if ld == rd {
+            return (ld, Some(root));
+        } else if ld > rd {
+            return (ld, root.borrow().left.clone());
+        } else {
+            return (ld, root.borrow().right.clone());
+        }
+    } else {
+        (deep, None)
+    }
+}
+
 pub fn max_product2(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     let mut sums = vec![];
     dfs_search2(root, &mut sums);
@@ -16,7 +64,7 @@ pub fn max_product2(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
     }
     (ans % 1000000007) as _
 }
-fn dfs_search2(root:Option<Rc<RefCell<TreeNode>>>,sums:&mut Vec<i64>) -> i64{
+fn dfs_search2(root: Option<Rc<RefCell<TreeNode>>>, sums: &mut Vec<i64>) -> i64 {
     if let Some(root) = root {
         let root = root.borrow();
         let left = dfs_search2(root.left.clone(), sums);
@@ -24,7 +72,7 @@ fn dfs_search2(root:Option<Rc<RefCell<TreeNode>>>,sums:&mut Vec<i64>) -> i64{
         let sum = left + right;
         sums.push(sum);
         sum + root.val as i64
-    }else {
+    } else {
         0
     }
 }
