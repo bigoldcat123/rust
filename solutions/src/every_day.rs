@@ -6,6 +6,82 @@ use std::{
     rc::Rc,
 };
 
+pub fn car_fleet(target: i32, position: Vec<i32>, speed: Vec<i32>) -> i32 {
+    let mut cars = position.into_iter().zip(speed.into_iter()).collect::<Vec<_>>();
+    cars.sort_unstable_by_key(|&(p, _)| -p);
+    let mut ans = 0;
+    let mut time = 0.0;
+    for &(p, s) in &cars {
+        let t = (target - p) as f64 / s as f64;
+        if t > time {
+            ans += 1;
+            time = t;
+        }
+    }
+    ans
+}
+
+pub fn final_prices(prices: Vec<i32>) -> Vec<i32> {
+    let mut stack:Vec<usize> = vec!{};
+    let mut dis = vec![0;prices.len()];
+    for (i,&p) in prices.iter().enumerate() {
+        while !stack.is_empty() && prices[stack.last().copied().unwrap()] >= p {
+            let item = stack.pop().unwrap();
+            dis[item] = p;
+        }
+        stack.push(i);
+    }
+    prices.into_iter().zip(dis).map(|(a,b)| a - b).collect()
+}
+
+pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
+    let mut stack = vec![];
+    let mut ans = vec![0;temperatures.len()];
+    for (i,&t) in temperatures.iter().enumerate() {
+        while !stack.is_empty() && temperatures[stack.last().copied().unwrap()] < t {
+            let j = stack.pop().unwrap();
+            ans[j] = (i - j) as i32;
+        }
+        stack.push(i);
+    }
+    ans
+}
+
+
+pub fn maximal_rectangle(matrix: Vec<Vec<char>>) -> i32 {
+    let mut heights = vec![0;matrix[0].len() + 1];
+    let mut ans = 0 ;
+
+    for i in 0..matrix.len() {
+        for j in 0..matrix[0].len() {
+            if matrix[i][j] == '0' {
+                heights[j] = 0;
+            }else {
+                heights[j] += 1;
+            }
+        }
+        ans = ans.max(largest_rectangle_area(heights.clone()));
+    }
+    ans
+}
+pub fn largest_rectangle_area(mut heights: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    let mut stack = vec![-1];
+    heights.push(0);
+    for (i,&h) in heights.iter().enumerate() {
+        while stack.len() > 1 && heights[stack.last().copied().unwrap() as usize] > h {
+            let j = stack.pop().unwrap() as usize;
+            let left =stack.last().copied().unwrap();
+            let right = i as i32;
+            let width = right - left - 1;
+            let height = heights[j];
+            ans = ans.max(width * height);
+        }
+        stack.push(i as i32);
+    }
+    ans
+}
+
 pub fn minimum_delete_sum(s1: String, s2: String) -> i32 {
     let s1 = s1.as_bytes();
     let s2 = s2.as_bytes();
