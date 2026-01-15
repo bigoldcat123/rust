@@ -1,13 +1,129 @@
 use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    i32,
-    io::BufRead,
-    rc::Rc,
+    cell::RefCell, collections::{HashMap, HashSet}, i32, io::BufRead, num, rc::Rc
 };
 
+pub fn count_pairs(words: Vec<String>) -> i64 {
+    // a b c
+    // 1 2 3 -> 1 1 1
+    // d e f -> 1 1 1
+    // 4 5 6
+    // 3 3 3
+    use std::collections::HashMap;
+    let mut ans = 0;
+    let mut map = HashMap::new();
+    for w in words.iter().map(|x| x.as_bytes()) {
+        let mut k = vec![];
+        for i in 1..w.len() {
+            k.push(((w[i] as i32 - w[i - 1] as i32) + 26) % 26);
+        }
+        *map.entry(k).or_insert(0) += 1;
+    }
+    println!("{:?}",map);
+    for (_,v) in map {
+        ans += (v * v - 1) / 2;
+    }
+    ans
+}
+
+pub fn centered_subarrays(nums: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut ans = 0;
+    for len in 1..=nums.len() {
+        let mut sum = 0;
+        let mut map:HashMap<i32, i32> = HashMap::new();
+        for i in 0..len {
+            sum += nums[i];
+            *map.entry(nums[i]).or_default() += 1;
+        }
+        if map.contains_key(&sum) {
+            ans += 1;
+        }
+        for i in len..nums.len() {
+            sum -= nums[i - len];
+            sum += nums[i];
+            *map.entry(nums[i]).or_default() += 1;
+            if let Some(n) = map.get_mut(&nums[i - len]) {
+                *n -= 1;
+                if *n == 0 {
+                    map.remove(&nums[i - len]);
+                }
+            }
+            if map.contains_key(&sum) {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+
+pub fn maximize_square_hole_area(
+    n: i32,
+    m: i32,
+    mut h_bars: Vec<i32>,
+    mut v_bars: Vec<i32>,
+) -> i32 {
+    // 1-> 2
+    // 2-> 3
+    // 3-> 4
+    v_bars.sort();
+    h_bars.sort();
+    let a = max_seq(&h_bars);
+    let b = max_seq(&v_bars);
+    (a.min(b) + 1) * (a.min(b) + 1)
+}
+fn max_seq(nums: &[i32]) -> i32 {
+    let mut ans = 1;
+    let mut current = 1;
+    for i in 1..nums.len() {
+        if nums[i] == nums[i - 1] + 1 {
+            current += 1;
+            ans = ans.max(current);
+        } else {
+            current = 0;
+        }
+    }
+    ans
+}
+pub fn separate_squares(mut squares: Vec<Vec<i32>>) -> f64 {
+    squares.sort_by(|a, b| a[1].cmp(&b[1]).then(a[2].cmp(&b[2])));
+    let mut r: f64 = 0.0;
+
+    let half = squares
+        .iter()
+        .map(|s| {
+            r = r.max((s[1] + s[2]) as f64);
+            s[2] as f64 * s[2] as f64
+        })
+        .sum::<f64>()
+        / 2.0;
+    let mut l = 0.0;
+    while (r - l).abs() >= 1e-5 {
+        let mid = (r - l) / 2.0 + l;
+        if check23(mid, &squares, half) {
+            r = mid;
+        } else {
+            l = mid;
+        }
+    }
+    r
+}
+fn check23(mid: f64, squares: &Vec<Vec<i32>>, half: f64) -> bool {
+    let mut sum = 0.0;
+    for i in 0..squares.len() {
+        let y = squares[i][1] as f64;
+        let l = squares[i][2] as f64;
+        if y < mid {
+            sum += l * (mid - y).min(l);
+        }
+    }
+    sum >= half
+}
+
 pub fn car_fleet(target: i32, position: Vec<i32>, speed: Vec<i32>) -> i32 {
-    let mut cars = position.into_iter().zip(speed.into_iter()).collect::<Vec<_>>();
+    let mut cars = position
+        .into_iter()
+        .zip(speed.into_iter())
+        .collect::<Vec<_>>();
     cars.sort_unstable_by_key(|&(p, _)| -p);
     let mut ans = 0;
     let mut time = 0.0;
@@ -22,22 +138,22 @@ pub fn car_fleet(target: i32, position: Vec<i32>, speed: Vec<i32>) -> i32 {
 }
 
 pub fn final_prices(prices: Vec<i32>) -> Vec<i32> {
-    let mut stack:Vec<usize> = vec!{};
-    let mut dis = vec![0;prices.len()];
-    for (i,&p) in prices.iter().enumerate() {
+    let mut stack: Vec<usize> = vec![];
+    let mut dis = vec![0; prices.len()];
+    for (i, &p) in prices.iter().enumerate() {
         while !stack.is_empty() && prices[stack.last().copied().unwrap()] >= p {
             let item = stack.pop().unwrap();
             dis[item] = p;
         }
         stack.push(i);
     }
-    prices.into_iter().zip(dis).map(|(a,b)| a - b).collect()
+    prices.into_iter().zip(dis).map(|(a, b)| a - b).collect()
 }
 
 pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
     let mut stack = vec![];
-    let mut ans = vec![0;temperatures.len()];
-    for (i,&t) in temperatures.iter().enumerate() {
+    let mut ans = vec![0; temperatures.len()];
+    for (i, &t) in temperatures.iter().enumerate() {
         while !stack.is_empty() && temperatures[stack.last().copied().unwrap()] < t {
             let j = stack.pop().unwrap();
             ans[j] = (i - j) as i32;
@@ -47,16 +163,15 @@ pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
     ans
 }
 
-
 pub fn maximal_rectangle(matrix: Vec<Vec<char>>) -> i32 {
-    let mut heights = vec![0;matrix[0].len() + 1];
-    let mut ans = 0 ;
+    let mut heights = vec![0; matrix[0].len() + 1];
+    let mut ans = 0;
 
     for i in 0..matrix.len() {
         for j in 0..matrix[0].len() {
             if matrix[i][j] == '0' {
                 heights[j] = 0;
-            }else {
+            } else {
                 heights[j] += 1;
             }
         }
@@ -68,10 +183,10 @@ pub fn largest_rectangle_area(mut heights: Vec<i32>) -> i32 {
     let mut ans = 0;
     let mut stack = vec![-1];
     heights.push(0);
-    for (i,&h) in heights.iter().enumerate() {
+    for (i, &h) in heights.iter().enumerate() {
         while stack.len() > 1 && heights[stack.last().copied().unwrap() as usize] > h {
             let j = stack.pop().unwrap() as usize;
-            let left =stack.last().copied().unwrap();
+            let left = stack.last().copied().unwrap();
             let right = i as i32;
             let width = right - left - 1;
             let height = heights[j];
@@ -85,7 +200,7 @@ pub fn largest_rectangle_area(mut heights: Vec<i32>) -> i32 {
 pub fn minimum_delete_sum(s1: String, s2: String) -> i32 {
     let s1 = s1.as_bytes();
     let s2 = s2.as_bytes();
-    let mut dp = vec![vec![0;s2.len() + 1];s1.len() + 1];
+    let mut dp = vec![vec![0; s2.len() + 1]; s1.len() + 1];
     for i in 0..s1.len() {
         dp[i + 1][0] = s1[i] as i32 + dp[i][0];
     }
