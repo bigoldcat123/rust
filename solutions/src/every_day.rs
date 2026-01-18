@@ -2,6 +2,255 @@ use std::{
     cell::RefCell, collections::{HashMap, HashSet}, i32, io::BufRead, num, rc::Rc
 };
 
+pub fn vowel_consonant_score(s: String) -> i32 {
+    let mut c = 0;
+    let mut v = 0;
+
+    for cc in s.chars() {
+        if cc == 'a' || cc == 'e' || cc == 'i' || cc == 'o' || cc == 'u' {
+            v += 1;
+        } else if cc.is_alphabetic() {
+            c += 1;
+        }
+    }
+
+    if c > 0 {
+        v / c
+    }else {
+        0
+    }
+}
+
+pub fn word_squares(words: Vec<String>) -> Vec<Vec<String>> {
+    let words:Vec<&[u8]> = words.iter().map(|x| x.as_bytes()).collect();
+    let mut ans = vec![];
+    let mut current = vec![];
+    let mut selected = vec![false; words.len()];
+    dfs_word_squares(&words, &mut current, &mut selected, &mut ans);
+    ans
+}
+
+fn dfs_word_squares<'a>(words:&Vec<&'a [u8]>,s:&mut Vec<&'a [u8]>,selected:&mut Vec<bool>,res:&mut Vec<Vec<String>>) {
+    if s.len() == 4 {
+        if s[0][0] == s[1][0] && s[0][3] == s[2][0] && s[3][0] == s[1][3] && s[3][3] == s[2][3] {
+            res.push(s.iter().map(|x| String::from_utf8_lossy(x).to_string()).collect());
+        }
+        return;
+    }
+    for (i,w) in words.iter().enumerate() {
+        if !selected[i] {
+            selected[i] = true;
+            s.push(w);
+            dfs_word_squares(words, s, selected,res);
+            s.pop();
+            selected[i] = false;
+        }
+    }
+}
+
+pub fn min_operations22as(nums: Vec<i32>, target: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut l = 0;
+    let mut r = 0;
+    let mut map:HashMap<i32, Vec<(usize,usize)>> = HashMap::new();
+
+    while r < nums.len() {
+        while r < nums.len() && nums[r] == nums[l] {
+            r += 1;
+        }
+        map.entry(nums[l]).or_default().push((l,r));
+        l = r;
+    }
+    let mut ans = 0;
+    for (_,v) in map {
+        if v.iter().any(|x| nums[x.0..x.1] != target[x.0..x.1]) {
+            ans += 1;
+        }
+    }
+    ans
+}
+
+pub fn best_tower(towers: Vec<Vec<i32>>, center: Vec<i32>, radius: i32) -> Vec<i32> {
+    let mut max_value = 0;
+    let mut ans = vec![i32::MAX, i32::MAX];
+    for t in towers {
+        let dis = (center[0] - t[0]).abs() + (center[1] - t[1]).abs();
+        if dis <= radius && t[2] > max_value {
+            ans = vec![t[0], t[1]];
+            max_value = t[2];
+        }
+        if dis <= radius && t[2] == max_value && (t[0] < ans[0] || t[0] == ans[0] && t[1] < ans[1])
+        {
+            ans = vec![t[0], t[1]];
+            max_value = t[2];
+        }
+    }
+    if ans[0] == i32::MAX {
+        vec![-1,-1]
+    }else {
+        ans
+    }
+}
+
+pub fn largest_magic_square(grid: Vec<Vec<i32>>) -> i32 {
+    let mut pre_sum_row = vec![vec![0; grid[0].len() + 1]; grid.len()];
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            pre_sum_row[i][j + 1] = pre_sum_row[i][j] + grid[i][j];
+        }
+    }
+    let mut pre_sum_col = vec![vec![0; grid.len() + 1]; grid[0].len()];
+    for i in 0..grid[0].len() {
+        for j in 0..grid.len() {
+            pre_sum_col[i][j + 1] = pre_sum_col[i][j] + grid[j][i];
+        }
+    }
+    for i in (1..=grid.len().min(grid[0].len())).rev() {
+        if check_largest_magic_square(&grid, &pre_sum_row, &pre_sum_col, i as i32) {
+            return i as i32;
+        }
+    }
+    0
+}
+
+fn check_largest_magic_square(
+    grid: &[Vec<i32>],
+    pre_sum_row: &[Vec<i32>],
+    pre_sum_col: &[Vec<i32>],
+    mid: i32,
+) -> bool {
+    use std::collections::HashMap;
+    let mid = mid as usize;
+    for i in 0..=grid.len() - mid {
+        for j in 0..=grid[0].len() - mid {
+            let mut map: HashMap<i32, i32> = HashMap::new();
+            // cal row
+            for ii in i..i + mid {
+                *map.entry(pre_sum_row[ii][j + mid] - pre_sum_row[ii][j])
+                    .or_default() += 1;
+            }
+            if map.len() != 1 {
+                break;
+            }
+            //cal col
+            for jj in j..j + mid {
+                *map.entry(pre_sum_col[jj][i + mid] - pre_sum_col[jj][i])
+                    .or_default() += 1;
+            }
+            if map.len() != 1 {
+                break;
+            }
+            // cal diagnose
+            let mut sum = 0;
+            let mut i = i;
+            let mut j = j;
+            for x in 0..mid {
+                sum += grid[i + x][j + x];
+            }
+            *map.entry(sum).or_default() += 1;
+            let mut sum = 0;
+            let mut i = i + mid - 1;
+            let mut j = j;
+            for x in 0..mid {
+                sum += grid[i - x][j + x];
+            }
+            *map.entry(sum).or_default() += 1;
+            if grid.len() == 1 {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+pub fn largest_square_area(bottom_left: Vec<Vec<i32>>, top_right: Vec<Vec<i32>>) -> i64 {
+    let mut ans = 0;
+    let s: Vec<(Vec<i32>, Vec<i32>)> = bottom_left.into_iter().zip(top_right).collect();
+    for (i, (bl, tr)) in s.iter().enumerate() {
+        for (j, (bl2, tr2)) in s.iter().enumerate() {
+            if i != j {
+                let x1 = bl[0];
+                let x2 = tr[0];
+                let x11 = bl2[0];
+                let x22 = tr2[0];
+                let mut w = 0;
+                if x11 >= x1 && x22 <= x2 {
+                    w = x22 - x11;
+                } else if x1 >= x11 && x2 <= x22 {
+                    w = x2 - x1;
+                } else if x11 >= x1 && x11 <= x2 {
+                    w = x2 - x11;
+                } else if x22 >= x1 && x22 <= x2 {
+                    w = x22 - x1;
+                }
+                let x1 = bl[1];
+                let x2 = tr[1];
+                let x11 = bl2[1];
+                let x22 = tr2[1];
+                let mut h = 0;
+                if x11 >= x1 && x22 <= x2 {
+                    h = x22 - x11;
+                } else if x11 >= x1 && x11 <= x2 {
+                    h = x2 - x11;
+                } else if x22 >= x1 && x22 <= x2 {
+                    h = x22 - x1;
+                }
+                let h = h as i64;
+                let w = w as i64;
+                ans = ans.max(w.min((h)) * w.min((h)));
+            }
+        }
+    }
+    ans
+}
+
+pub fn maximize_square_area(m: i32, n: i32, h_fences: Vec<i32>, v_fences: Vec<i32>) -> i32 {
+    use std::collections::HashSet;
+    let mut v_set = HashSet::new();
+    let mut h_set = HashSet::new();
+    h_set.insert(m - 1);
+    v_set.insert(n - 1);
+    for &h in h_fences.iter() {
+        h_set.insert(h - 1);
+        h_set.insert(m - h);
+    }
+    for h in h_fences.iter().copied() {
+        for h2 in h_fences.iter().copied() {
+            h_set.insert((h - h2).abs());
+        }
+    }
+    let mut ans = -1;
+
+    for v in v_fences.iter().copied() {
+        if h_set.contains(&(v - 1)) {
+            ans = ans.max(v - 1);
+        }
+        if h_set.contains(&(n - v)) {
+            ans = ans.max(n - v);
+        }
+    }
+    for v in v_fences.iter().copied() {
+        for v2 in v_fences.iter().copied() {
+            if h_set.contains(&(v2 - v).abs()) {
+                ans = ans.max((v2 - v).abs());
+            }
+        }
+    }
+    println!("{:?}", v_set);
+    println!("{:?}", h_set);
+
+    // for x in v_set {
+    //     if h_set.contains(&x) {
+    //         ans = ans.max(x)
+    //     }
+    // }
+    if ans > 0 {
+        ((ans as usize * ans as usize) % 1_000_000_007) as _
+    } else {
+        -1
+    }
+}
+
 pub fn count_pairs(words: Vec<String>) -> i64 {
     // a b c
     // 1 2 3 -> 1 1 1
@@ -18,8 +267,8 @@ pub fn count_pairs(words: Vec<String>) -> i64 {
         }
         *map.entry(k).or_insert(0) += 1;
     }
-    println!("{:?}",map);
-    for (_,v) in map {
+    println!("{:?}", map);
+    for (_, v) in map {
         ans += (v * v - 1) / 2;
     }
     ans
@@ -30,7 +279,7 @@ pub fn centered_subarrays(nums: Vec<i32>) -> i32 {
     let mut ans = 0;
     for len in 1..=nums.len() {
         let mut sum = 0;
-        let mut map:HashMap<i32, i32> = HashMap::new();
+        let mut map: HashMap<i32, i32> = HashMap::new();
         for i in 0..len {
             sum += nums[i];
             *map.entry(nums[i]).or_default() += 1;
@@ -1689,6 +1938,9 @@ pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
         .copied()
         .unwrap()
 }
+
+use log::log_enabled;
+use num_traits::real::Real;
 
 use crate::{ListNode, TreeNode, eratosthenes};
 

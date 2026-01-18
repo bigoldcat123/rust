@@ -3,7 +3,21 @@
 use std::collections::HashMap;
 
 use solutions::every_day::give_me_random_array;
-
+#[test]
+fn asda() {
+    fn a(l:&[i32],s:&mut Vec<i32>,len:usize,start:usize) {
+        if s.len() == len {
+            println!("{:?}",s);
+            return;
+        }
+        for i in start..l.len() {
+            s.push(l[i]);
+            a(l,s,len,i+1);
+            s.pop();
+        }
+    }
+    a(&[1,2,3,4,5],&mut vec![],2,0);
+}
 macro_rules! 干 {
     (让 $a:ident 等于 $e:expr) => {
         let $a = $e;
