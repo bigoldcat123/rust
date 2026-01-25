@@ -1,6 +1,84 @@
 use std::{
     cell::RefCell, collections::{HashMap, HashSet}, i32, io::BufRead, num, rc::Rc
 };
+pub fn min_pair_sum(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    let mut ans = 0;
+    for i in 0..nums.len() / 2 {
+        ans = ans.max(nums[i] + nums[nums.len() - 1 - i]);
+    }
+    ans
+}
+pub fn minimum_difference(mut nums: Vec<i32>, k: i32) -> i32 {
+    nums.sort();
+    let mut ans = i32::MAX;
+    let mut start = nums[0];
+    let mut end = nums[k as usize- 1];
+
+    for i in 0..=nums.len() - k as usize {
+        ans = ans.min(nums[i + k as usize - 1] - nums[i]);
+    }
+    ans
+}
+pub fn minimum_pair_removal(mut nums: Vec<i32>) -> i32 {
+    let mut ans = 0;
+
+    loop {
+        let mut min_pair = (0,0);
+        let mut min_sum = i32::MAX;
+        let mut is_sorted = true;
+        for i in 1..nums.len() {
+            let sum = nums[i] + nums[i - 1];
+            if nums[i] < nums[i - 1] {
+                is_sorted = false;
+            }
+            if sum < min_sum {
+                min_sum = sum;
+                min_pair = (i - 1,i);
+            }
+        }
+        if is_sorted{
+            break;
+        }
+        ans += 1;
+        let mut new_nums = nums[..min_pair.0].to_vec();
+        new_nums.push(nums[min_pair.0] + nums[min_pair.1]);
+        new_nums.append(&mut nums[min_pair.1 + 1..].to_vec());
+    }
+    ans
+}
+pub fn max_side_length(mat: Vec<Vec<i32>>, threshold: i32) -> i32 {
+    let mut pre_sum_row = vec![vec![0;mat[0].len() + 1];mat.len()];
+    let mut pre_sum_col = vec![vec![0;mat.len() + 1];mat[0].len()];
+    for i in 0..mat.len() {
+        for j in 0..mat[0].len() {
+            pre_sum_row[i][j + 1] = pre_sum_row[i][j] + mat[i][j];
+        }
+    }
+    for j in 0..mat[0].len() {
+        for i in 0..mat.len() {
+            pre_sum_col[j][i + 1] = pre_sum_col[j][i] + mat[i][j];
+        }
+    }
+    let mut ans = 1;
+    let l = mat.len().min(mat[0].len());
+    for l in (1..=l).rev() {
+        for i in 0..=mat.len() - l {
+            for j in 0..=mat.len() - l {
+                let mut sum = 0;
+                for i_h in i..i + l {
+                    sum += pre_sum_row[i_h][j + l] - pre_sum_row[i_h][j];
+                    sum += pre_sum_col[i_h][i + l] - pre_sum_col[i_h][i];
+                }
+                if sum <= threshold {
+                    return l as i32
+                }
+            }
+        }
+    }
+
+    ans
+}
 
 pub fn vowel_consonant_score(s: String) -> i32 {
     let mut c = 0;

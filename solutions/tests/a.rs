@@ -2,21 +2,19 @@
 
 use std::collections::HashMap;
 
-use solutions::every_day::give_me_random_array;
+use solutions::{eratosthenes, every_day::give_me_random_array};
 #[test]
 fn asda() {
-    fn a(l:&[i32],s:&mut Vec<i32>,len:usize,start:usize) {
-        if s.len() == len {
-            println!("{:?}",s);
-            return;
-        }
-        for i in start..l.len() {
-            s.push(l[i]);
-            a(l,s,len,i+1);
-            s.pop();
+
+    //1. x / 2 + x/2 + 1
+    //2. x - 2 or x -1
+    //3. x - 1 or x
+    let (is,n) = eratosthenes(1000);
+    for i in 0..100 {
+        if is[i | (i + 1)] {
+            println!("{} or {} = {}",i, i + 1, i | (i + 1));
         }
     }
-    a(&[1,2,3,4,5],&mut vec![],2,0);
 }
 macro_rules! 干 {
     (让 $a:ident 等于 $e:expr) => {
