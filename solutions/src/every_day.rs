@@ -1,6 +1,126 @@
 use std::{
-    cell::RefCell, collections::{HashMap, HashSet}, i32, io::BufRead, num, rc::Rc
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    i32,
+    io::BufRead,
+    num,
+    rc::Rc,
 };
+
+pub fn min_cost2(n: i32, edges: Vec<Vec<i32>>) -> i32 {
+    use std::collections::BinaryHeap;
+    let mut map = vec![vec![]; n as usize];
+    for t in edges {
+        let u = t[0] as usize;
+        let v = t[1] as usize;
+        let c = t[2] as usize;
+        map[u].push((v, c));
+        map[v].push((u,c * 2));
+    }
+    let inf = i32::MAX / 2;
+    let mut dis = vec![inf;n as usize];
+    dis[0] = 0;
+    let mut heap = BinaryHeap::new();
+    heap.push((0,0));
+    while let Some((min_cost,min_node)) = heap.pop() {
+        if dis[min_node] < -min_cost {
+            continue;
+        }
+        for &(next,cost) in map[min_node].iter() {
+            let new_cost = min_cost + cost as i32;
+            if dis[next] > new_cost {
+                dis[next] = new_cost;
+                heap.push((-new_cost,next));
+            }
+        }
+    }
+
+    let last = *dis.last().unwrap();
+    if last != inf {
+        last
+    }else {
+        -1
+    }
+}
+
+pub fn network_delay_time2(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
+    use std::collections::BinaryHeap;
+    let mut map = vec![vec![]; n as usize];
+    for t in times {
+        let u = t[0] as usize - 1;
+        let v = t[1] as usize - 1;
+        let c = t[2] as usize;
+        map[u].push((v, c));
+    }
+    let mut heap = BinaryHeap::new();
+    heap.push((0,k as usize - 1));
+    let mut dis = vec![i32::MAX / 2;n as usize ];
+    while let Some((min_cost,min_node)) = heap.pop() {
+        if -min_cost > dis[min_node] {
+            continue;
+        }
+        dis[min_node] = min_cost;
+        for &(next,cost) in map[min_node].iter() {
+            let cost = -min_cost + cost as i32;
+            if cost < dis[next] {
+                heap.push((-cost,next));
+            }
+        }
+    }
+    let max = dis.iter().max().copied().unwrap();
+    if max == i32::MAX / 2 { -1 } else { max }
+}
+pub fn network_delay_time(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
+    let mut map = vec![vec![]; n as usize];
+    for t in times {
+        let u = t[0] as usize - 1;
+        let v = t[1] as usize - 1;
+        let c = t[2] as usize;
+        map[u].push((v, c));
+    }
+    let mut ans = 0;
+    let mut dis = vec![i32::MAX / 2; n as usize];
+    let mut selected = vec![false; n as usize];
+    dis[k as usize] = 0;
+    loop {
+        let mut min_node = 0;
+        let mut min_cost = i32::MAX / 2;
+        for n in 0..n as usize {
+            if !selected[n] && dis[n] < min_cost {
+                min_node = n;
+                min_cost = dis[n];
+            }
+        }
+        if min_cost == i32::MAX / 2 {
+            break;
+        }
+        selected[min_node] = true;
+        for &(next, cost) in map[min_node].iter() {
+            let next_cost = cost as i32 + min_cost;
+            if dis[next] > next_cost {
+                dis[next] = next_cost;
+            }
+        }
+    }
+    let max = dis.iter().max().copied().unwrap();
+    if max == i32::MAX / 2 { -1 } else { max }
+}
+
+pub fn minimum_abs_difference(mut arr: Vec<i32>) -> Vec<Vec<i32>> {
+    let mut ans = vec![];
+    arr.sort();
+    let mut min = i32::MAX;
+    for i in 1..arr.len() {
+        if arr[i] - arr[i - 1] < min {
+            ans.clear();
+            min = arr[i] - arr[i - 1];
+            ans.push(vec![arr[i - 1], arr[i]]);
+        } else if arr[i] - arr[i - 1] == min {
+            ans.push(vec![arr[i - 1], arr[i]]);
+        }
+    }
+    ans
+}
 pub fn min_pair_sum(mut nums: Vec<i32>) -> i32 {
     nums.sort();
     let mut ans = 0;
@@ -13,7 +133,7 @@ pub fn minimum_difference(mut nums: Vec<i32>, k: i32) -> i32 {
     nums.sort();
     let mut ans = i32::MAX;
     let mut start = nums[0];
-    let mut end = nums[k as usize- 1];
+    let mut end = nums[k as usize - 1];
 
     for i in 0..=nums.len() - k as usize {
         ans = ans.min(nums[i + k as usize - 1] - nums[i]);
@@ -24,7 +144,7 @@ pub fn minimum_pair_removal(mut nums: Vec<i32>) -> i32 {
     let mut ans = 0;
 
     loop {
-        let mut min_pair = (0,0);
+        let mut min_pair = (0, 0);
         let mut min_sum = i32::MAX;
         let mut is_sorted = true;
         for i in 1..nums.len() {
@@ -34,10 +154,10 @@ pub fn minimum_pair_removal(mut nums: Vec<i32>) -> i32 {
             }
             if sum < min_sum {
                 min_sum = sum;
-                min_pair = (i - 1,i);
+                min_pair = (i - 1, i);
             }
         }
-        if is_sorted{
+        if is_sorted {
             break;
         }
         ans += 1;
@@ -48,8 +168,8 @@ pub fn minimum_pair_removal(mut nums: Vec<i32>) -> i32 {
     ans
 }
 pub fn max_side_length(mat: Vec<Vec<i32>>, threshold: i32) -> i32 {
-    let mut pre_sum_row = vec![vec![0;mat[0].len() + 1];mat.len()];
-    let mut pre_sum_col = vec![vec![0;mat.len() + 1];mat[0].len()];
+    let mut pre_sum_row = vec![vec![0; mat[0].len() + 1]; mat.len()];
+    let mut pre_sum_col = vec![vec![0; mat.len() + 1]; mat[0].len()];
     for i in 0..mat.len() {
         for j in 0..mat[0].len() {
             pre_sum_row[i][j + 1] = pre_sum_row[i][j] + mat[i][j];
@@ -71,7 +191,7 @@ pub fn max_side_length(mat: Vec<Vec<i32>>, threshold: i32) -> i32 {
                     sum += pre_sum_col[i_h][i + l] - pre_sum_col[i_h][i];
                 }
                 if sum <= threshold {
-                    return l as i32
+                    return l as i32;
                 }
             }
         }
@@ -92,15 +212,11 @@ pub fn vowel_consonant_score(s: String) -> i32 {
         }
     }
 
-    if c > 0 {
-        v / c
-    }else {
-        0
-    }
+    if c > 0 { v / c } else { 0 }
 }
 
 pub fn word_squares(words: Vec<String>) -> Vec<Vec<String>> {
-    let words:Vec<&[u8]> = words.iter().map(|x| x.as_bytes()).collect();
+    let words: Vec<&[u8]> = words.iter().map(|x| x.as_bytes()).collect();
     let mut ans = vec![];
     let mut current = vec![];
     let mut selected = vec![false; words.len()];
@@ -108,18 +224,27 @@ pub fn word_squares(words: Vec<String>) -> Vec<Vec<String>> {
     ans
 }
 
-fn dfs_word_squares<'a>(words:&Vec<&'a [u8]>,s:&mut Vec<&'a [u8]>,selected:&mut Vec<bool>,res:&mut Vec<Vec<String>>) {
+fn dfs_word_squares<'a>(
+    words: &Vec<&'a [u8]>,
+    s: &mut Vec<&'a [u8]>,
+    selected: &mut Vec<bool>,
+    res: &mut Vec<Vec<String>>,
+) {
     if s.len() == 4 {
         if s[0][0] == s[1][0] && s[0][3] == s[2][0] && s[3][0] == s[1][3] && s[3][3] == s[2][3] {
-            res.push(s.iter().map(|x| String::from_utf8_lossy(x).to_string()).collect());
+            res.push(
+                s.iter()
+                    .map(|x| String::from_utf8_lossy(x).to_string())
+                    .collect(),
+            );
         }
         return;
     }
-    for (i,w) in words.iter().enumerate() {
+    for (i, w) in words.iter().enumerate() {
         if !selected[i] {
             selected[i] = true;
             s.push(w);
-            dfs_word_squares(words, s, selected,res);
+            dfs_word_squares(words, s, selected, res);
             s.pop();
             selected[i] = false;
         }
@@ -130,17 +255,17 @@ pub fn min_operations22as(nums: Vec<i32>, target: Vec<i32>) -> i32 {
     use std::collections::HashMap;
     let mut l = 0;
     let mut r = 0;
-    let mut map:HashMap<i32, Vec<(usize,usize)>> = HashMap::new();
+    let mut map: HashMap<i32, Vec<(usize, usize)>> = HashMap::new();
 
     while r < nums.len() {
         while r < nums.len() && nums[r] == nums[l] {
             r += 1;
         }
-        map.entry(nums[l]).or_default().push((l,r));
+        map.entry(nums[l]).or_default().push((l, r));
         l = r;
     }
     let mut ans = 0;
-    for (_,v) in map {
+    for (_, v) in map {
         if v.iter().any(|x| nums[x.0..x.1] != target[x.0..x.1]) {
             ans += 1;
         }
@@ -164,8 +289,8 @@ pub fn best_tower(towers: Vec<Vec<i32>>, center: Vec<i32>, radius: i32) -> Vec<i
         }
     }
     if ans[0] == i32::MAX {
-        vec![-1,-1]
-    }else {
+        vec![-1, -1]
+    } else {
         ans
     }
 }

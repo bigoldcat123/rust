@@ -9,7 +9,7 @@ fn asda() {
     //1. x / 2 + x/2 + 1
     //2. x - 2 or x -1
     //3. x - 1 or x
-    let (is,n) = eratosthenes(1000);
+    let (is,_n) = eratosthenes(1000);
     for i in 0..100 {
         if is[i | (i + 1)] {
             println!("{} or {} = {}",i, i + 1, i | (i + 1));
