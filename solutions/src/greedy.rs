@@ -1,9 +1,91 @@
-pub fn bag_of_tokens_score(tokens: Vec<i32>, power: i32) -> i32 {
-        // score -> power
-        // power -> score
-    }
 
-pub fn min_operations(mut nums1: Vec<i32>,mut nums2: Vec<i32>) -> i32 {
+pub fn max_points(technique1: Vec<i32>, technique2: Vec<i32>, k: i32) -> i64 {
+
+}
+
+pub fn maximum_score(mut cards: Vec<i32>, mut cnt: i32) -> i32 {
+    cards.sort();
+    let mut sum = cards[cards.len() - cnt as usize..cards.len()].iter().sum();
+    if sum % 2 == 0 {
+        return sum
+    }
+    let pre_a0:Vec<_> = cards[..cards.len() - cnt as usize].iter().filter(|&x| x % 2 == 0).copied().collect();
+    let post_a0:Vec<_> = cards[cards.len() - cnt as usize..].iter().filter(|&x| x % 2 == 0).copied().collect();
+    let pre_a1:Vec<_> = cards[..cards.len() - cnt as usize].iter().filter(|&x| x % 2 == 1).copied().collect();
+    let post_a1:Vec<_> = cards[cards.len() - cnt as usize..].iter().filter(|&x| x % 2 == 1).copied().collect();
+    let mut ans = 0;
+    if !pre_a0.is_empty() {
+        ans = sum + pre_a0[pre_a0.len() - 1] - post_a1[0];
+    }
+    if !post_a0.is_empty() && !pre_a1.is_empty(){
+        ans = ans.max(sum - post_a0[0] + pre_a1[pre_a1.len() - 1]);
+    }
+    ans
+}
+pub fn max_sum_div_three(mut nums: Vec<i32>) -> i32 {
+    let sum = nums.iter().sum::<i32>();
+    if sum % 3 == 0 {
+        return sum;
+    }
+    let mut a1 = vec![];
+    let mut a2 = vec![];
+    for n in nums {
+        if n % 3 == 1 {
+            a1.push(n);
+        } else if n % 3 == 2 {
+            a2.push(n);
+        }
+    }
+    a1.sort();
+    a2.sort();
+    if sum % 3 == 2 {
+        // -2 or -1 -1
+        let mut ans = 0;
+        if a1.len() > 1 {
+            ans = sum - a1[0] - a1[1];
+        }
+        if !a2.is_empty() {
+            ans = ans.max(sum - a2[0]);
+        }
+        return ans;
+    } else {
+        // -1
+        let mut ans = 0;
+        if !a1.is_empty() {
+            ans = sum - a1[0];
+        }
+        if a2.len() > 1 {
+            ans = ans.max(sum - a2[0] - a2[1]);
+        }
+        return ans;
+    }
+    0
+}
+
+pub fn bag_of_tokens_score(mut tokens: Vec<i32>, mut power: i32) -> i32 {
+    // score -> power
+    // power -> score
+    tokens.sort();
+    let mut score = 0;
+
+    let mut l = 0;
+    let mut r = tokens.len() - 1;
+    let mut ans = 0;
+    while l != r {
+        if power >= tokens[l] {
+            power -= tokens[l];
+            l += 1;
+        } else if score > 0 {
+            score -= 1;
+            power += tokens[r];
+            r -= 1;
+        }
+        ans = ans.max(score);
+    }
+    ans
+}
+
+pub fn min_operations(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> i32 {
     let max_len = nums1.len().max(nums2.len());
     let min_len = nums1.len().min(nums2.len());
     if min_len * 6 < max_len {
@@ -22,7 +104,7 @@ pub fn min_operations(mut nums1: Vec<i32>,mut nums2: Vec<i32>) -> i32 {
         nums1 = nums2;
         nums2 = p;
     }
-    let mut cnt = vec![0;6];
+    let mut cnt = vec![0; 6];
     for &n in nums1.iter() {
         cnt[n as usize - 1] += 1;
     }
@@ -30,9 +112,9 @@ pub fn min_operations(mut nums1: Vec<i32>,mut nums2: Vec<i32>) -> i32 {
         cnt[6 - n as usize] += 1;
     }
     let mut s = 0;
-    for i in (0..=5).rev(){
+    for i in (0..=5).rev() {
         if diff <= cnt[i] * i as i32 {
-            return (diff + i as i32 - 1) / i as i32
+            return (diff + i as i32 - 1) / i as i32;
         }
         diff -= cnt[i] * i as i32;
         s += cnt[i];
