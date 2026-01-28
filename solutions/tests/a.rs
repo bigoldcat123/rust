@@ -3,6 +3,12 @@
 use std::collections::HashMap;
 
 use solutions::{eratosthenes, every_day::give_me_random_array};
+
+#[test]
+fn asdadas() {
+    let a = [0,2,2,2,3,4];
+    println!("{:?}",a.binary_search(&1));
+}
 #[test]
 fn asda() {
 
@@ -32,14 +38,8 @@ fn feature() {
 
 #[test]
 fn hello() {
-    干!{让 你 等于 "一个神奇的数字"};
-    println!("{} {} ",你,i32::MAX);
+    let a = give_me_random_array(10, 10000, 1);
 
-
-    let mut a = vec![];
-    for _ in 0..10 {
-        a.push(give_me_random_array(2, 1000, -1000));
-    }
     println!("{:?}",a);
 }
 

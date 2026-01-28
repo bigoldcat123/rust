@@ -1,23 +1,383 @@
+pub fn advantage_count(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> Vec<i32> {
+    let mut nums2:Vec<(usize,i32)> = nums2.into_iter().enumerate().collect();
+    nums1.sort();
+    nums2.sort_by_key(|x| x.1);
+    let mut l = 0;
+    let mut r = nums1.len() - 1;
+    let mut ans = vec![];
+    for &n in nums2.iter().rev() {
+        if nums1[r] > n.1 {
+            ans.push((n.0,nums1[r]));
+            r -= 1;
+        }else {
+            ans.push((n.0,nums1[l]));
+            l += 1;
+        }
+    }
+    ans.sort_by_key(|x|x.0);
+    ans.into_iter().map(|x| x.1).collect()
+}
+pub fn check_if_can_break(mut s1: String, mut s2: String) -> bool {
+    unsafe {
+        s1.as_bytes_mut().sort();
+        s2.as_bytes_mut().sort();
+    }
+    // s1 >= s2 || s2 >= s1
+    s1.as_bytes().iter().zip(s2.as_bytes()).all(|(a, b)| a >= b)
+        || s1.as_bytes().iter().zip(s2.as_bytes()).all(|(a, b)| a <= b)
+}
+pub fn match_players_and_trainers(mut players: Vec<i32>, mut trainers: Vec<i32>) -> i32 {
+    players.sort();
+    trainers.sort();
+    let mut t = trainers.len() - 1;
+    let mut ans = 0;
+    for &p in players.iter().rev() {
+        if trainers[t] >= p {
+            ans += 1;
+            t -= 1;
+        }
+    }
+    ans
+}
 
+pub fn max_num_of_marked_indices(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    let mut l = 0;
+    let mut r = (nums.len() / 2) as i32;
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        if check(&nums, mid) {
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    r
+}
+fn check(nums: &[i32], mid: i32) -> bool {
+    let mut l = 0;
+    for i in nums.len() - mid as usize..nums.len() {
+        if nums[l] * 2 > nums[i] {
+            return false;
+        }
+        l += 1;
+    }
+    true
+}
+
+pub fn maximize_greatness(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    let mut ans = 0;
+    let mut l = 0;
+    let mut r = nums.len() - 1;
+    for i in (0..nums.len()) {
+        if nums[r] <= nums[i] {
+            l += 1;
+        } else {
+            r -= 1;
+            ans += 1;
+        }
+    }
+    ans
+}
+
+pub fn num_rescue_boats(mut people: Vec<i32>, limit: i32) -> i32 {
+    people.sort();
+    let mut ans = 0;
+    let mut l = 0;
+    let mut r = people.len() - 1;
+    while l <= r {
+        if l == r {
+            ans += 1;
+            break;
+        }
+        if people[l] + people[r] <= limit {
+            l += 1;
+            r -= 1;
+        } else {
+            r -= 1;
+        }
+        ans += 1;
+    }
+    ans
+}
+pub fn smallest_range_ii(mut nums: Vec<i32>, k: i32) -> i32 {
+    nums.sort();
+    let len = nums.len();
+    let mut ans = nums[len - 1] - nums[0];
+    let mut min = nums[0];
+    let mut max = nums[len - 1];
+    for i in 0..nums.len() {
+        let min = nums[0].min(nums[i] - k);
+        let max = nums[len].max(nums[i] + k);
+        ans = ans.min((max - min).abs());
+    }
+
+    ans
+}
+
+pub fn max_distance(mut arrays: Vec<Vec<i32>>) -> i32 {
+    arrays.sort_by_key(|x| x[0]);
+    let mut ans = (arrays[0].last().copied().unwrap() - arrays[1][0]).abs();
+    for i in 1..arrays.len() {
+        ans = ans.max((arrays[i].last().copied().unwrap() - arrays[0][0]).abs());
+    }
+    ans
+}
+pub fn maximum_total_sum(mut maximum_height: Vec<i32>) -> i64 {
+    maximum_height.sort();
+    let mut pre = i32::MAX;
+    for i in (0..maximum_height.len()) {
+        if maximum_height[i] >= pre {
+            maximum_height[i] = pre - 1;
+        }
+        pre = maximum_height[i];
+        if pre < 0 {
+            return -1;
+        }
+    }
+    maximum_height.iter().map(|&x| x as i64).sum()
+}
+
+pub fn max_sum(mut grid: Vec<Vec<i32>>, limits: Vec<i32>, k: i32) -> i64 {
+    for g in grid.iter_mut() {
+        g.sort();
+    }
+    let mut arr = vec![];
+    for (i, g) in grid.iter().enumerate() {
+        arr.extend_from_slice(&grid[i][grid.len() - limits[i] as usize..]);
+    }
+    arr.sort();
+    arr[arr.len() - k as usize..]
+        .iter()
+        .map(|&x| x as i64)
+        .sum()
+}
+pub fn max_coins(mut piles: Vec<i32>) -> i32 {
+    let mut p = piles.len() / 3;
+    piles.sort();
+    let mut ans = 0;
+    for i in (0..piles.len()).rev().step_by(2) {
+        p -= 1;
+        ans += piles[i - 1];
+        if p == 0 {
+            break;
+        }
+    }
+    ans
+}
+pub fn min_increment_for_unique(mut nums: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    nums.sort();
+    let mut pre = -1;
+    for i in 0..nums.len() {
+        if nums[i] <= pre {
+            ans += pre + 1 - nums[i];
+            nums[i] = pre + 1;
+        }
+        pre = nums[i];
+    }
+    ans
+}
+
+pub fn maximum_element_after_decrementing_and_rearranging(mut arr: Vec<i32>) -> i32 {
+    arr.sort();
+    for i in 1..arr.len() {
+        if arr[i] > arr[i - 1] + 1 {
+            arr[i] = arr[i - 1] + 1;
+        }
+    }
+    arr.last().copied().unwrap()
+}
+pub fn max_alternating_sum(mut nums: Vec<i32>) -> i64 {
+    let mut ans = 0;
+    nums.sort();
+    nums = nums.into_iter().map(|x| x.abs()).collect();
+    let big = (nums.len() + 1) / 2;
+    for i in 0..nums.len() - big {
+        ans -= nums[i] as i64 * nums[i] as i64;
+    }
+    for i in nums.len() - big..nums.len() {
+        ans += nums[i] as i64 * nums[i] as i64;
+    }
+    ans
+}
+
+pub fn min_deletions(s: String) -> i32 {
+    let mut cnt = vec![0; 26];
+    for c in s.chars() {
+        cnt[c as u8 as usize - 97] += 1;
+    }
+    let mut ans = 0;
+
+    cnt.sort();
+    let mut i = cnt.len() - 1;
+    let mut pre = i32::MAX;
+    for i in (0..cnt.len()).rev() {
+        if cnt[i] >= pre {
+            ans += (cnt[i] - (pre - 1)).min(cnt[i]);
+            cnt[i] = pre - 1;
+        }
+        pre = cnt[i];
+    }
+    ans
+}
+
+pub fn largest_perimeter(mut nums: Vec<i32>) -> i64 {
+    nums.sort();
+    let mut sum = (nums[0] + nums[1]) as i64;
+    let mut ans = 0;
+    for i in 2..nums.len() {
+        if sum > nums[i] as i64 {
+            ans = ans.max(sum);
+        }
+        sum += nums[i] as i64;
+    }
+    ans
+}
+pub fn maximum_even_split(final_sum: i64) -> Vec<i64> {
+    if final_sum % 2 == 1 {
+        return vec![];
+    }
+    let mut ans = vec![];
+    let mut c = final_sum / 2;
+    for i in 1.. {
+        ans.push(i * 2);
+        if c <= i {
+            c -= i;
+        } else {
+            ans.pop();
+            ans.push((i - 1 + c) * 2);
+            break;
+        }
+        if c == 0 {
+            break;
+        }
+    }
+    ans
+}
+pub fn min_cost(colors: String, needed_time: Vec<i32>) -> i32 {
+    let mut r = 0;
+    let mut l = 0;
+    let colors = colors.as_bytes();
+    let mut ans = 0;
+    while r < colors.len() {
+        while r < colors.len() && colors[l] == colors[r] {
+            r += 1;
+        }
+        let sum = needed_time[l..r].iter().sum::<i32>();
+        let max = needed_time[l..r].iter().max().copied().unwrap();
+        ans += sum - max;
+    }
+    ans
+}
+
+pub fn minimize_sum(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    if nums.len() <= 3 {
+        return 0;
+    }
+    let mut ans = i32::MAX;
+    // 0 2
+    ans = ans.min(nums[nums.len() - 1] - nums[2]);
+    ans = ans.min(nums[nums.len() - 1 - 1] - nums[1]);
+    ans = ans.min(nums[nums.len() - 1 - 2] - nums[0]);
+    ans
+}
+
+pub fn min_difference(mut nums: Vec<i32>) -> i32 {
+    nums.sort();
+    if nums.len() <= 4 {
+        return 0;
+    }
+    let mut ans = i32::MAX;
+    // 3 0
+    ans = ans.min(nums[nums.len() - 1] - nums[3]);
+    // 1 2
+    ans = ans.min(nums[nums.len() - 1 - 2] - nums[1]);
+    // 2 1
+    ans = ans.min(nums[nums.len() - 1 - 1] - nums[2]);
+    // 0 3
+    ans = ans.min(nums[nums.len() - 1 - 3] - nums[0]);
+    ans
+}
+
+pub fn max_distinct_elements(mut nums: Vec<i32>, k: i32) -> i32 {
+    nums.sort();
+    let mut pre = i32::MIN;
+    for i in 0..nums.len() {
+        nums[i] = (nums[i] - k).max(pre + 1).min(nums[i] + k);
+        pre = nums[i];
+    }
+    nums.iter().collect::<std::collections::HashSet<_>>().len() as _
+}
+
+pub fn max_weight(mut pizzas: Vec<i32>) -> i64 {
+    pizzas.sort();
+    let mut ans = 0;
+    let mut days = pizzas.len() / 4;
+    let max_day = (days + 1) / 2;
+    let min_day = days - max_day;
+    let mut i = pizzas.len() - 1;
+    for d in 0..max_day {
+        ans += pizzas[i] as i64;
+        i -= 1;
+    }
+    for d in 0..min_day {
+        ans += pizzas[i - 1] as i64;
+        i -= 2;
+    }
+    ans as _
+}
 pub fn max_points(technique1: Vec<i32>, technique2: Vec<i32>, k: i32) -> i64 {
-
+    let mut t1_t2: Vec<_> = technique1
+        .into_iter()
+        .zip(technique2)
+        .map(|(a, b)| (a as i64, b as i64))
+        .map(|(a, b)| (a, b, a - b, false))
+        .collect();
+    let mut ans = 0;
+    t1_t2.sort_by_key(|x| x.2);
+    for i in t1_t2.len() - k as usize..t1_t2.len() {
+        ans += t1_t2[i].0;
+    }
+    for (a, b, _, _) in t1_t2[..t1_t2.len() - k as usize].iter() {
+        ans += a.max(b);
+    }
+    ans
 }
 
 pub fn maximum_score(mut cards: Vec<i32>, mut cnt: i32) -> i32 {
     cards.sort();
     let mut sum = cards[cards.len() - cnt as usize..cards.len()].iter().sum();
     if sum % 2 == 0 {
-        return sum
+        return sum;
     }
-    let pre_a0:Vec<_> = cards[..cards.len() - cnt as usize].iter().filter(|&x| x % 2 == 0).copied().collect();
-    let post_a0:Vec<_> = cards[cards.len() - cnt as usize..].iter().filter(|&x| x % 2 == 0).copied().collect();
-    let pre_a1:Vec<_> = cards[..cards.len() - cnt as usize].iter().filter(|&x| x % 2 == 1).copied().collect();
-    let post_a1:Vec<_> = cards[cards.len() - cnt as usize..].iter().filter(|&x| x % 2 == 1).copied().collect();
+    let pre_a0: Vec<_> = cards[..cards.len() - cnt as usize]
+        .iter()
+        .filter(|&x| x % 2 == 0)
+        .copied()
+        .collect();
+    let post_a0: Vec<_> = cards[cards.len() - cnt as usize..]
+        .iter()
+        .filter(|&x| x % 2 == 0)
+        .copied()
+        .collect();
+    let pre_a1: Vec<_> = cards[..cards.len() - cnt as usize]
+        .iter()
+        .filter(|&x| x % 2 == 1)
+        .copied()
+        .collect();
+    let post_a1: Vec<_> = cards[cards.len() - cnt as usize..]
+        .iter()
+        .filter(|&x| x % 2 == 1)
+        .copied()
+        .collect();
     let mut ans = 0;
     if !pre_a0.is_empty() {
         ans = sum + pre_a0[pre_a0.len() - 1] - post_a1[0];
     }
-    if !post_a0.is_empty() && !pre_a1.is_empty(){
+    if !post_a0.is_empty() && !pre_a1.is_empty() {
         ans = ans.max(sum - post_a0[0] + pre_a1[pre_a1.len() - 1]);
     }
     ans

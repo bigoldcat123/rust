@@ -4,8 +4,79 @@ use std::{
     i32,
     io::BufRead,
     num,
-    rc::Rc,
+    rc::Rc, vec,
 };
+
+pub fn min_cost3(grid: Vec<Vec<i32>>, k: i32) -> i32 {
+    let inf = i32::MAX / 2;
+    let mut des = vec![vec![(inf,k);grid[0].len()];grid.len()];
+    let mut vis = vec![vec![false;grid[0].len()];grid.len()];
+    let mut a:Vec<_> = grid.iter().enumerate().map(|x| x.1.iter().enumerate().map(move |y| (x.0,y.0,*y.1))).flatten().collect();
+    a.sort_by_key(|x| x.2);
+    println!("{:?}",a);
+    des[0][0] = (0,k);
+    loop {
+        let mut min_node = (0,0);
+        let mut min_cost = inf;
+        let mut left_k = 0;
+        for i in 0..grid.len() {
+            for j in 0..grid[0].len() {
+                if !vis[i][j] && (min_cost > des[i][j].0 || (min_cost == des[i][j].0 && left_k < des[i][j].1 )) {
+                    min_node = (i,j);
+                    min_cost = des[i][j].0;
+                    left_k = des[i][j].1;
+                }
+            }
+        }
+        vis[min_node.0][min_node.1] = true;
+        if min_node.0 == grid.len() && min_node.1 == grid[0].len() - 1 {
+            break;
+        }
+        //go down
+        if min_node.0 < grid.len() - 1 {
+            let next_cost = grid[min_node.0 + 1][min_node.1] + min_cost;
+            if des[min_node.0 + 1][min_node.1].0 > next_cost ||
+            (des[min_node.0 + 1][min_node.1].0 == next_cost && des[min_node.0 + 1][min_node.1].1 < left_k) {
+                des[min_node.0 + 1][min_node.1] = (next_cost ,left_k);
+            }
+        }
+        //do right
+        if min_node.1 < grid[0].len() - 1 {
+            let next_cost = grid[min_node.0][min_node.1 + 1] + min_cost;
+            if des[min_node.0 ][min_node.1 + 1].0 > next_cost ||
+            (des[min_node.0 ][min_node.1 + 1].0 == next_cost && des[min_node.0 ][min_node.1 + 1].1 < left_k) {
+                des[min_node.0 ][min_node.1 + 1] = (next_cost,left_k);
+            }
+        }
+        if left_k > 0 {
+            let current_cost = grid[min_node.0][min_node.1];
+            let idx =match a.binary_search_by_key(&(current_cost), |x| x.2) {
+                Ok(idx) => {
+                    idx + 1
+                }
+                Err(idx) => {
+                    idx
+                }
+            };
+            for i in 0..idx {
+                let next_cost = min_cost;
+                if des[a[i].0][a[i].1].0 > next_cost||
+                (des[a[i].0][a[i].1].0 == next_cost && des[a[i].0][a[i].1].1 < left_k - 1) {
+                    des[a[i].0][a[i].1] = (next_cost,left_k - 1);
+                }
+            }
+        }
+
+        if min_cost == inf {
+            break;
+        }
+    }
+    for d in des.iter() {
+        println!("{:?}",d);
+    }
+
+    des.last().unwrap().last().unwrap().0
+}
 
 pub fn min_cost2(n: i32, edges: Vec<Vec<i32>>) -> i32 {
     use std::collections::BinaryHeap;
