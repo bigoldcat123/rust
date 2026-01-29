@@ -1,11 +1,229 @@
-    pub fn min_moves_to_seat(mut seats: Vec<i32>,mut students: Vec<i32>) -> i32 {
-        seats.sort();
-        students.sort();
-        seats.into_iter().zip(students).map(|x| (x.0 - x.1).abs()).sum()
+use std::array;
+
+pub fn min_operations2(mut n: i32) -> i32 {
+    let mut n_arr = vec![];
+    while n != 0 {
+        n_arr.push(n & 1);
+        n <<= 1;
     }
+    let mut l = 0;
+    let mut r = 0;
+    let mut ans = 0;
+    while r < n_arr.len() {
+        while r < n_arr.len() && n_arr[r] == 0{
+            r += 1;
+        }
+        l = r;
+        while r < n_arr.len() && n_arr[r] == 1{
+            r += 1;
+        }
+        if r - l >= 2 {
+            if r == n_arr.len() {
+                n_arr.push(1);
+                ans += 1;
+            }else {
+                n_arr[r] = 1;
+                ans += 1;
+            }
+        }else {
+            ans += 1;
+        }
+        l = r;
+    }
+    ans
+}
+pub fn minimum_buckets(mut hamsters: String) -> i32 {
+    let hamsters2 = hamsters.as_bytes();
+    if hamsters2.windows(3).any(|x| x == [b'H', b'H', b'H'])
+        || hamsters2[..2] == [b'H', b'H']
+        || hamsters2[hamsters2.len() - 2..] == [b'H', b'H']
+    {
+        return -1;
+    }
+    let mut ans = 0;
+    unsafe {
+        let hamsters = hamsters.as_bytes_mut();
+        for i in 0..hamsters.len() {
+            if i > 0 && i < hamsters.len() - 1 && hamsters[i - 1] == b'H' && hamsters[i + 1] == b'H'
+            {
+                hamsters[i] = b'A';
+                hamsters[i - 1] = b'h';
+                hamsters[i + 1] = b'h';
+                ans += 1;
+            }
+        }
+        for i in 0..hamsters.len() {
+            if hamsters[i] == b'H' {
+                ans += 1;
+            }
+        }
+    }
+    ans
+}
+pub fn max_operations(mut s: String) -> i32 {
+    let mut ans = 0;
+    let mut cnt = 0;
+    let s = s.as_bytes();
+    let mut idx = s.len() as i32 - 1;
+    while idx >= 0 {
+        if s[idx as usize] == b'1' {
+            let mut c = 0;
+            while s[idx as usize] == b'1' {
+                c += 1;
+                idx -= 1;
+            }
+            ans += c * cnt;
+        } else {
+            while s[idx as usize] == b'0' {
+                idx -= 1;
+            }
+            cnt += 1;
+        }
+    }
+    ans
+}
+
+pub fn moves_to_make_zigzag(mut nums: Vec<i32>) -> i32 {
+    //even
+    let mut step = 0;
+    let mut nums2 = nums.clone();
+    for i in (0..nums2.len()).step_by(2) {
+        if i > 0 {
+            step += 0.max(nums2[i - 1] - nums2[i] + 1);
+        }
+        if i + 1 < nums2.len() {
+            step += 0.max(nums2[i + 1] - nums2[i] + 1);
+            nums2[i + 1] = nums2[i] - 1;
+        }
+    }
+    let mut step2 = 0;
+    for i in (1..nums.len()).step_by(2) {
+        if i > 0 {
+            step2 += 0.max(nums[i - 1] - nums[i] + 1);
+        }
+        if i + 1 < nums.len() {
+            step2 += 0.max(nums[i + 1] - nums[i] + 1);
+            nums[i + 1] = nums[i] - 1;
+        }
+    }
+
+    step.min(step2)
+}
+
+pub fn can_make_equal(mut nums: Vec<i32>, mut k: i32) -> bool {
+    let mut a = nums.iter().filter(|&&x| x < 0).count();
+    let mut b = nums.len() - a;
+    if a % 2 == 0 && b % 2 == 0 {
+        if a > b {
+            b = 1;
+        } else {
+            a = 1;
+        }
+    }
+    if a % 2 == 0 {
+        // negtive
+        let mut c = 0;
+        for i in 0..nums.len() - 1 {
+            if nums[i] == -1 {
+                nums[i + 1] = nums[i + 1] * -1;
+                k -= 1;
+            }
+            if k < 0 {
+                return false;
+            }
+        }
+        true
+    } else if b % 2 == 0 {
+        //positive
+        let mut c = 0;
+        for i in 0..nums.len() - 1 {
+            if nums[i] == 1 {
+                nums[i + 1] = nums[i + 1] * -1;
+                k -= 1;
+            }
+            if k < 0 {
+                return false;
+            }
+        }
+        true
+    } else {
+        false
+    }
+}
+pub fn max_array_value(nums: Vec<i32>) -> i64 {
+    let mut current_max = nums[nums.len() - 1] as i64;
+    for n in nums.into_iter().rev().skip(1) {
+        if n as i64 <= current_max {
+            current_max += n as i64;
+        } else {
+            current_max = n as i64;
+        }
+    }
+    current_max
+}
+
+pub fn min_flips(target: String) -> i32 {
+    let target: Vec<i32> = target.chars().map(|x| x as u8 as i32).collect();
+    let mut c = 0;
+    let mut ans = 0;
+    for n in target {
+        if (c + n) % 2 == 1 {
+            ans += 1;
+            c += 1;
+        }
+    }
+    ans
+}
+
+pub fn remove_almost_equal_characters(word: String) -> i32 {
+    let word = word.as_bytes();
+    let mut l = 0;
+    let mut r = 1;
+    let mut ans = 0;
+    while r < word.len() {
+        while r < word.len()
+            && (word[r] == word[r - 1] || word[r] == word[r] - 1 || word[r] == word[r] + 1)
+        {
+            r += 1;
+        }
+        let len = r - l;
+        ans += len / 2;
+        l = r;
+        r += 1;
+    }
+    ans as _
+}
+
+pub fn min_rectangles_to_cover_points(points: Vec<Vec<i32>>, w: i32) -> i32 {
+    let mut p: Vec<_> = points.iter().map(|x| x[0]).collect();
+    p.sort();
+    let mut ans = 0;
+
+    let mut l = 0;
+    let mut r = 0;
+    while r < p.len() {
+        while r < p.len() && p[l] + w >= p[r] {
+            r += 1;
+        }
+        ans += 1;
+        l = r;
+    }
+
+    ans
+}
+
+pub fn min_moves_to_seat(mut seats: Vec<i32>, mut students: Vec<i32>) -> i32 {
+    seats.sort();
+    students.sort();
+    seats
+        .into_iter()
+        .zip(students)
+        .map(|x| (x.0 - x.1).abs())
+        .sum()
+}
 pub fn make_similar(mut nums: Vec<i32>, mut target: Vec<i32>) -> i64 {
     for n in nums.iter_mut() {
-        if *n % 2== 0 {
+        if *n % 2 == 0 {
             *n = -*n;
         }
     }
