@@ -1,11 +1,54 @@
 use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    i32,
-    io::BufRead,
-    num,
-    rc::Rc, vec,
+    cell::RefCell, collections::{HashMap, HashSet}, i32, i64, io::BufRead, num, rc::Rc, vec
 };
+
+pub fn minimum_cost(source: String, target: String, original: Vec<char>, changed: Vec<char>, cost: Vec<i32>) -> i64 {
+    use std::collections::HashMap;
+    let mut des_map = HashMap::new();
+    let mut map:HashMap<usize, Vec<_>> = HashMap::new();
+    for i in 0..original.len() {
+        map.entry(original[i] as u8 as usize -97).or_default().push((changed[i] as u8 as usize - 97,cost[i]));
+    }
+    let inf = i64::MAX / 2;
+    for i in 0..26 {
+        let mut des = vec![inf;26];
+        let mut done = vec![false;26];
+        des[i] = 0;
+        loop {
+            let mut min_node = 0;
+            let mut min_cost = inf;
+            for i in 0..26 {
+                if !done[i] && des[i] > min_cost {
+                    min_cost = des[i];
+                    min_node = i;
+                }
+            }
+            if min_cost == inf {
+                break;
+            }
+            done[min_node] = true;
+            des_map.insert((i,min_node), min_cost);
+            for &(n,c) in map.get(&(min_node)).unwrap_or(&vec![]) {
+                let next_cost = c as i64 + min_cost;
+                if des[n] > next_cost {
+                    des[n] = next_cost;
+                }
+            }
+        }
+    }
+    let mut ans = 0;
+
+    let source = source.as_bytes();
+    let target = target.as_bytes();
+    for i in 0..source.len() {
+        if source[i] != target[i] && let Some(cost) = des_map.get(&(source[i] as usize - 97,target[i] as usize - 97)) {
+            ans += cost;
+        }else {
+            return -1;
+        }
+    }
+    ans
+}
 
 pub fn min_cost3(grid: Vec<Vec<i32>>, k: i32) -> i32 {
     let inf = i32::MAX / 2;

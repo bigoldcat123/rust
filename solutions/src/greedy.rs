@@ -1,5 +1,50 @@
+    pub fn min_moves_to_seat(mut seats: Vec<i32>,mut students: Vec<i32>) -> i32 {
+        seats.sort();
+        students.sort();
+        seats.into_iter().zip(students).map(|x| (x.0 - x.1).abs()).sum()
+    }
+pub fn make_similar(mut nums: Vec<i32>, mut target: Vec<i32>) -> i64 {
+    for n in nums.iter_mut() {
+        if *n % 2== 0 {
+            *n = -*n;
+        }
+    }
+    for n in target.iter_mut() {
+        if *n % 2 == 0 {
+            *n = -*n;
+        }
+    }
+
+    let mut ans = 0;
+    for i in 0..nums.len() {
+        ans += nums[i] as i64 - target[i] as i64;
+    }
+    ans / 4
+}
+
+pub fn max_profit_assignment(difficulty: Vec<i32>, profit: Vec<i32>, worker: Vec<i32>) -> i32 {
+    let mut d_p: Vec<_> = difficulty.into_iter().zip(profit).collect();
+    d_p.sort_by_key(|x| x.0);
+    let mut ans = 0;
+
+    let mut max = vec![d_p[0].1; d_p.len()];
+    for i in 1..d_p.len() {
+        max[i] = max[i - 1].max(d_p[i].1);
+    }
+    for w in worker {
+        let idx = match d_p.binary_search_by_key(&w, |x| x.0) {
+            Ok(idx) => idx,
+            Err(idx) => idx - 1,
+        };
+        if idx < max.len() {
+            ans += max[idx];
+        }
+    }
+    ans
+}
+
 pub fn advantage_count(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> Vec<i32> {
-    let mut nums2:Vec<(usize,i32)> = nums2.into_iter().enumerate().collect();
+    let mut nums2: Vec<(usize, i32)> = nums2.into_iter().enumerate().collect();
     nums1.sort();
     nums2.sort_by_key(|x| x.1);
     let mut l = 0;
@@ -7,14 +52,14 @@ pub fn advantage_count(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> Vec<i32> {
     let mut ans = vec![];
     for &n in nums2.iter().rev() {
         if nums1[r] > n.1 {
-            ans.push((n.0,nums1[r]));
+            ans.push((n.0, nums1[r]));
             r -= 1;
-        }else {
-            ans.push((n.0,nums1[l]));
+        } else {
+            ans.push((n.0, nums1[l]));
             l += 1;
         }
     }
-    ans.sort_by_key(|x|x.0);
+    ans.sort_by_key(|x| x.0);
     ans.into_iter().map(|x| x.1).collect()
 }
 pub fn check_if_can_break(mut s1: String, mut s2: String) -> bool {
