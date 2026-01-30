@@ -6,8 +6,12 @@ use solutions::{eratosthenes, every_day::give_me_random_array};
 
 #[test]
 fn asdadas() {
-    let a = [0,2,2,2,3,4];
-    println!("{:?}",a.binary_search(&1));
+    let mut a = vec![0,2,2,2,3,4];
+    a.remove(4);
+    println!("{:?}",a);
+    a.insert(1, 3);
+    println!("{:?}",a);
+
 }
 #[test]
 fn asda() {

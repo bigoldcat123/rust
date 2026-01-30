@@ -1,4 +1,278 @@
-use std::array;
+pub fn avoid_flood(rains: Vec<i32>) -> Vec<i32> {
+    use std::collections::{HashSet,HashMap,VecDeque,BTreeSet};
+    let mut map:HashMap<i32, VecDeque<usize>> = HashMap::new();
+    let mut pre_map:HashMap<i32, usize> = HashMap::new();
+    for (i,&r) in rains.iter().enumerate(){
+        map.entry(r).or_default().push_back(i);
+        if !pre_map.contains_key(&r){
+            pre_map.insert(r, i);
+        }
+    }
+    let mut clear_lake = vec![];
+    let mut full_lake = BTreeSet::new();
+    for (i,&r) in rains.iter().enumerate() {
+        if r == 0 {
+
+            if let Some((_,r)) = full_lake.pop_first() {
+                clear_lake.push(r);
+            }else {
+                clear_lake.push(1);
+            }
+
+        }else {
+            if full_lake.contains(&(pre_map.get(&r).copied().unwrap(),r)) {
+                return vec![]
+            }
+            map.get_mut(&r).unwrap().pop_front();
+            let next = *map[&r].front().unwrap_or(&usize::MAX);
+            *pre_map.get_mut(&r).unwrap() = next;
+            full_lake.insert((next,r));
+            clear_lake.push(-1);
+        }
+    }
+
+    clear_lake
+}
+
+pub fn min_increments(n: i32, cost: Vec<i32>) -> i32 {
+    let mut m = cost.clone();
+    let mut ans = 0;
+
+    let max = dfs_max(1, &cost, &mut m, &mut ans);
+    ans
+}
+fn dfs_cal(n: usize, m: &Vec<i32>, ans: &mut i32) {
+    if n >= m.len() {
+        return;
+    }
+    *ans += (m[n * 2] - m[n * 2 - 1]).abs();
+    dfs_cal(n * 2, m, ans);
+    dfs_cal(n * 2 + 1, m, ans);
+}
+fn dfs_max(n: usize, cost: &Vec<i32>, m: &mut Vec<i32>, ans: &mut i32) -> i32 {
+    if n > cost.len() {
+        return 0;
+    }
+    let c = cost[n - 1];
+    let max_l = dfs_max(n * 2, cost, m, ans);
+    let max_r = dfs_max(n * 2 + 1, cost, m, ans);
+    let max = max_r.max(max_l);
+    *ans += (max_l - max_r).abs();
+    m[n - 1] = max;
+    max
+}
+
+pub fn min_swaps(grid: Vec<Vec<i32>>) -> i32 {
+    let mut grid = grid
+        .into_iter()
+        .map(|x| {
+            let mut c = 0;
+            for n in x.iter().rev().take_while(|&&y| y == 0) {
+                c += 1;
+            }
+            c
+        })
+        .collect::<Vec<_>>();
+    let mut l = grid.len() - 1;
+    println!("{:?}", grid);
+
+    for i in 0..grid.len() {
+        if grid[i] >= l {
+            grid[i] = grid[i].min(l);
+            l -= 1;
+        }
+    }
+
+    println!("{:?}", grid);
+    let mut ans = 0;
+    let mut l = grid.len() - 1;
+    for i in 0..grid.len() {
+        if grid[i] >= l {
+            l -= 1;
+            continue;
+        }
+        for j in i + 1..grid.len() {
+            if grid[j] >= l {
+                grid.remove(j);
+                grid.insert(i, l);
+                ans += j - i;
+                break;
+            }
+        }
+        if grid[i] < l {
+            return -1;
+        }
+        println!("-> {:?}", grid);
+
+        l -= 1;
+    }
+    println!("{:?}", grid);
+
+    ans as _
+}
+pub fn min_deletion_size(mut strs: Vec<String>) -> i32 {
+    let strs: Vec<&[u8]> = strs.iter().map(|x| x.as_bytes()).collect();
+    let mut deleted = vec![false; strs[0].len()];
+    let mut ans = 0;
+    for j in 0..strs[0].len() {
+        if deleted[j] {
+            continue;
+        }
+        let mut ok = true;
+        for i in 0..strs.len() - 1 {
+            if strs[i][j] > strs[i + 1][j] {
+                ans += 1;
+                ok = false;
+                break;
+            }
+            if strs[i][j] == strs[i + 1][j] {
+                let mut x = 1;
+                while j + x < strs[0].len()
+                    && !deleted[j + x]
+                    && strs[i][j + x] < strs[i + 1][j + x]
+                {
+                    ans += 1;
+                    x += 1;
+                    deleted[j + x] = true;
+                }
+            }
+        }
+        if ok {
+            break;
+        }
+    }
+    ans
+}
+const MAX: usize = 1_000_000_1;
+static LPF: std::sync::LazyLock<[i32; MAX]> = std::sync::LazyLock::new(|| {
+    let mut LPF2 = [0; MAX];
+    for i in 2..MAX {
+        if LPF2[i] == 0 {
+            for j in (i..MAX).step_by(i) {
+                if LPF2[j] == 0 {
+                    LPF2[j] = i as i32;
+                }
+            }
+        }
+    }
+    LPF2
+});
+pub fn min_operations(mut nums: Vec<i32>) -> i32 {
+    // let mut LPF:[i32;MAX] = [0;MAX];
+    // for i in 2..MAX {
+    //     if LPF[i] == 0 {
+    //         for j in (i..MAX).step_by(i) {
+    //             if LPF[j] == 0 {
+    //                 LPF[j] = i as i32;
+    //             }
+    //         }
+    //     }
+    // }
+    let mut ans = 0;
+    for i in (0..nums.len() - 1).rev() {
+        if nums[i] > nums[i + 1] {
+            nums[i] = LPF[nums[i] as usize];
+            if nums[i] > nums[i + 1] {
+                return -1;
+            }
+            ans += 1;
+        }
+    }
+    ans
+}
+
+pub fn matrix_score(mut grid: Vec<Vec<i32>>) -> i32 {
+    let mut ans = 0;
+    for i in 0..grid.len() {
+        if grid[i][0] == 0 {
+            for n in grid[i].iter_mut() {
+                if *n == 0 {
+                    *n = 1;
+                } else {
+                    *n = 0;
+                }
+            }
+        }
+    }
+    for j in 0..grid[0].len() {
+        let mut one_cnt = 0;
+        for i in 0..grid.len() {
+            if grid[i][j] == 1 {
+                one_cnt += 1;
+            }
+        }
+        if one_cnt < grid.len() as i32 / 2 {
+            for i in 0..grid.len() {
+                if grid[i][j] == 1 {
+                    grid[i][j] = 0;
+                } else {
+                    grid[i][j] = 1;
+                }
+            }
+        }
+    }
+    let mut step = 10_i32.pow(grid[0].len() as _);
+    for j in 0..grid[0].len() {
+        for i in 0..grid.len() {
+            ans += grid[i][j] * step;
+        }
+        step /= 10;
+    }
+    ans
+}
+
+pub fn min_moves(balance: Vec<i32>) -> i64 {
+    let mut balance = balance.into_iter().map(|x| x as i64).collect::<Vec<_>>();
+    let sum = balance.iter().sum::<i64>();
+    if sum < 0 {
+        return -1;
+    }
+    let mut ans = 0;
+    let mut neg_idx = 0;
+    for i in 0..balance.len() {
+        if balance[i] < 0 {
+            neg_idx = i;
+            break;
+        }
+    }
+    let mut l = neg_idx as i32 - 1;
+    let mut r = neg_idx as i32 + 1;
+    let len = balance.len() as i32;
+    while balance[neg_idx] < 0 {
+        if (neg_idx as i32 - l).abs() <= (neg_idx as i32 - r).abs() {
+            // search for left
+            let l_idx = cal_idx(l, len);
+            ans +=
+                (neg_idx as i32 - l).abs() as i64 * (-balance[neg_idx]).min(balance[l_idx]) as i64;
+            balance[neg_idx] += (-balance[neg_idx]).min(balance[l_idx]);
+            if balance[l_idx] >= -balance[neg_idx] {
+                break;
+            }
+            l -= 1;
+        } else {
+            let r_idx = cal_idx(r, len);
+            ans +=
+                (neg_idx as i32 - r).abs() as i64 * (-balance[neg_idx]).min(balance[r_idx]) as i64;
+            balance[neg_idx] += (-balance[neg_idx]).min(balance[r_idx]);
+            if balance[r_idx] >= -balance[neg_idx] {
+                break;
+            }
+            r += 1;
+        }
+    }
+
+    ans
+}
+
+fn cal_idx(idx: i32, len: i32) -> usize {
+    if idx < 0 {
+        return (len + idx) as usize;
+    } else if idx > len {
+        return (idx - len) as usize;
+    } else {
+        return idx as usize;
+    }
+}
 
 pub fn min_operations2(mut n: i32) -> i32 {
     let mut n_arr = vec![];
@@ -10,22 +284,22 @@ pub fn min_operations2(mut n: i32) -> i32 {
     let mut r = 0;
     let mut ans = 0;
     while r < n_arr.len() {
-        while r < n_arr.len() && n_arr[r] == 0{
+        while r < n_arr.len() && n_arr[r] == 0 {
             r += 1;
         }
         l = r;
-        while r < n_arr.len() && n_arr[r] == 1{
+        while r < n_arr.len() && n_arr[r] == 1 {
             r += 1;
         }
         if r - l >= 2 {
             if r == n_arr.len() {
                 n_arr.push(1);
                 ans += 1;
-            }else {
+            } else {
                 n_arr[r] = 1;
                 ans += 1;
             }
-        }else {
+        } else {
             ans += 1;
         }
         l = r;
@@ -708,7 +982,7 @@ pub fn bag_of_tokens_score(mut tokens: Vec<i32>, mut power: i32) -> i32 {
     ans
 }
 
-pub fn min_operations(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> i32 {
+pub fn min_operations223232(mut nums1: Vec<i32>, mut nums2: Vec<i32>) -> i32 {
     let max_len = nums1.len().max(nums2.len());
     let min_len = nums1.len().min(nums2.len());
     if min_len * 6 < max_len {
