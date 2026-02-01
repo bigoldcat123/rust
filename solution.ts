@@ -1,3 +1,4 @@
+//hello
 // class _Node {
 //   val: number;
 //   next: _Node | null;
