@@ -1,18 +1,126 @@
 use std::{
-    cell::RefCell, collections::{HashMap, HashSet}, i32, i64, io::BufRead, num, rc::Rc, vec
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    io::BufRead,
+    rc::Rc,
+    sync::LazyLock,
 };
 
-pub fn minimum_cost(source: String, target: String, original: Vec<char>, changed: Vec<char>, cost: Vec<i32>) -> i64 {
+pub fn minimum_k(nums: Vec<i32>) -> i32 {
+    let mut l = 1;
+    let mut r = nums.iter().sum::<i32>();
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        if check_minimum_k(&nums, mid) {
+            l = mid + 1
+        } else {
+            r = mid - 1;
+        }
+    }
+    l
+}
+fn check_minimum_k(nums: &[i32], k: i32) -> bool {
+    let k2 = k * 2;
+    let mut op = 0;
+    for &n in nums {
+        op += n / k;
+        if n % k != 0 {
+            op += 1;
+        }
+    }
+    op <= k2
+}
+static cb: LazyLock<[[i32; 50]; 50]> = LazyLock::new(|| {
+    let mut cb2 = [[1; 50]; 50];
+    for i in 1..50 {
+        cb2[i][1] = i as i32;
+        for j in 2..50 {
+            cb2[i][j] = cb2[i - 1][j - 1] + cb2[i - 1][j];
+        }
+    }
+    cb2
+});
+fn cal_conbine() {}
+pub fn special_nodes(n: i32, edges: Vec<Vec<i32>>, x: i32, y: i32, z: i32) -> i32 {
+    let mut edge_map = vec![vec![]; n as usize];
+    for e in edges {
+        let u = e[0] as usize;
+        let v = e[1] as usize;
+        edge_map[u].push(v);
+        edge_map[v].push(u);
+    }
+    let mut des_to_x = vec![0; n as usize];
+    let mut des_to_y = vec![0; n as usize];
+    let mut des_to_z = vec![0; n as usize];
+    let mut visited = vec![false; n as usize];
+    cal_des(&edge_map, &mut des_to_x, x as usize, &mut visited, 0);
+    visited.fill(false);
+    cal_des(&edge_map, &mut des_to_y, y as usize, &mut visited, 0);
+    visited.fill(false);
+    cal_des(&edge_map, &mut des_to_z, z as usize, &mut visited, 0);
+    let mut ans = 0;
+    for i in 0..n as usize {
+        let mut a = [des_to_x[i], des_to_y[i], des_to_z[i]];
+        a.sort();
+        if a[0].pow(2) + a[1].pow(2) == a[2].pow(2) {
+            ans += 1;
+        }
+    }
+
+    ans
+}
+fn cal_des(
+    edge_map: &Vec<Vec<usize>>,
+    d: &mut Vec<i32>,
+    current: usize,
+    visited: &mut Vec<bool>,
+    des: i32,
+) {
+    if visited[current] {
+        return;
+    }
+    visited[current] = true;
+    d[current] = des;
+    for n in edge_map[current].iter().copied() {
+        cal_des(edge_map, d, n, visited, des + 1);
+    }
+}
+
+pub fn rotate_elements(mut nums: Vec<i32>, k: i32) -> Vec<i32> {
+    let no_neg_nums: Vec<i32> = nums.iter().filter(|&&x| x >= 0).copied().collect();
+    let start = k as usize % no_neg_nums.len();
+    let mut idx = start;
+    for n in nums.iter_mut() {
+        if *n >= 0 {
+            *n = no_neg_nums[idx];
+            idx += 1;
+        }
+        if idx == no_neg_nums.len() {
+            idx = 0;
+        }
+    }
+    nums
+}
+
+pub fn minimum_cost(
+    source: String,
+    target: String,
+    original: Vec<char>,
+    changed: Vec<char>,
+    cost: Vec<i32>,
+) -> i64 {
     use std::collections::HashMap;
     let mut des_map = HashMap::new();
-    let mut map:HashMap<usize, Vec<_>> = HashMap::new();
+    let mut map: HashMap<usize, Vec<_>> = HashMap::new();
     for i in 0..original.len() {
-        map.entry(original[i] as u8 as usize -97).or_default().push((changed[i] as u8 as usize - 97,cost[i]));
+        map.entry(original[i] as u8 as usize - 97)
+            .or_default()
+            .push((changed[i] as u8 as usize - 97, cost[i]));
     }
     let inf = i64::MAX / 2;
     for i in 0..26 {
-        let mut des = vec![inf;26];
-        let mut done = vec![false;26];
+        let mut des = vec![inf; 26];
+        let mut done = vec![false; 26];
         des[i] = 0;
         loop {
             let mut min_node = 0;
@@ -27,8 +135,8 @@ pub fn minimum_cost(source: String, target: String, original: Vec<char>, changed
                 break;
             }
             done[min_node] = true;
-            des_map.insert((i,min_node), min_cost);
-            for &(n,c) in map.get(&(min_node)).unwrap_or(&vec![]) {
+            des_map.insert((i, min_node), min_cost);
+            for &(n, c) in map.get(&(min_node)).unwrap_or(&vec![]) {
                 let next_cost = c as i64 + min_cost;
                 if des[n] > next_cost {
                     des[n] = next_cost;
@@ -41,9 +149,11 @@ pub fn minimum_cost(source: String, target: String, original: Vec<char>, changed
     let source = source.as_bytes();
     let target = target.as_bytes();
     for i in 0..source.len() {
-        if source[i] != target[i] && let Some(cost) = des_map.get(&(source[i] as usize - 97,target[i] as usize - 97)) {
+        if source[i] != target[i]
+            && let Some(cost) = des_map.get(&(source[i] as usize - 97, target[i] as usize - 97))
+        {
             ans += cost;
-        }else {
+        } else {
             return -1;
         }
     }
@@ -52,20 +162,27 @@ pub fn minimum_cost(source: String, target: String, original: Vec<char>, changed
 
 pub fn min_cost3(grid: Vec<Vec<i32>>, k: i32) -> i32 {
     let inf = i32::MAX / 2;
-    let mut des = vec![vec![(inf,k);grid[0].len()];grid.len()];
-    let mut vis = vec![vec![false;grid[0].len()];grid.len()];
-    let mut a:Vec<_> = grid.iter().enumerate().map(|x| x.1.iter().enumerate().map(move |y| (x.0,y.0,*y.1))).flatten().collect();
+    let mut des = vec![vec![(inf, k); grid[0].len()]; grid.len()];
+    let mut vis = vec![vec![false; grid[0].len()]; grid.len()];
+    let mut a: Vec<_> = grid
+        .iter()
+        .enumerate()
+        .map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, *y.1)))
+        .flatten()
+        .collect();
     a.sort_by_key(|x| x.2);
-    println!("{:?}",a);
-    des[0][0] = (0,k);
+    println!("{:?}", a);
+    des[0][0] = (0, k);
     loop {
-        let mut min_node = (0,0);
+        let mut min_node = (0, 0);
         let mut min_cost = inf;
         let mut left_k = 0;
         for i in 0..grid.len() {
             for j in 0..grid[0].len() {
-                if !vis[i][j] && (min_cost > des[i][j].0 || (min_cost == des[i][j].0 && left_k < des[i][j].1 )) {
-                    min_node = (i,j);
+                if !vis[i][j]
+                    && (min_cost > des[i][j].0 || (min_cost == des[i][j].0 && left_k < des[i][j].1))
+                {
+                    min_node = (i, j);
                     min_cost = des[i][j].0;
                     left_k = des[i][j].1;
                 }
@@ -78,34 +195,35 @@ pub fn min_cost3(grid: Vec<Vec<i32>>, k: i32) -> i32 {
         //go down
         if min_node.0 < grid.len() - 1 {
             let next_cost = grid[min_node.0 + 1][min_node.1] + min_cost;
-            if des[min_node.0 + 1][min_node.1].0 > next_cost ||
-            (des[min_node.0 + 1][min_node.1].0 == next_cost && des[min_node.0 + 1][min_node.1].1 < left_k) {
-                des[min_node.0 + 1][min_node.1] = (next_cost ,left_k);
+            if des[min_node.0 + 1][min_node.1].0 > next_cost
+                || (des[min_node.0 + 1][min_node.1].0 == next_cost
+                    && des[min_node.0 + 1][min_node.1].1 < left_k)
+            {
+                des[min_node.0 + 1][min_node.1] = (next_cost, left_k);
             }
         }
         //do right
         if min_node.1 < grid[0].len() - 1 {
             let next_cost = grid[min_node.0][min_node.1 + 1] + min_cost;
-            if des[min_node.0 ][min_node.1 + 1].0 > next_cost ||
-            (des[min_node.0 ][min_node.1 + 1].0 == next_cost && des[min_node.0 ][min_node.1 + 1].1 < left_k) {
-                des[min_node.0 ][min_node.1 + 1] = (next_cost,left_k);
+            if des[min_node.0][min_node.1 + 1].0 > next_cost
+                || (des[min_node.0][min_node.1 + 1].0 == next_cost
+                    && des[min_node.0][min_node.1 + 1].1 < left_k)
+            {
+                des[min_node.0][min_node.1 + 1] = (next_cost, left_k);
             }
         }
         if left_k > 0 {
             let current_cost = grid[min_node.0][min_node.1];
-            let idx =match a.binary_search_by_key(&(current_cost), |x| x.2) {
-                Ok(idx) => {
-                    idx + 1
-                }
-                Err(idx) => {
-                    idx
-                }
+            let idx = match a.binary_search_by_key(&(current_cost), |x| x.2) {
+                Ok(idx) => idx + 1,
+                Err(idx) => idx,
             };
             for i in 0..idx {
                 let next_cost = min_cost;
-                if des[a[i].0][a[i].1].0 > next_cost||
-                (des[a[i].0][a[i].1].0 == next_cost && des[a[i].0][a[i].1].1 < left_k - 1) {
-                    des[a[i].0][a[i].1] = (next_cost,left_k - 1);
+                if des[a[i].0][a[i].1].0 > next_cost
+                    || (des[a[i].0][a[i].1].0 == next_cost && des[a[i].0][a[i].1].1 < left_k - 1)
+                {
+                    des[a[i].0][a[i].1] = (next_cost, left_k - 1);
                 }
             }
         }
@@ -115,7 +233,7 @@ pub fn min_cost3(grid: Vec<Vec<i32>>, k: i32) -> i32 {
         }
     }
     for d in des.iter() {
-        println!("{:?}",d);
+        println!("{:?}", d);
     }
 
     des.last().unwrap().last().unwrap().0
@@ -129,32 +247,28 @@ pub fn min_cost2(n: i32, edges: Vec<Vec<i32>>) -> i32 {
         let v = t[1] as usize;
         let c = t[2] as usize;
         map[u].push((v, c));
-        map[v].push((u,c * 2));
+        map[v].push((u, c * 2));
     }
     let inf = i32::MAX / 2;
-    let mut dis = vec![inf;n as usize];
+    let mut dis = vec![inf; n as usize];
     dis[0] = 0;
     let mut heap = BinaryHeap::new();
-    heap.push((0,0));
-    while let Some((min_cost,min_node)) = heap.pop() {
+    heap.push((0, 0));
+    while let Some((min_cost, min_node)) = heap.pop() {
         if dis[min_node] < -min_cost {
             continue;
         }
-        for &(next,cost) in map[min_node].iter() {
+        for &(next, cost) in map[min_node].iter() {
             let new_cost = min_cost + cost as i32;
             if dis[next] > new_cost {
                 dis[next] = new_cost;
-                heap.push((-new_cost,next));
+                heap.push((-new_cost, next));
             }
         }
     }
 
     let last = *dis.last().unwrap();
-    if last != inf {
-        last
-    }else {
-        -1
-    }
+    if last != inf { last } else { -1 }
 }
 
 pub fn network_delay_time2(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
@@ -167,17 +281,17 @@ pub fn network_delay_time2(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
         map[u].push((v, c));
     }
     let mut heap = BinaryHeap::new();
-    heap.push((0,k as usize - 1));
-    let mut dis = vec![i32::MAX / 2;n as usize ];
-    while let Some((min_cost,min_node)) = heap.pop() {
+    heap.push((0, k as usize - 1));
+    let mut dis = vec![i32::MAX / 2; n as usize];
+    while let Some((min_cost, min_node)) = heap.pop() {
         if -min_cost > dis[min_node] {
             continue;
         }
         dis[min_node] = min_cost;
-        for &(next,cost) in map[min_node].iter() {
+        for &(next, cost) in map[min_node].iter() {
             let cost = -min_cost + cost as i32;
             if cost < dis[next] {
-                heap.push((-cost,next));
+                heap.push((-cost, next));
             }
         }
     }

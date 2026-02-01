@@ -1,32 +1,212 @@
+use std::i64;
+
+pub fn minimum_removal(mut beans: Vec<i32>) -> i64 {
+    beans.sort();
+    let mut pre_sum = vec![0; beans.len() + 1];
+    for i in 0..beans.len() {
+        pre_sum[i + 1] = pre_sum[i] + beans[i] as i64;
+    }
+    let mut ans = i64::MAX;
+    let min = beans[0];
+    let max = beans.last().copied().unwrap();
+    for b in min..=max {
+        let idx = match beans.binary_search(&b) {
+            Ok(idx) => idx + 1,
+            Err(idx) => idx,
+        };
+        ans = ans.min(
+            pre_sum[idx] + (max as i64 - pre_sum[idx])
+                - (b as i64 * beans.len() as i64 - idx as i64),
+        )
+    }
+    ans
+}
+pub fn max_non_overlapping(nums: Vec<i32>, target: i32) -> i32 {
+    use std::collections::HashMap;
+    let mut pre_sum = vec![0; nums.len() + 1];
+    for i in 0..nums.len() {
+        pre_sum[i + 1] = pre_sum[i] + nums[i];
+    }
+    let mut ans = 0;
+    let mut map = HashMap::new();
+    for i in 0..pre_sum.len() {
+        let expect = target - pre_sum[i];
+        if let Some(pre) = map.get(&expect) {
+            ans += 1;
+            map.clear();
+        } else {
+            map.insert(pre_sum[i], i);
+        }
+    }
+
+    ans
+}
+
+pub fn max_substrings(word: String) -> i32 {
+    use std::collections::HashMap;
+    // let word = word.as_bytes();
+    let mut ans = 0;
+    let mut map = HashMap::new();
+    for (i, c) in word.chars().enumerate() {
+        if let Some(pre_idx) = map.get(&c) {
+            if i - pre_idx + 1 >= 4 {
+                map.remove(&c);
+                ans += 1;
+                map.clear();
+            }
+        } else {
+            map.insert(c, i);
+        }
+    }
+    ans
+}
+pub fn minimum_partition(s: String, k: i32) -> i32 {
+    let mut l = 0;
+    let mut r = 0;
+    let mut ans = 0;
+    while r < s.len() {
+        while r < s.len() && s[l..=r].parse::<i32>().unwrap() <= k {
+            r += 1;
+        }
+        let len = r - l + 1;
+        if len == 1 {
+            return -1;
+        }
+        ans += 1;
+        l = r;
+    }
+    ans
+}
+pub fn maximum_groups(mut grades: Vec<i32>) -> i32 {
+    grades.sort();
+    let mut ans = 0;
+    let mut current_len = 1;
+    let mut idx = 0;
+    loop {
+        if idx + current_len < grades.len() {
+            ans += 1;
+            idx += current_len;
+            current_len += 1;
+        } else {
+            break;
+        }
+    }
+
+    ans
+}
+pub fn partition_array(mut nums: Vec<i32>, k: i32) -> i32 {
+    let mut l = 0;
+    let mut r = 0;
+    nums.sort();
+    let mut ans = 0;
+    while r < nums.len() {
+        while r < nums.len() && nums[l] + k >= nums[r] {
+            r += 1;
+        }
+        ans += 1;
+        l = r;
+    }
+    ans
+}
+pub fn partition_string(s: String) -> i32 {
+    use std::collections::HashSet;
+    let mut ans = 0;
+    let mut set = HashSet::new();
+    for c in s.chars() {
+        if !set.insert(c) {
+            ans += 1;
+            set.clear();
+            set.insert(c);
+        }
+    }
+    ans
+}
+pub fn max_power(stations: Vec<i32>, r: i32, k: i32) -> i64 {
+    let mut diff = vec![0; stations.len() + 1];
+    for (i, &s) in stations.iter().enumerate() {
+        let letf = (i as i32 - r).max(0);
+        let right = (i as i32 + r + 1).max(stations.len() as _);
+        diff[letf as usize] += s as i64;
+        diff[right as usize] -= s as i64;
+    }
+    let mut l = 0;
+    let mut r = stations.iter().max().copied().unwrap() as i64 + k as i64;
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        if check_max_power(&diff, mid, k as i64, r as usize) {
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    l
+}
+fn check_max_power(diff: &[i64], min_power: i64, mut k: i64, r: usize) -> bool {
+    let mut current = 0;
+    let mut d = vec![0; diff.len()];
+    for i in 0..diff.len() - 1 {
+        current += diff[i] + d[i];
+        if current < min_power {
+            let x = min_power - current;
+            if k >= x {
+                k -= x;
+                d[(i + 2 * r).min(diff.len())] -= x;
+                current += x;
+            } else {
+                return false;
+            }
+        }
+    }
+    true
+}
+pub fn minimum_replacement(nums: Vec<i32>) -> i64 {
+    let mut ans = 0;
+
+    let mut current_max = nums[nums.len() - 1] as i64;
+    for &n in nums.iter().rev() {
+        let mut n = n as i64;
+        if current_max >= n {
+            current_max = n;
+        } else {
+            if n % current_max == 0 {
+                ans += (n - current_max) / current_max;
+            } else {
+                ans += n / current_max;
+                n = n % current_max;
+                n += current_max;
+                n = n / 2;
+            }
+        }
+    }
+    ans
+}
 pub fn avoid_flood(rains: Vec<i32>) -> Vec<i32> {
-    use std::collections::{HashSet,HashMap,VecDeque,BTreeSet};
-    let mut map:HashMap<i32, VecDeque<usize>> = HashMap::new();
-    let mut pre_map:HashMap<i32, usize> = HashMap::new();
-    for (i,&r) in rains.iter().enumerate(){
+    use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+    let mut map: HashMap<i32, VecDeque<usize>> = HashMap::new();
+    let mut pre_map: HashMap<i32, usize> = HashMap::new();
+    for (i, &r) in rains.iter().enumerate() {
         map.entry(r).or_default().push_back(i);
-        if !pre_map.contains_key(&r){
+        if !pre_map.contains_key(&r) {
             pre_map.insert(r, i);
         }
     }
     let mut clear_lake = vec![];
     let mut full_lake = BTreeSet::new();
-    for (i,&r) in rains.iter().enumerate() {
+    for (i, &r) in rains.iter().enumerate() {
         if r == 0 {
-
-            if let Some((_,r)) = full_lake.pop_first() {
+            if let Some((_, r)) = full_lake.pop_first() {
                 clear_lake.push(r);
-            }else {
+            } else {
                 clear_lake.push(1);
             }
-
-        }else {
-            if full_lake.contains(&(pre_map.get(&r).copied().unwrap(),r)) {
-                return vec![]
+        } else {
+            if full_lake.contains(&(pre_map.get(&r).copied().unwrap(), r)) {
+                return vec![];
             }
             map.get_mut(&r).unwrap().pop_front();
             let next = *map[&r].front().unwrap_or(&usize::MAX);
             *pre_map.get_mut(&r).unwrap() = next;
-            full_lake.insert((next,r));
+            full_lake.insert((next, r));
             clear_lake.push(-1);
         }
     }
