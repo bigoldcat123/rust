@@ -6,12 +6,10 @@ use solutions::{eratosthenes, every_day::give_me_random_array};
 
 #[test]
 fn asdadas() {
-    let mut a = vec![0,2,2,2,3,4];
-    a.remove(4);
-    println!("{:?}",a);
-    a.insert(1, 3);
-    println!("{:?}",a);
-
+    let a = "abc"
+        ;
+    let b = "abcd";
+    println!("{}",a == b)
 }
 #[test]
 fn asda() {

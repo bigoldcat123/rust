@@ -5,6 +5,19 @@ use std::{
     rc::Rc,
     sync::LazyLock,
 };
+pub fn is_trionic(nums: Vec<i32>) -> bool {
+    let mut l = 1;
+    while l < nums.len() && nums[l] > nums[l - 1] {
+        l += 1;
+    }
+    while l < nums.len() && nums[l] < nums[l - 1] {
+        l += 1;
+    }
+    while l < nums.len() && nums[l] > nums[l - 1] {
+        l += 1;
+    }
+    l == nums.len()
+}
 
 pub fn minimum_k(nums: Vec<i32>) -> i32 {
     let mut l = 1;

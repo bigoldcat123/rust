@@ -1,4 +1,255 @@
-use std::i64;
+pub fn max_good_number(nums: Vec<i32>) -> i32 {
+    let a = to_binary_arr(nums[0]);
+    let b = to_binary_arr(nums[0]);
+    let c = to_binary_arr(nums[0]);
+    let mut ans = 0;
+    ans = ans.max(combine(&a, &b, &c));
+    ans = ans.max(combine(&a, &c, &b));
+    ans = ans.max(combine(&b, &a, &c));
+    ans = ans.max(combine(&b, &c, &a));
+    ans = ans.max(combine(&c, &a, &b));
+    ans = ans.max(combine(&c, &b, &a));
+    ans
+}
+fn combine(a:&[i32],b:&[i32],c:&[i32]) -> i32 {
+    let mut v = vec![];
+    v.extend_from_slice(a);
+    v.extend_from_slice(b);
+    v.extend_from_slice(c);
+    let mut ans = 0;
+    let mut step = 1;
+    for &x in v.iter().rev() {
+        ans += x * step;
+        step <<= 1;
+    }
+    ans
+}
+fn to_binary_arr(mut n:i32) -> Vec<i32> {
+    let mut ans = vec![];
+    while n != 0 {
+        ans.push(n & 1);
+        n >>= 1;
+    }
+    ans.reverse();
+    ans
+}
+
+pub fn largest_number(mut nums: Vec<i32>) -> String {
+    nums.sort_by(|a, b| format!("{}{}", a, b).cmp(&format!("{}{}", b, a)));
+    if nums[0] == 0 {
+        return "0".into();
+    }
+    let res = nums
+        .into_iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>()
+        .join("");
+    res
+}
+
+pub fn min_cost2(basket1: Vec<i32>, basket2: Vec<i32>) -> i64 {
+    use std::collections::HashMap;
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    let mut map2: HashMap<i32, i32> = HashMap::new();
+    let mut min = i64::MAX;
+    for &b in basket1.iter() {
+        *map.entry(b).or_default() += 1;
+        *map2.entry(b).or_default() += 1;
+        min = min.min(b as i64);
+    }
+    for &b in basket2.iter() {
+        *map.entry(b).or_default() += 1;
+        min = min.min(b as i64);
+    }
+    if map.values().any(|&x| x % 2 != 0) {
+        return -1;
+    }
+    let mut extra_or_short = vec![];
+    for (k, v) in map {
+        let current = *map2.entry(k).or_default();
+        if current != v / 2 {
+            for _ in 0..(current - v / 2).abs() {
+                extra_or_short.push((k as i64).min(min * 2));
+            }
+        }
+    }
+    extra_or_short.sort();
+    extra_or_short[..extra_or_short.len() / 2].iter().sum()
+}
+
+pub fn earliest_full_bloom(plant_time: Vec<i32>, grow_time: Vec<i32>) -> i32 {
+    let mut p_g: Vec<(i32, i32)> = plant_time.into_iter().zip(grow_time).collect();
+    p_g.sort_by(|a, b| {
+        (a.0 + a.1)
+            .max(a.0 + b.1 + b.0)
+            .cmp(&((b.0 + b.1).max(a.0 + b.0 + a.1)))
+    });
+    let mut ans = 0;
+    let mut current_day = 0;
+    for pg in p_g {
+        current_day += pg.0;
+        ans = ans.max(current_day + pg.1);
+    }
+    ans
+}
+pub fn min_damage(power: i32, damage: Vec<i32>, health: Vec<i32>) -> i64 {
+    let mut d_h: Vec<(i32, i32)> = damage
+        .into_iter()
+        .zip(
+            health
+                .into_iter()
+                .map(|x| x / power + if x % power == 0 { 0 } else { 1 }),
+        )
+        .collect();
+    // d_h.sort_by(|a,b| a.0.cmp(&b.0).then(b.1.cmp(&a.1)));
+    d_h.sort_by(|a, b| (a.0 / a.1).cmp(&(b.0 / b.1)));
+    let mut pre_sum = vec![0; d_h.len() + 1];
+    for i in 0..d_h.len() {
+        pre_sum[i + 1] = pre_sum[i] + d_h[i].0 as i64;
+    }
+    println!("{:?}", d_h);
+    let mut ans = 0;
+    while let Some((_, count_to_defeat)) = d_h.pop() {
+        ans += pre_sum.pop().unwrap() * count_to_defeat as i64;
+    }
+    ans
+}
+pub fn minimum_effort(mut tasks: Vec<Vec<i32>>) -> i32 {
+    tasks.sort_by_key(|x| x[1] - x[0]);
+    let mut ans = 0;
+    let mut current = 0;
+    for t in tasks {
+        let req = t[1];
+        let act = t[0];
+        if current < req {
+            current = req;
+            ans += req - current;
+        }
+        current -= act;
+    }
+    ans
+}
+
+pub fn max_weight2(mut pizzas: Vec<i32>) -> i64 {
+    let mut ans = 0;
+    pizzas.sort();
+    let day = pizzas.len() / 4;
+    let odd_day = (day + 1) / 2;
+    let even_day = day - odd_day;
+    ans += pizzas[pizzas.len() - odd_day..]
+        .iter()
+        .map(|&x| x as i64)
+        .sum::<i64>();
+    let mut start = pizzas.len() - odd_day - 1;
+    for _ in 0..even_day {
+        ans += pizzas[start - 1] as i64;
+        start -= 2;
+    }
+    ans
+}
+
+pub fn min_processing_time(mut processor_time: Vec<i32>, mut tasks: Vec<i32>) -> i32 {
+    processor_time.sort();
+    tasks.sort();
+    tasks.reverse();
+    let mut ans = i32::MAX;
+    for i in (0..tasks.len()).step_by(4) {
+        let p = processor_time[i / 4];
+        ans = ans.max(tasks[i..i + 4].iter().map(|t| t + p).max().unwrap());
+    }
+
+    ans
+}
+
+pub fn min_groups_for_valid_assignment(balls: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    for b in balls {
+        *map.entry(b).or_default() += 1;
+    }
+    let min = map.values().min().copied().unwrap();
+    let mut ans = i32::MAX;
+    for m in 1..=min {
+        let mut cnt = 0;
+        for &v in map.values() {
+            //using big box
+            let x = v / (m + 1);
+            cnt += x;
+            let left = v % (m + 1);
+            if left != 0 {
+                if left == m {
+                    cnt += 1;
+                } else {
+                    let diff = m - left;
+                    if diff <= x {
+                        cnt += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        ans = ans.min(cnt)
+    }
+    ans
+}
+pub fn make_the_integer_zero(num1: i32, num2: i32) -> i32 {
+    let mut num1 = num1 as i128;
+    let num2 = num2 as i128;
+    for i in 1.. {
+        num1 -= num2;
+        if num1 < 0 {
+            return -1;
+        }
+        if num1.count_ones() == i {
+            return i as _;
+        }
+    }
+    unreachable!()
+}
+pub fn largest_submatrix(matrix: Vec<Vec<i32>>) -> i32 {
+    let mut h = vec![0; matrix[0].len()];
+    let mut ans = 0;
+    for i in 0..matrix.len() {
+        for j in 0..matrix[0].len() {
+            if matrix[i][j] == 1 {
+                h[j] = h[j] + 1;
+            } else {
+                h[j] = 0;
+            }
+        }
+        h.sort();
+        ans = ans.max(cal_area(&h));
+    }
+    ans
+}
+fn cal_area(h: &[i32]) -> i32 {
+    let mut max = 0;
+    for i in 0..h.len() {
+        let len = (h.len() - i) as i32;
+        max = max.max(len * h[i]);
+    }
+    max
+}
+pub fn minimum_deletions(word: String, k: i32) -> i32 {
+    let mut map = vec![0_i32; 26];
+    for w in word.chars().map(|x| x as u8 as usize - 97) {
+        map[w] += 1;
+    }
+    let mut ans = i32::MAX;
+    for &m in map.iter() {
+        let mut d = 0;
+        for &n in map.iter() {
+            if n < m {
+                d += m;
+            } else if n > m + k {
+                d += n - m - k;
+            }
+        }
+        ans = ans.min(d);
+    }
+    ans
+}
 
 pub fn minimum_removal(mut beans: Vec<i32>) -> i64 {
     beans.sort();
