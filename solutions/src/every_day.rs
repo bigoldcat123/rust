@@ -1,6 +1,66 @@
+pub fn max_sum_trionic(nums: Vec<i32>) -> i64 {
+    #[derive(Debug, Clone, Copy)]
+    enum Arr {
+        Increase(i64, i64),
+        Decrease(i64),
+        Even,
+    }
+    let mut a = vec![];
+    let mut l = 0;
+    let mut r = 1;
+    while r < nums.len() {
+        if nums[l] == nums[r] {
+            while r < nums.len() && nums[r - 1] == nums[r] {
+                r += 1;
+            }
+            a.push(Arr::Even);
+        } else if nums[l] > nums[r] {
+            let mut sum = 0i64;
+            while r < nums.len() && nums[r - 1] > nums[r] {
+                sum += nums[r] as i64;
+                r += 1;
+            }
+            sum -= nums[r - 1] as i64;
+            a.push(Arr::Decrease(sum));
+        } else {
+            while r < nums.len() && nums[r - 1] < nums[r] {
+                r += 1;
+            }
+
+            let mut current = nums[l] as i64 + nums[l + 1] as i64;
+            let mut pre_max = current;
+            for i in l + 2..r {
+                current += nums[i] as i64;
+                pre_max = pre_max.max(current);
+            }
+            let mut current = nums[r - 2] as i64 + nums[r - 1] as i64;
+            let mut post_max = current;
+
+            if r >= 3 {
+                for i in (l..=r - 3).rev() {
+                    current += nums[i] as i64;
+                    post_max = post_max.max(current);
+                }
+            }
+
+            a.push(Arr::Increase(pre_max, post_max));
+        }
+        l = r - 1;
+    }
+    let mut ans = i64::MIN;
+    for w in a.windows(3) {
+        if let (Arr::Increase(_, post_max), Arr::Decrease(sum), Arr::Increase(pre_max, _)) =
+            (w[0], w[1], w[2])
+        {
+            ans = ans.max(pre_max + post_max + sum);
+        }
+    }
+    ans
+}
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
+    i64,
     io::BufRead,
     rc::Rc,
     sync::LazyLock,
