@@ -1,3 +1,239 @@
+pub fn longest_diverse_string(a: i32, b: i32, c: i32) -> String {
+    let mut ans = String::new();
+    let mut arr = [(a,'a'),(b,'b'),(c,'c')];
+    loop {
+        let mut has_next = false;
+        arr.sort_by_key(|x| -x.0);
+        for (n,c) in arr.iter_mut(){
+            if *n == 0 {
+                break;
+            }
+            if ans.len() >= 2 && &ans[ans.len() - 2..] == format!("{}{}",c,c) {
+                continue;
+            }
+            has_next = true;
+            *n -= 1;
+            ans.push(*c);;
+
+        }
+        if !has_next {
+            break;
+        }
+    }
+    ans
+}
+
+pub fn longest_diverse_string2(a: i32, b: i32, c: i32) -> String {
+    let mut arr = [(a, 'a'), (b, 'b'), (c, 'c')];
+    arr.sort_by_key(|x| x.0);
+
+    let need2 = arr[1].0 / 2;
+    let need1 = arr[1].0 % 2;
+    let mut s = String::new();
+    if arr[0].0 < need2 + need1 - 1 {
+        s.push(arr[1].1);
+        s.push(arr[1].1);
+        let mut x = arr[0].0;
+        while x != 0 {
+            s.push(arr[0].1);
+            s.push(arr[1].1);
+            s.push(arr[1].1);
+        }
+    } else {
+        let mut insert2 = 0;
+        let mut insert1 = arr[0].0;
+        while insert2 + insert1 > need2 + need1 {
+            insert2 += 1;
+            insert1 -= 2;
+        }
+    }
+
+    let mut ans = String::new();
+
+    ans
+}
+pub fn str_without3a3b(a: i32, b: i32) -> String {
+    let (max_char, min_char) = if a > b { ('a', 'b') } else { ('b', 'a') };
+    let max = a.max(b);
+    let min = a.min(b);
+    let mut min_need2 = (max / 2);
+    let mut min_need1 = max % 2;
+    let need = min_need1 + min_need2 - 1;
+    let mut store2 = (min / 2);
+    let mut store1 = min % 2;
+    while store1 + store2 < need {
+        store1 += 2;
+        store2 -= 1;
+    }
+
+    let mut ans = String::new();
+
+    while ans.len() < (a + b) as usize {
+        if min_need2 != 0 {
+            min_need2 -= 1;
+            ans.push(max_char);
+            ans.push(max_char);
+        } else {
+            ans.push(max_char);
+        }
+        if store2 != 0 {
+            store2 -= 1;
+            ans.push(min_char);
+            ans.push(min_char);
+        } else {
+            ans.push(min_char);
+        }
+    }
+
+    ans
+}
+
+pub fn min_swaps_sadjl(nums: Vec<i32>, forbidden: Vec<i32>) -> i32 {
+    use std::collections::HashMap;
+    let mut map = HashMap::new();
+    let mut max_cnt = 0;
+    for n in nums.iter().copied() {
+        *map.entry(n).or_default() += 1;
+        max_cnt = max_cnt.max(map[&n]);
+    }
+    for n in forbidden.iter().copied() {
+        *map.entry(n).or_default() += 1;
+        max_cnt = max_cnt.max(map[&n]);
+    }
+    if max_cnt > nums.len() as i32 {
+        return -1;
+    }
+    let mut len = 0;
+    let mut max_cnt = 0;
+    map.clear();
+    for (&n, f) in nums.iter().zip(forbidden) {
+        if n == f {
+            *map.entry(n).or_default() += 1;
+            max_cnt = max_cnt.max(map[&n]);
+        }
+    }
+    ((len + 1) / 2).max(max_cnt)
+}
+pub fn number_of_weeks(milestones: Vec<i32>) -> i64 {
+    use std::collections::HashMap;
+    let mut map = HashMap::new();
+    let mut max: i64 = 0;
+    for m in milestones.iter().copied() {
+        *map.entry(m).or_default() += 1;
+        max = max.max(map[&m]);
+    }
+    let mut sum = milestones.iter().copied().map(|x| x as i64).sum::<i64>();
+    if max as usize <= milestones.len() / 2 {
+        sum
+    } else {
+        (max - (milestones.len() as i64 - max)) * 2
+    }
+}
+pub fn min_length_after_removals(nums: Vec<i32>) -> i32 {
+    use std::collections::hash_map::HashMap;
+    let mut map = HashMap::new();
+    let mut max = 0;
+    for &n in nums.iter() {
+        *map.entry(n).or_default() += 1;
+        max = max.max(map[&n]);
+    }
+    let x = nums.len() / 2;
+    if max <= x { 0 } else { (max - x) as _ }
+}
+pub fn rearrange_barcodes(mut barcodes: Vec<i32>) -> Vec<i32> {
+    use std::collections::HashMap;
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    for &n in barcodes.iter() {
+        *map.entry(n).or_default() += 1;
+    }
+    barcodes.sort_by(|a, b| map[a].cmp(&map[b]).then(a.cmp(b)));
+    let mut ans = vec![0; barcodes.len()];
+    let mut i = 0;
+    while let Some(n) = barcodes.pop() {
+        ans[i] = n;
+        i += 2;
+        if i >= barcodes.len() {
+            i = 1;
+        }
+    }
+    ans
+}
+
+pub fn minimum_deletions_8998(s: String) -> i32 {
+    let mut dp = vec![vec![0; s.len() + 1]; 2];
+    let mut i = 1;
+    for c in s.chars() {
+        if c == 'a' {
+            dp[0][i] = dp[0][i - 1] + 1;
+            dp[1][i] = dp[1][i - 1];
+        } else {
+            dp[0][i] = dp[0][i - 1];
+            dp[1][i] = (dp[1][i - 1] + 1).max(dp[0][i - 1] + 1);
+        }
+    }
+    s.len() as i32 - *dp[0].last().unwrap().max(dp[1].last().unwrap())
+}
+
+pub fn reorganize_string(mut s: String) -> String {
+    let mut map: Vec<usize> = vec![0; 26];
+    let len = s.len();
+    let mut max_freq = 0;
+    for s in s.chars().map(|x| x as u8 as usize - 97) {
+        map[s] += 1;
+        max_freq = max_freq.max(map[s]);
+    }
+
+    if max_freq <= (len + 1) / 2 {
+        let mut c_f: Vec<(usize, usize)> = map.into_iter().enumerate().collect();
+        c_f.sort_by_key(|x| x.1);
+        unsafe {
+            let b = s.as_bytes_mut();
+            let mut idx = 0;
+            for (c, mut f) in c_f.into_iter().rev() {
+                while f > 0 {
+                    f -= 1;
+                    b[idx] = c as u8 + 97;
+                    idx += 2;
+                    if idx >= b.len() {
+                        idx = 1;
+                    }
+                }
+            }
+        }
+    } else {
+        return "".to_string();
+    }
+    s
+}
+pub fn partition_arrayasda(nums: Vec<i32>, k: i32) -> bool {
+    use std::collections::HashMap;
+    if nums.len() % k as usize != 0 {
+        return false;
+    }
+    let mut map: HashMap<i32, i32> = HashMap::new();
+    for n in nums {
+        *map.entry(n).or_default() += 1;
+        if *map.entry(n).or_default() > k {
+            return false;
+        }
+    }
+    true
+}
+pub fn fill_cups(mut amount: Vec<i32>) -> i32 {
+    let mut ans = 0;
+    while amount.iter().any(|&x| x != 0) {
+        amount.sort();
+        if amount[1] != 0 {
+            amount[1] -= 1;
+            amount[2] -= 1;
+            ans += 1;
+        } else {
+            ans += amount[2];
+            break;
+        }
+    }
+    ans
+}
 pub fn max_good_number(nums: Vec<i32>) -> i32 {
     let a = to_binary_arr(nums[0]);
     let b = to_binary_arr(nums[0]);
@@ -11,7 +247,7 @@ pub fn max_good_number(nums: Vec<i32>) -> i32 {
     ans = ans.max(combine(&c, &b, &a));
     ans
 }
-fn combine(a:&[i32],b:&[i32],c:&[i32]) -> i32 {
+fn combine(a: &[i32], b: &[i32], c: &[i32]) -> i32 {
     let mut v = vec![];
     v.extend_from_slice(a);
     v.extend_from_slice(b);
@@ -24,7 +260,7 @@ fn combine(a:&[i32],b:&[i32],c:&[i32]) -> i32 {
     }
     ans
 }
-fn to_binary_arr(mut n:i32) -> Vec<i32> {
+fn to_binary_arr(mut n: i32) -> Vec<i32> {
     let mut ans = vec![];
     while n != 0 {
         ans.push(n & 1);

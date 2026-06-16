@@ -8,6 +8,7 @@ use std::{
     rc::Rc,
     vec,
 };
+pub mod dp;
 pub mod greedy;
 pub mod eulerian_path;
 pub mod spanning_tree;

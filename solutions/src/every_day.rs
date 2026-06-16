@@ -1,3 +1,409 @@
+pub fn sum_root_to_leaf(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+    let mut ans = 0;
+    let mut nums = vec![];
+    cal_ans_sum_root_to_leaf(root, &mut nums, &mut ans);
+    ans
+}
+fn cal_ans_sum_root_to_leaf(
+    root: Option<Rc<RefCell<TreeNode>>>,
+    nums: &mut Vec<i32>,
+    ans: &mut i32,
+) -> bool {
+    if let Some(root) = root {
+        let r = root.borrow();
+        nums.push(r.val);
+        let a = cal_ans_sum_root_to_leaf(r.left.clone(), nums, ans);
+        let b = cal_ans_sum_root_to_leaf(r.right.clone(), nums, ans);
+        if !a && !b {
+            *ans += cal_b_n(&nums);
+            nums.pop();
+        }
+        true
+    } else {
+        false
+    }
+}
+fn cal_b_n(b_nums: &[i32]) -> i32 {
+    let mut sum = 0;
+    let mut step = 1;
+    for &n in b_nums.iter().rev() {
+        sum += step * n;
+        step <<= 1;
+    }
+    sum
+}
+
+pub fn has_all_codes(s: String, k: i32) -> bool {
+    use std::collections::HashSet;
+    let mut set = HashSet::new();
+    for i in 0..=s.len() - k as usize {
+        set.insert(&s[i..i + k as usize]);
+    }
+    set.len() == 2_usize.pow(k as _)
+}
+
+pub fn binary_gap(n: i32) -> i32 {
+    let mut b = vec![];
+    let mut n = n;
+    while n != n {
+        b.push(n & 1);
+        n >>= 1;
+    }
+    let mut ans = 0;
+    let mut i = 0;
+    while i < b.len() && b[i] == 0 {
+        i += 1;
+    }
+    let mut l = i;
+    let mut r = i + 1;
+    while r < b.len() {
+        while r < b.len() && b[r] == 0 {
+            r += 1;
+        }
+        ans = ans.max(r - l);
+        l = r;
+        r += 1;
+    }
+    ans as _
+}
+pub fn count_binary_substrings(s: String) -> i32 {
+    let mut pre_cnt = 0;
+    let mut post_cent = 0;
+    let s = s.as_bytes();
+    let mut r = 0;
+    let mut l = 0;
+
+    let mut ans = 0;
+    while r < s.len() {
+        while r < s.len() && s[r] == s[l] {
+            r += 1;
+            post_cent += 1;
+        }
+        if pre_cnt != 0 {
+            ans += 1;
+        }
+        if pre_cnt.min(post_cent) > 1 {
+            ans += 1;
+        }
+        pre_cnt = post_cent;
+        post_cent = 0;
+        l = r;
+    }
+    ans
+}
+pub fn has_alternating_bits(n: i32) -> bool {
+    let mut b = vec![];
+    let mut n = n;
+    while n != 0 {
+        b.push(n & 1);
+        n >>= 1;
+    }
+    b.windows(2).all(|w| w[0] != w[1])
+}
+pub fn read_binary_watch(turned_on: i32) -> Vec<String> {
+    use std::collections::HashMap;
+
+    let mut mint: HashMap<u32, Vec<u8>> = HashMap::new();
+    let mut hour: HashMap<u32, Vec<u8>> = HashMap::new();
+    for i in 0u8..=11u8 {
+        mint.entry(i.count_ones()).or_default().push(i);
+    }
+    for i in 0u8..=59u8 {
+        hour.entry(i.count_ones()).or_default().push(i);
+    }
+    let mut ans = vec![];
+    for h in 0..=4.min(turned_on as u32) {
+        let min = turned_on as u32 - h;
+        for &h in hour.get(&h).unwrap_or(&vec![]) {
+            for &m in mint.get(&min).unwrap_or(&vec![]) {
+                ans.push(format!("{}:{:02}", h, m));
+            }
+        }
+    }
+    ans
+}
+pub fn reverse_bits(mut n: i32) -> i32 {
+    let mut ans = vec![0; 32];
+    let mut i = 0;
+    while n != 0 {
+        ans[i] = n & 1;
+        n >>= 1;
+    }
+    let mut a = 0;
+    let mut x = 1;
+    for b in ans {
+        a += b * x;
+        x <<= 1;
+    }
+    a
+}
+pub fn add_binary(a: String, b: String) -> String {
+    let mut ans = vec![];
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+    let mut a_idx = a.len() as i32 - 1;
+    let mut b_idx = b.len() as i32 - 1;
+    let mut carry = 0;
+    loop {
+        let a = if a_idx >= 0 {
+            a[a_idx as usize] - b'0'
+        } else {
+            0
+        };
+        let b = if b_idx >= 0 {
+            b[b_idx as usize] - b'0'
+        } else {
+            0
+        };
+        let mut sum = a + b + carry;
+        if sum >= 2 {
+            carry = 1;
+            sum %= 2;
+        } else {
+            carry = 0;
+        }
+        a_idx -= 1;
+        b_idx -= 1;
+        ans.insert(0, sum);
+        if a_idx < 0 && b_idx < 0 {
+            if carry != 0 {
+                ans.insert(0, carry);
+            }
+            break;
+        }
+    }
+    ans.iter().map(|x| x.to_string()).collect::<String>()
+}
+
+pub fn champagne_tower(poured: i32, query_row: i32, query_glass: i32) -> f64 {
+    let mut cur = vec![poured as f64];
+    for i in 1..=query_row as usize {
+        let mut next = vec![0.0; i + 1];
+        for j in 0..i {
+            let x = cur[j];
+            next[j] += (x - 1.0) / 2.0;
+            next[j + 1] += (x - 1.0) / 2.0;
+        }
+        cur = next;
+    }
+    cur[query_glass as usize].min(1.0)
+}
+
+pub fn longest_balanced2_12(s: String) -> i32 {
+    use std::collections::HashMap;
+    let s = s.as_bytes();
+    let mut current = vec![0, 0, 0];
+    let mut ans = max_single_len(s, b'a')
+        .max(max_single_len(s, b'b'))
+        .max(max_single_len(s, b'c'))
+        .max(max_double_len_enter(s, b'a', b'b'))
+        .max(max_double_len_enter(s, b'b', b'c'))
+        .max(max_double_len_enter(s, b'a', b'c'));
+    let mut map = HashMap::new();
+    map.insert(vec![0, 0], 0);
+    for (i, &b) in s.iter().enumerate() {
+        current[b as usize - 97] += 1;
+        let diff = vec![current[0] - current[1], current[1] - current[2]];
+        if let Some(&prev) = map.get(&diff) {
+            ans = ans.max(i as i32 - prev);
+        } else {
+            map.insert(diff, i as i32);
+        }
+    }
+    ans
+}
+fn max_double_len_enter(s: &[u8], a: u8, b: u8) -> i32 {
+    let mut l = 0;
+    let mut r = 0;
+    let mut ans = 0;
+    while r < s.len() {
+        while r < s.len() && (s[r] == a || s[r] == b) {
+            r += 1;
+        }
+        ans = ans.max(max_double_len(&s[l..r], a, b));
+        l = r + 1;
+        r += 1;
+    }
+    ans
+}
+fn max_double_len(s: &[u8], a: u8, b: u8) -> i32 {
+    use std::collections::HashMap;
+    let mut current = vec![0, 0];
+    let mut ans = 0;
+    let mut map = HashMap::new();
+    map.insert(vec![0], 0);
+    for (i, &b) in s.iter().enumerate() {
+        if b == a {
+            current[0] += 1;
+        } else if b == b {
+            current[1] += 1;
+        }
+        let diff = vec![current[0] - current[1]];
+        if let Some(&prev) = map.get(&diff) {
+            ans = ans.max(i as i32 - prev);
+        } else {
+            map.insert(diff, i as i32);
+        }
+    }
+    ans
+}
+fn max_single_len(s: &[u8], b: u8) -> i32 {
+    let mut ans = 0;
+    let mut count = 0;
+    for &c in s {
+        if c == b {
+            count += 1;
+        } else {
+            ans = ans.max(count);
+            count = 0;
+        }
+    }
+    ans.max(count)
+}
+pub fn longest_balanced_2_12(s: String) -> i32 {
+    let mut s = s.as_bytes();
+    let mut ans = 0;
+
+    for i in 0..s.len() {
+        let mut map = vec![0; 26];
+        let mut x = 0;
+        for j in i..s.len() {
+            map[s[j] as usize - 97] += 1;
+            x = map[s[j] as usize - 97];
+        }
+        if map.iter().all(|&x| x == 0 || x == x) {
+            ans = ans.max((s.len() - i) as i32);
+        }
+    }
+    ans
+}
+pub fn longest_balanced(nums: Vec<i32>) -> i32 {
+    use std::collections::HashSet;
+    let mut ans = 0;
+    for i in 0..nums.len() {
+        let mut odd = HashSet::new();
+        let mut even = HashSet::new();
+        for j in i..nums.len() {
+            if nums[i] & 1 == 1 {
+                odd.insert(nums[i]);
+            } else {
+                even.insert(nums[i]);
+            }
+            if odd.len() == even.len() {
+                ans = ans.max((j - i + 1) as i32)
+            }
+        }
+    }
+    0
+}
+pub fn balance_bst(root: Option<Rc<RefCell<TreeNode>>>) -> Option<Rc<RefCell<TreeNode>>> {
+    let mut arr = vec![];
+    mid_dfs(root, &mut arr);
+    build(&arr).map(RefCell::new).map(Rc::new)
+}
+fn build(arr: &[i32]) -> Option<TreeNode> {
+    if arr.is_empty() {
+        return None;
+    } else {
+        let mid = arr.len() / 2;
+        let mut node = TreeNode::new(arr[mid]);
+        let left = build(&arr[..mid]);
+        let right = build(&arr[mid + 1..]);
+        node.left = left.map(|x| Rc::new(RefCell::new(x)));
+        node.left = right.map(RefCell::new).map(Rc::new);
+        Some(node)
+    }
+}
+fn mid_dfs(root: Option<Rc<RefCell<TreeNode>>>, arr: &mut Vec<i32>) {
+    if let Some(root) = root {
+        let root = root.borrow();
+        mid_dfs(root.left.clone(), arr);
+        arr.push(root.val);
+        mid_dfs(root.right.clone(), arr);
+    }
+}
+
+pub fn is_balanced(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    cal_height(root.clone()).1
+}
+// fn cal_res(root: Option<Rc<RefCell<TreeNode>>>) -> bool{
+//     if let Some(root) = root {
+//         let root = root.borrow();
+//         match (root.left.as_ref(),root.right.as_ref()) {
+//             (Some(l),Some(r)) => {
+//                 l.borrow().val
+//             }
+//             (None,Some(r)) => {
+
+//             }
+//             (Some(l),None) => {
+
+//             }
+//             (None,None) => {
+
+//             }
+//         }
+//     }else {
+//         true
+//     }
+// }
+pub fn cal_height(root: Option<Rc<RefCell<TreeNode>>>) -> (i32, bool) {
+    if let Some(root) = root {
+        let mut root = root.borrow_mut();
+        let (left_height, ok_left) = cal_height(root.left.clone());
+        let (right_height, ok_right) = cal_height(root.right.clone());
+        if let Some(l) = root.left.as_mut() {
+            l.borrow_mut().val = left_height;
+        }
+        if let Some(r) = root.right.as_mut() {
+            r.borrow_mut().val = right_height;
+        }
+        if !ok_left || !ok_right {
+            return (0, false);
+        }
+        (
+            left_height.max(right_height) + 1,
+            (left_height - right_height).abs() <= 1,
+        )
+    } else {
+        (0, true)
+    }
+}
+
+pub fn min_removal(nums: Vec<i32>, k: i32) -> i32 {
+    let mut l = 1;
+    let mut r = nums.len() as i32 - 1;
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        if check_for_min_removal(&nums, mid as usize, k) {
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    nums.len() as i32 - r - 1
+}
+fn check_for_min_removal(nums: &[i32], len: usize, k: i32) -> bool {
+    let mut l = 0;
+    let mut r = len;
+    while r < nums.len() {
+        if nums[r] <= nums[l] * k {
+            return true;
+        }
+        l += 1;
+        r += 1;
+    }
+    false
+}
+pub fn construct_transformed_array(nums: Vec<i32>) -> Vec<i32> {
+    let mut ans = vec![];
+    let mut len = nums.len() as i32;
+    for (i, &n) in nums.iter().enumerate() {
+        let next = ((i as i32 + (n % len) + len) % len) as usize;
+        ans.push(nums[next]);
+    }
+    ans
+}
 pub fn max_sum_trionic(nums: Vec<i32>) -> i64 {
     #[derive(Debug, Clone, Copy)]
     enum Arr {
@@ -2445,8 +2851,9 @@ pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
 
 use log::log_enabled;
 use num_traits::real::Real;
+use rand::rand_core::le;
 
-use crate::{ListNode, TreeNode, eratosthenes};
+use crate::{ListNode, TreeNode, dp, eratosthenes};
 
 // struct SegTree {
 //     tree: Vec<i64>,
@@ -3659,4 +4066,222 @@ pub fn find_x_sum(nums: Vec<i32>, k: i32, xx: i32) -> Vec<i32> {
         res.push(x[start..x.len()].iter().map(|x| (*x.0 * *x.1)).sum::<i32>());
     }
     res
+}
+
+pub fn pair_sum(mut head: Option<Box<ListNode>>) -> i32 {
+    let mut a = vec![];
+    let mut h = head.as_ref();
+    while let Some(node) = h {
+        a.push(node.val);
+        h = node.next.as_ref();
+    }
+    let mut max = 0;
+    for i in 0..=(a.len() / 2) - 1 {
+        max = max.max(a[i] + a[a.len() - i - 1])
+    }
+    max
+}
+
+pub fn delete_middle(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut h = head.as_mut();
+    let mut len = 0;
+    while let Some(next) = h {
+        len += 1;
+        h = next.next.as_mut();
+    }
+    if len == 1 {
+        return None;
+    }
+    let delete_idx = len / 2;
+    let mut idx = 0;
+    h = head.as_mut();
+    while let Some(next) = h {
+        if idx + 1 == delete_idx {
+            next.next = next.next.take().unwrap().next;
+            break;
+        }
+        h = next.next.as_mut();
+        idx += 1;
+    }
+    head
+}
+
+pub fn paths_with_max_score(board: Vec<String>) -> Vec<i32> {
+    let board: Vec<&[u8]> = board.iter().map(|x| x.as_bytes()).collect();
+    let max_socre = (board.len() + board[0].len()) * 10;
+    //dp[i][j][k];
+    let mut dp = vec![vec![vec![0_u128; max_socre]; board[0].len()]; board.len()];
+    dp[board.len() - 1][board[0].len() - 1][0] = 1;
+    for i in (0..board.len() - 1).rev() {
+        if board[i][board[0].len() - 1] != b'X' {
+            let current_node_score = (board[i][board[0].len() - 1] - b'0') as i32;
+            for s in 0..max_socre {
+                let pre_path_count = dp[i + 1][board[0].len() - 1][s];
+                if pre_path_count > 0 {
+                    dp[i][board[0].len() - 1][s + current_node_score as usize] = (dp[i]
+                        [board[0].len() - 1][s + current_node_score as usize]
+                        + pre_path_count)
+                        % 1_000_000_007;
+                    // println!("{i} {} {} -> {}",board[0].len() - 1 ,s + current_node_score as usize, dp[i][board[0].len() - 1][s + current_node_score as usize]);
+                }
+            }
+        } else {
+            break;
+        }
+    }
+
+    for i in (0..board[0].len() - 1).rev() {
+        if board[board.len() - 1][i] != b'X' {
+            let current_node_score = (board[board.len() - 1][i] - b'0') as i32;
+            for s in 0..max_socre {
+                let pre_path_count = dp[board.len() - 1][i + 1][s];
+                if pre_path_count > 0 {
+                    dp[board.len() - 1][i][s + current_node_score as usize] =
+                        (dp[board.len() - 1][i][s + current_node_score as usize] + pre_path_count)
+                            % 1_000_000_007;
+                    // println!("-- {} {} {} -> {}",board.len() - 1,i,s + current_node_score as usize,dp[board.len() - 1][i][s + current_node_score as usize]);
+                }
+            }
+        } else {
+            break;
+        }
+    }
+    let a = 1_000_000_007;
+    for i in (0..dp.len() - 1).rev() {
+        for j in (0..dp[0].len() - 1).rev() {
+            if board[i][j] == b'X' {
+                continue;
+            }
+            let current_socre = if i == j && j == 0 {
+                0
+            } else {
+                board[i][j] - b'0'
+            } as usize;
+            for k in 0..max_socre {
+                if dp[i + 1][j][k] > 0 {
+                    dp[i][j][k + current_socre] =
+                        (dp[i][j][k + current_socre] + dp[i + 1][j][k]) % a;
+                }
+                if dp[i + 1][j + 1][k] > 0 {
+                    dp[i][j][k + current_socre] =
+                        (dp[i][j][k + current_socre] + dp[i + 1][j + 1][k]) % a;
+                }
+                if dp[i][j + 1][k] > 0 {
+                    dp[i][j][k + current_socre] =
+                        (dp[i][j][k + current_socre] + dp[i][j + 1][k]) % a;
+                }
+                // if k + current_socre < max_socre {
+                //     println!("{} {} {} -> {}",i,j,k + current_socre,  dp[i][j][k + current_socre]);
+                // }
+            }
+        }
+    }
+    // println!("{:?}",dp[0][0]);
+    for (score, num) in dp[0][0].iter().rev().enumerate() {
+        if *num != 0 {
+            return vec![(max_socre - score - 1) as i32, *num as i32];
+        }
+    }
+    vec![0, 0]
+}
+
+pub fn process_str2(s: String) -> String {
+    let mut b = vec![];
+    for c in s.chars() {
+        match c {
+            '*' => {
+                b.pop();
+            }
+            '#' => {
+                b.extend(b.clone());
+            }
+            '%' => {
+                b.reverse();
+            }
+            _ => {
+                b.push(c as u8);
+            }
+        }
+    }
+    String::from_utf8(b).unwrap()
+}
+
+pub fn process_str(s: String, k: i64) -> String {
+    let mut len = 0;
+    let mut b = vec![];
+    for c in s.chars() {
+        match c {
+            '*' => {
+                if !b.is_empty() {
+                    len -= 1;
+                }
+            }
+            '#' => {
+                len <<= 1;
+            }
+            '%' => {}
+            _ => {
+                len += 1;
+            }
+        }
+    }
+    if len >= k {
+        return ".".into();
+    } else {
+    }
+
+    String::from_utf8(b).unwrap()
+}
+
+pub fn unique_paths(grid: Vec<Vec<i32>>) -> i32 {
+    let mut dp = vec![vec![(0, 0); grid[0].len()]; grid.len()];
+    dp[0][0] = (1, 1);
+    for i in 1..dp.len() {
+        if grid[i][0] == 1 {
+            dp[i][0] = (0, 1);
+            break;
+        } else {
+            dp[i][0] = (1, 1);
+        }
+    }
+    for j in 1..dp[0].len() {
+        if grid[0][j] == 1 {
+            dp[0][j] = (1, 0);
+            break;
+        } else {
+            dp[0][j] = (1, 1);
+        }
+    }
+    for i in 1..dp.len() {
+        for j in 1..dp.len() {
+            if grid[i][j] == 1 {
+                //top down
+                if grid[i - 1][j] == 1 {
+                    dp[i][j] = (0, dp[i - 1][j].0);
+                } else {
+                    dp[i][j] = (0, dp[i - 1][j].0);
+                }
+                // left to rignt
+                if grid[i][j - 1] == 1 {
+                    dp[i][j].0 += dp[i][j - 1].1
+                } else {
+                    dp[i][j].0 += dp[i][j - 1].0;
+                }
+            } else {
+                if grid[i - 1][j] == 1 {
+                    dp[i][j] = (dp[i - 1][j].0, dp[i - 1][j].0);
+                } else {
+                    dp[i][j] = (dp[i - 1][j].0, dp[i - 1][j].0);
+                }
+                if grid[i][j - 1] == 1 {
+                    dp[i][j].0 += dp[i][j - 1].1;
+                    dp[i][j].1 += dp[i][j - 1].1;
+                } else {
+                    dp[i][j].0 += dp[i][j - 1].1;
+                    dp[i][j].1 += dp[i][j - 1].1;
+                }
+            }
+        }
+    }
+    dp.last().unwrap().last().unwrap().1
 }
