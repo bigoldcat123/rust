@@ -8,24 +8,23 @@ use std::{
     rc::Rc,
     vec,
 };
-pub mod dp;
-pub mod greedy;
-pub mod eulerian_path;
-pub mod spanning_tree;
-pub mod topology;
+pub mod bfs;
+pub mod dijkstra;
 pub mod dijoint_set;
+pub mod dp;
+pub mod eulerian_path;
 pub mod every_day;
 pub mod five;
 pub mod four;
 pub mod graph;
+pub mod greedy;
 pub mod segment_tree;
 pub mod segment_tree_questions;
+pub mod spanning_tree;
 pub mod tire;
+pub mod topology;
 pub mod tree_array;
-pub mod bfs;
-pub mod dijkstra;
 use log::info;
-
 
 pub fn eratosthenes(n: usize) -> (Vec<bool>, Vec<usize>) {
     if n < 2 {

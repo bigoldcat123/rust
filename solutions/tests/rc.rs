@@ -1,4 +1,3 @@
-
 const TAG_LEN: usize = 5;
 const TAG: [&str; TAG_LEN] = ["酸", "甜", "苦", "辣", "咸"];
 

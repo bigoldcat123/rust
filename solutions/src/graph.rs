@@ -55,7 +55,7 @@ pub fn remove_invalid_parentheses(s: String) -> Vec<String> {
         for p in q {
             if is_valaid_parentheses(&p) {
                 ans.push(p.iter().collect());
-            }else {
+            } else {
                 let mut delete_idx = p
                     .iter()
                     .enumerate()
@@ -68,7 +68,6 @@ pub fn remove_invalid_parentheses(s: String) -> Vec<String> {
                     nextq.insert(x);
                 }
             }
-
         }
         q = nextq;
         if ans.len() != 0 {

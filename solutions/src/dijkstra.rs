@@ -9,8 +9,8 @@ pub fn minimum_cost2(
     changed: Vec<char>,
     cost: Vec<i32>,
 ) -> i64 {
-    use std::collections::{HashMap};
-    let mut map:Vec<HashMap<usize, i64>> = vec![HashMap::new(); 26];
+    use std::collections::HashMap;
+    let mut map: Vec<HashMap<usize, i64>> = vec![HashMap::new(); 26];
     for i in 0..original.len() {
         let u = original[i] as usize - 97;
         let v = changed[i] as usize - 97;
@@ -21,24 +21,31 @@ pub fn minimum_cost2(
             map[u].insert(v, c);
         }
     }
-    let mut min_dis:HashMap<(usize,usize), i64> = HashMap::new();
-    let mut done = vec![false;26];
-    let source:Vec<usize> = source.as_bytes().into_iter().map(|&x| x as usize - 97).collect();
-    let target:Vec<usize> = target.as_bytes().into_iter().map(|&x| x as usize - 97).collect();
+    let mut min_dis: HashMap<(usize, usize), i64> = HashMap::new();
+    let mut done = vec![false; 26];
+    let source: Vec<usize> = source
+        .as_bytes()
+        .into_iter()
+        .map(|&x| x as usize - 97)
+        .collect();
+    let target: Vec<usize> = target
+        .as_bytes()
+        .into_iter()
+        .map(|&x| x as usize - 97)
+        .collect();
     let mut ans = 0;
     for i in 0..source.len() {
         if source[i] != target[i] {
             if done[i] {
-                if let Some(dis) = min_dis.get(&(source[i],target[i])) {
+                if let Some(dis) = min_dis.get(&(source[i], target[i])) {
                     ans += dis;
-                }else{
-                    return -1
+                } else {
+                    return -1;
                 }
-            }else {
-
-                let inf = i64::MAX /  2;
+            } else {
+                let inf = i64::MAX / 2;
                 let mut dis = vec![inf; 26];
-                let mut vis = vec![false;26];
+                let mut vis = vec![false; 26];
                 dis[i] = 0;
 
                 loop {
@@ -53,23 +60,22 @@ pub fn minimum_cost2(
                     if min == inf {
                         break;
                     }
-                    min_dis.insert((i,min_idx), min);
+                    min_dis.insert((i, min_idx), min);
                     vis[min_idx] = true;
-                    for (&v,& c) in map[min_idx].iter() {
+                    for (&v, &c) in map[min_idx].iter() {
                         if dis[v] > dis[min_idx] + c {
                             dis[v] = dis[min_idx] + c;
                         }
                     }
                 }
-                if let Some(dis) = min_dis.get(&(source[i],target[i])) {
+                if let Some(dis) = min_dis.get(&(source[i], target[i])) {
                     ans += dis;
-                }else{
-                    return -1
+                } else {
+                    return -1;
                 }
 
                 done[i] = true;
             }
-
         }
     }
     ans

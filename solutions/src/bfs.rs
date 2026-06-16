@@ -5,21 +5,21 @@ use std::{
 
 pub fn minimum_jumps(forbidden: Vec<i32>, a: i32, b: i32, x: i32) -> i32 {
     use std::collections::{HashSet, VecDeque};
-    let mut q = VecDeque::from([(0,0)]);
-    let mut forbidden:HashSet<i32> = HashSet::from_iter(forbidden.into_iter());
-    let mut vis = HashSet::from([(0,0)]);
+    let mut q = VecDeque::from([(0, 0)]);
+    let mut forbidden: HashSet<i32> = HashSet::from_iter(forbidden.into_iter());
+    let mut vis = HashSet::from([(0, 0)]);
     let mut steps = 0;
     while !q.is_empty() {
-        for (p,dir) in q.split_off(0) {
+        for (p, dir) in q.split_off(0) {
             if p == x {
-                return steps
+                return steps;
             }
-            if vis.insert((p + a,1)) && !forbidden.contains(&(p + a)) {
-                q.push_back((p + a,1));
+            if vis.insert((p + a, 1)) && !forbidden.contains(&(p + a)) {
+                q.push_back((p + a, 1));
             }
             if dir == 1 {
-                if p - b >= 0 && vis.insert((p - b,0)) && !forbidden.contains(&(p - b)) {
-                    q.push_back((p - b,0));
+                if p - b >= 0 && vis.insert((p - b, 0)) && !forbidden.contains(&(p - b)) {
+                    q.push_back((p - b, 0));
                 }
             }
         }
@@ -36,7 +36,7 @@ pub fn minimum_operations(nums: Vec<i32>, start: i32, goal: i32) -> i32 {
     while !q.is_empty() {
         for p in q.split_off(0) {
             if p == goal {
-                return step
+                return step;
             }
             if p >= 0 && p <= 1000 {
                 for &n in nums.iter() {
@@ -54,22 +54,21 @@ pub fn minimum_operations(nums: Vec<i32>, start: i32, goal: i32) -> i32 {
         }
     }
     -1
-
 }
 
 pub fn min_jumps(arr: Vec<i32>) -> i32 {
-    use std::collections::{HashSet, VecDeque,HashMap};
-    let mut map:HashMap<i32, Vec<usize>> = HashMap::new();
-    for (i,&n) in arr.iter().enumerate() {
+    use std::collections::{HashMap, HashSet, VecDeque};
+    let mut map: HashMap<i32, Vec<usize>> = HashMap::new();
+    for (i, &n) in arr.iter().enumerate() {
         map.entry(n).or_default().push(i);
-    };
+    }
     let mut q = VecDeque::from([0_usize]);
     let mut vis = HashSet::from([0_usize]);
     let mut ans = 0;
     while !q.is_empty() {
         for i in q.split_off(0) {
             if i == arr.len() - 1 {
-                return ans
+                return ans;
             }
             for &n in map[&arr[i]].iter() {
                 if vis.insert(n) {

@@ -503,9 +503,15 @@ pub fn max_product_path(grid: Vec<Vec<i32>>) -> i32 {
     //     println!("{x:?}");
     // }
     let res = dp[0].last().unwrap().last().unwrap();
-    if *res >= 0 { (*res % 1_000_000_007) as i32 } else { -1 }
+    if *res >= 0 {
+        (*res % 1_000_000_007) as i32
+    } else {
+        -1
+    }
 }
 
 pub fn number_of_paths(grid: Vec<Vec<i32>>, k: i32) -> i32 {
+    let mut dp = vec![vec![vec![0; k as usize]; grid[0].len()]; grid.len()];
 
+    dp.last().unwrap().last().unwrap()[0]
 }

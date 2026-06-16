@@ -1,4 +1,3 @@
-
 struct DSet {
     fa: Vec<usize>,
     cn: usize,
@@ -36,10 +35,9 @@ pub fn max_stability(n: i32, mut edges: Vec<Vec<i32>>, mut k: i32) -> i32 {
     for e in edges.iter().filter(|x| x[3] == 1).rev() {
         if set.merge(e[0] as usize, e[1] as usize) {
             stability = stability.min(e[2]);
-        }else {
+        } else {
             return -1;
         }
-
     }
     if stability == i32::MAX {
         stability = edges.last().unwrap()[2];
@@ -48,18 +46,18 @@ pub fn max_stability(n: i32, mut edges: Vec<Vec<i32>>, mut k: i32) -> i32 {
     let min = stability;
     for e in edges.iter().filter(|x| x[3] == 0).rev() {
         if set.merge(e[0] as usize, e[1] as usize) {
-            inserted_edges.push((-e[2],true));
+            inserted_edges.push((-e[2], true));
         }
         if set.cn == 1 {
             break;
         }
     }
     if k > 0 {
-        while let Some((value,nod_double)) = inserted_edges.pop() {
+        while let Some((value, nod_double)) = inserted_edges.pop() {
             k -= 1;
             if nod_double {
                 inserted_edges.push((value * 2, false));
-            }else {
+            } else {
                 break;
             }
             if k == 0 {
@@ -68,9 +66,9 @@ pub fn max_stability(n: i32, mut edges: Vec<Vec<i32>>, mut k: i32) -> i32 {
         }
     }
     if set.cn != 1 {
-        return -1
+        return -1;
     }
-    (-inserted_edges.pop().unwrap_or((0,false)).0).min(min)
+    (-inserted_edges.pop().unwrap_or((0, false)).0).min(min)
 }
 
 pub fn min_cost_connect_points(points: Vec<Vec<i32>>) -> i32 {

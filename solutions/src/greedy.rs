@@ -1,20 +1,19 @@
 pub fn longest_diverse_string(a: i32, b: i32, c: i32) -> String {
     let mut ans = String::new();
-    let mut arr = [(a,'a'),(b,'b'),(c,'c')];
+    let mut arr = [(a, 'a'), (b, 'b'), (c, 'c')];
     loop {
         let mut has_next = false;
         arr.sort_by_key(|x| -x.0);
-        for (n,c) in arr.iter_mut(){
+        for (n, c) in arr.iter_mut() {
             if *n == 0 {
                 break;
             }
-            if ans.len() >= 2 && &ans[ans.len() - 2..] == format!("{}{}",c,c) {
+            if ans.len() >= 2 && &ans[ans.len() - 2..] == format!("{}{}", c, c) {
                 continue;
             }
             has_next = true;
             *n -= 1;
-            ans.push(*c);;
-
+            ans.push(*c);
         }
         if !has_next {
             break;

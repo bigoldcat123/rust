@@ -10,10 +10,10 @@ pub fn crack_safe(n: i32, k: i32) -> String {
     dfs_crack_safe(current, &mut map, &mut res);
     res
 }
-fn dfs_crack_safe(current:usize,map:&mut Vec<Vec<usize>>,res:&mut String) {
+fn dfs_crack_safe(current: usize, map: &mut Vec<Vec<usize>>, res: &mut String) {
     res.push_str(&current.to_string());
     while let Some(next) = map[current].pop() {
-        dfs_crack_safe(current, map,res);
+        dfs_crack_safe(current, map, res);
     }
 }
 pub fn find_itinerary(tickets: Vec<Vec<String>>) -> Vec<String> {
