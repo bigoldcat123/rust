@@ -4206,15 +4206,15 @@ pub fn process_str2(s: String) -> String {
     String::from_utf8(b).unwrap()
 }
 
-pub fn process_str(s: String, k: i64) -> String {
+pub fn process_str(s: String, mut k: i64) -> char {
     let mut len = 0;
-    let mut b = vec![];
+
     for c in s.chars() {
         match c {
             '*' => {
-                if !b.is_empty() {
-                    len -= 1;
-                }
+                // if !b.is_empty() {
+                len -= 1;
+                // }
             }
             '#' => {
                 len <<= 1;
@@ -4226,13 +4226,36 @@ pub fn process_str(s: String, k: i64) -> String {
         }
     }
     if len >= k {
-        return ".".into();
+        return '.';
     } else {
+        let mut len = len;
+        for (i, c) in s.chars().rev().enumerate() {
+            let i = s.chars().count() - i;
+            match c {
+                '*' => {
+                    len += 1;
+                }
+                '#' => {
+                    len = len / 2;
+                    if k > len {
+                        k = k - len as i64;
+                    }
+                }
+                '%' => {
+                    k = len - k;
+                }
+                _ => {
+                    if i == k as usize {
+                        return c;
+                    } else {
+                        len -= 1;
+                    }
+                }
+            }
+        }
+        '.'
     }
-
-    String::from_utf8(b).unwrap()
 }
-
 pub fn unique_paths(grid: Vec<Vec<i32>>) -> i32 {
     let mut dp = vec![vec![(0, 0); grid[0].len()]; grid.len()];
     dp[0][0] = (1, 1);

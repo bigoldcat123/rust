@@ -1,5 +1,7 @@
 use std::{i32, i64, iter::Map, num};
 
+use crate::dijkstra;
+
 pub fn maximums_spliced_array(nums1: Vec<i32>, nums2: Vec<i32>) -> i32 {
     let mut pre_sum1 = vec![0; nums1.len() + 1];
     let mut pre_sum2 = vec![0; nums2.len() + 1];
@@ -512,6 +514,333 @@ pub fn max_product_path(grid: Vec<Vec<i32>>) -> i32 {
 
 pub fn number_of_paths(grid: Vec<Vec<i32>>, k: i32) -> i32 {
     let mut dp = vec![vec![vec![0; k as usize]; grid[0].len()]; grid.len()];
-
+    dp[0][0][(grid[0][0] % k) as usize] = 1;
+    const MOD: i32 = 1_000_000_007;
+    for i in 1..grid.len() {
+        let x = (grid[i][0] % k) as usize;
+        for kk in 0..k as usize {
+            dp[i][0][(kk + x) % k as usize] += dp[i - 1][0][kk];
+        }
+    }
+    for j in 1..grid[0].len() {
+        let x = (grid[0][j] % k) as usize;
+        for kk in 0..k as usize {
+            dp[0][j][(kk + x) % k as usize] += dp[0][j - 1][kk];
+        }
+    }
+    for i in 1..dp.len() {
+        for j in 1..dp[0].len() {
+            let x = (grid[i][j] % k) as usize;
+            for kk in 0..k as usize {
+                dp[i][j][(kk + x) % k as usize] += dp[i - 1][j][kk];
+                dp[i][j][(kk + x) % k as usize] %= MOD;
+                dp[i][j][(kk + x) % k as usize] += dp[i][j - 1][kk];
+                dp[i][j][(kk + x) % k as usize] %= MOD;
+            }
+        }
+    }
+    for j in 1..grid[0].len() {}
     dp.last().unwrap().last().unwrap()[0]
+}
+
+pub fn calculate_minimum_hp(dungeon: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashMap;
+    let mut dp = vec![vec![HashMap::new(); dungeon[0].len()]; dungeon.len()];
+    let first_ele = dungeon[0][0];
+    let back = if first_ele >= 0 { first_ele } else { 0 };
+    let init = (1 - first_ele).max(1);
+    dp[0][0].insert(back, init);
+    for i in 1..dp.len() {
+        if dungeon[i][0] >= 0 {
+            for (back, life) in dp[i - 1][0].clone() {
+                dp[i][0].insert(back + dungeon[i][0], life);
+            }
+        } else {
+            let cost = -dungeon[i][0] + 1;
+            for (back, life) in dp[i - 1][0].clone() {
+                if cost <= back {
+                    dp[i][0].insert(back - cost, life);
+                } else {
+                    let diff = cost - back;
+                    if let Some(current_life) = dp[i][0].get_mut(&0) {
+                        if *current_life > life + diff {
+                            *current_life = life + diff;
+                        }
+                    } else {
+                        dp[i][0].insert(0, life + diff);
+                    }
+                }
+            }
+        }
+    }
+    for j in 1..dp[0].len() {
+        if dungeon[0][j] >= 0 {
+            for (back, life) in dp[0][j - 1].clone() {
+                dp[0][j].insert(back + dungeon[0][j], life);
+            }
+        } else {
+            let cost = -dungeon[0][j] + 1;
+            for (back, life) in dp[0][j - 1].clone() {
+                if cost <= back {
+                    dp[0][j].insert(back - cost, life);
+                } else {
+                    let diff = cost - back;
+                    if let Some(current_life) = dp[0][j].get_mut(&0) {
+                        if *current_life > life + diff {
+                            *current_life = life + diff;
+                        }
+                    } else {
+                        dp[0][j].insert(0, life + diff);
+                    }
+                }
+            }
+        }
+    }
+
+    for i in 1..dp.len() {
+        for j in 1..dp[0].len() {
+            if dungeon[i][j] >= 0 {
+                for (back, life) in dp[i - 1][j].clone() {
+                    dp[i][j].insert(back + dungeon[i][j], life);
+                }
+            } else {
+                let cost = -dungeon[i][j] + 1;
+                for (back, life) in dp[i - 1][j].clone() {
+                    if cost <= back {
+                        dp[i][j].insert(back - cost, life);
+                    } else {
+                        let diff = cost - back;
+                        if let Some(current_life) = dp[i][j].get_mut(&0) {
+                            if *current_life > life + diff {
+                                *current_life = life + diff;
+                            }
+                        } else {
+                            dp[i][j].insert(0, life + diff);
+                        }
+                    }
+                }
+            }
+
+            if dungeon[i][j] >= 0 {
+                // let mut p = HashMap::new();
+                for (back, life) in dp[i][j - 1].clone() {
+                    if let Some(x) = dp[i][j].get_mut(&(back + dungeon[i][j])) {
+                        if life < *x {
+                            *x = life;
+                        }
+                    } else {
+                        dp[i][j].insert(back + dungeon[i][j], life);
+                    }
+                }
+                // dp[i][j].extend(p);
+            } else {
+                let cost = -dungeon[i][j] + 1;
+                for (back, life) in dp[i][j - 1].clone() {
+                    if cost <= back {
+                        if let Some(x) = dp[i][j].get_mut(&(back - cost)) {
+                            if life < *x {
+                                *x = life;
+                            }
+                        } else {
+                            dp[i][j].insert(back - cost, life);
+                        }
+                    } else {
+                        let diff = cost - back;
+                        if let Some(current_life) = dp[i][j].get_mut(&0) {
+                            if *current_life > life + diff {
+                                *current_life = life + diff;
+                            }
+                        } else {
+                            dp[i][j].insert(0, life + diff);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let mut min = i32::MAX;
+    for l in dp.last().unwrap().last().unwrap().values() {
+        min = min.min(*l);
+    }
+    min
+}
+
+pub fn longest_increasing_path(matrix: Vec<Vec<i32>>) -> i32 {
+    let mut visited = vec![vec![false; matrix[0].len()]; matrix.len()];
+    let mut dp = vec![vec![0; matrix[0].len()]; matrix.len()];
+    let mut max = 0;
+    for i in 0..dp.len() {
+        for j in 0..dp[0].len() {
+            if !visited[i][j] {
+                max = max.max(deep_search_longest_increasing_path(
+                    i,
+                    j,
+                    &mut visited,
+                    &mut dp,
+                    &matrix,
+                ));
+            }
+        }
+    }
+    max
+}
+
+fn deep_search_longest_increasing_path(
+    i: usize,
+    j: usize,
+    visited: &mut [Vec<bool>],
+    dp: &mut [Vec<i32>],
+    matrix: &Vec<Vec<i32>>,
+) -> i32 {
+    if visited[i][j] {
+        dp[i][j]
+    } else {
+        visited[i][j] = true;
+        let mut max = 1;
+
+        let dir = [
+            (i as i32 - 1, j as i32),
+            (i as i32 + 1, j as i32),
+            (i as i32, j as i32 - 1),
+            (i as i32, j as i32 + 1),
+        ];
+        let current = matrix[i][j];
+        for (i, j) in dir {
+            if i >= 0 && i < dp.len() as i32 && j >= 0 && j < dp.len() as i32 {
+                let (i, j) = (i as usize, j as usize);
+                let next = matrix[i][j];
+                if next > current {
+                    max =
+                        max.max(1 + deep_search_longest_increasing_path(i, j, visited, dp, matrix))
+                }
+            }
+        }
+
+        dp[i][j] = max;
+        max
+    }
+}
+
+pub fn count_paths(matrix: Vec<Vec<i32>>) -> i32 {
+    let mut visited = vec![vec![false; matrix[0].len()]; matrix.len()];
+    let mut dp = vec![vec![0; matrix[0].len()]; matrix.len()];
+    let mut res = 0;
+    const MOD: i32 = 1_000_000_007;
+    for i in 0..dp.len() {
+        for j in 0..dp[0].len() {
+            if !visited[i][j] {
+                res = (res + deep_search_count_paths(i, j, &mut visited, &mut dp, &matrix)) % MOD;
+            }
+        }
+    }
+    res
+}
+
+fn deep_search_count_paths(
+    i: usize,
+    j: usize,
+    visited: &mut [Vec<bool>],
+    dp: &mut [Vec<i32>],
+    matrix: &Vec<Vec<i32>>,
+) -> i32 {
+    if visited[i][j] {
+        dp[i][j]
+    } else {
+        visited[i][j] = true;
+        let mut res = 1;
+
+        let dir = [
+            (i as i32 - 1, j as i32),
+            (i as i32 + 1, j as i32),
+            (i as i32, j as i32 - 1),
+            (i as i32, j as i32 + 1),
+        ];
+        let current = matrix[i][j];
+        for (i, j) in dir {
+            if i >= 0 && i < dp.len() as i32 && j >= 0 && j < dp[0].len() as i32 {
+                let (i, j) = (i as usize, j as usize);
+                let next = matrix[i][j];
+                if next > current {
+                    res =
+                        (res + deep_search_count_paths(i, j, visited, dp, matrix)) % 1_000_000_007;
+                }
+            }
+        }
+        dp[i][j] = res;
+        res
+    }
+}
+
+pub fn has_valid_path(grid: Vec<Vec<char>>) -> bool {
+    use std::collections::HashSet;
+    let mut dp = vec![vec![HashSet::new(); grid[0].len()]; grid.len()];
+    if grid[0][0] == '(' {
+        return false;
+    } else {
+        dp[0][0].insert((1, 0));
+    }
+    for i in 0..dp.len() {
+        for j in 0..dp[0].len() {
+            let c = grid[i][j];
+            if i > 0 {
+                for (l, r) in dp[i - 1][j].clone() {
+                    if c == '(' {
+                        dp[i][j].insert((l + 1, r));
+                    } else {
+                        if r + 1 <= l {
+                            dp[i][j].insert((l, r + 1));
+                        }
+                    }
+                }
+            }
+            if j > 0 {
+                for (l, r) in dp[i][j - 1].clone() {
+                    if c == '(' {
+                        dp[i][j].insert((l + 1, r));
+                    } else {
+                        if r + 1 <= l {
+                            dp[i][j].insert((l, r + 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    dp.last()
+        .unwrap()
+        .last()
+        .unwrap()
+        .iter()
+        .any(|x| x.0 == x.1)
+}
+
+pub fn max_points(points: Vec<Vec<i32>>) -> i64 {
+    let mut dp: Vec<Vec<i64>> = points
+        .iter()
+        .map(|x| x.iter().map(|&x| x as i64).collect())
+        .collect();
+    let points = dp.clone();
+    let mut m = dp[0].iter().max().copied().unwrap();
+    for i in 1..dp.len() {
+        for j in 0..dp[0].len() {
+            let mut max = i64::MIN;
+            for k in (0..j).rev() {
+                let cost = j as i64 - k as i64;
+                if cost >= m {
+                    break;
+                }
+                max = max.max((dp[i - 1][k]) - cost + points[i][j]);
+            }
+            for k in (j..dp[0].len()) {
+                let cost = k as i64 - j as i64;
+                if cost >= m {
+                    break;
+                }
+                max = max.max((dp[i - 1][k]) - cost + points[i][j]);
+            }
+            dp[i][j] = max;
+            m = m.max(max);
+        }
+    }
+    *dp.last().unwrap().iter().max().unwrap()
 }
