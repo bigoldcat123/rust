@@ -466,8 +466,9 @@ pub fn max_sum_trionic(nums: Vec<i32>) -> i64 {
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
-    i64,
+    i32, i64,
     io::BufRead,
+    os::{macos::raw::stat, unix::net::SocketAddr},
     rc::Rc,
     sync::LazyLock,
 };
@@ -4106,7 +4107,7 @@ pub fn delete_middle(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     head
 }
 
-pub fn paths_with_max_score(board: Vec<String>) -> Vec<i32> {
+pub fn paths_with_max_score2222(board: Vec<String>) -> Vec<i32> {
     let board: Vec<&[u8]> = board.iter().map(|x| x.as_bytes()).collect();
     let max_socre = (board.len() + board[0].len()) * 10;
     //dp[i][j][k];
@@ -4307,4 +4308,579 @@ pub fn unique_paths(grid: Vec<Vec<i32>>) -> i32 {
         }
     }
     dp.last().unwrap().last().unwrap().1
+}
+
+pub fn angle_clock(hour: i32, minutes: i32) -> f64 {
+    let hour_ = 360f64 / 12f64;
+    let min = hour_ / 5f64;
+    let mut res_hour = 0.0;
+    let mut res_min = 0.0;
+    for _ in 0..minutes {
+        res_min += min;
+    }
+    let p_hour = minutes as f64 / 60f64;
+    let hour_offset = hour as f64 * p_hour;
+    res_hour += hour_offset;
+
+    let end = ((hour - 1 + 12) % 12);
+    for _ in 0..end {
+        res_hour += hour_;
+    }
+
+    let res = (res_hour - res_min).abs();
+
+    (360f64 - res).min(res)
+}
+
+pub fn min_score(n: i32, roads: Vec<Vec<i32>>) -> i32 {
+    use std::collections::HashMap;
+    let mut map: HashMap<i32, Vec<(i32, i32)>> = HashMap::new();
+    let mut max = 0;
+    for r in roads {
+        let f = r[0];
+        let t = r[1];
+        let d = r[2];
+        max = max.max(d);
+        if let Some(v) = map.get_mut(&f) {
+            v.push((t, d));
+        } else {
+            map.insert(f, vec![(t, d)]);
+        }
+        if let Some(v) = map.get_mut(&t) {
+            v.push((f, d));
+        } else {
+            map.insert(t, vec![(f, d)]);
+        }
+    }
+
+    let mut q = vec![1];
+    let mut selected = vec![false; n as usize + 1];
+    let mut min = i32::MAX;
+    selected[1] = true;
+    while !q.is_empty() {
+        let mut p = vec![];
+        for n in q {
+            for &(node, d) in map.get(&n).unwrap_or(&vec![]) {
+                if !selected[node as usize] || d < min {
+                    selected[node as usize] = true;
+                    min = min.min(d);
+                    p.push(node);
+                }
+            }
+        }
+        q = p;
+    }
+    min
+}
+
+pub fn min_path_sum(grid: Vec<Vec<i32>>) -> i32 {
+    let mut dp = grid.clone();
+
+    for i in 1..dp.len() {
+        dp[i][0] = dp[i - 1][0] + grid[i][0];
+    }
+    for j in 1..dp[0].len() {
+        dp[0][j] = dp[0][j - 1] + grid[0][j];
+    }
+    for i in 1..dp.len() {
+        for j in 1..dp[0].len() {
+            dp[i][j] = dp[i - 1][j].min(dp[i][j - 1]) + grid[i][j];
+        }
+    }
+
+    *dp.last().unwrap().last().unwrap()
+}
+
+pub fn network_delay_time22(times: Vec<Vec<i32>>, n: i32, k: i32) -> i32 {
+    let mut g = vec![vec![i32::MAX / 2; n as usize]; n as usize];
+    for t in times {
+        g[t[0] as usize - 1][t[1] as usize - 1] = t[2];
+    }
+    let k = k - 1;
+    let mut done = vec![false; n as usize];
+    let mut dis = vec![i32::MAX / 2; n as usize];
+    dis[k as usize] = 0;
+    loop {
+        let mut x = n as usize;
+        for (i, &done) in done.iter().enumerate() {
+            if !done && (x == n as usize || dis[x] > dis[i]) {
+                x = i;
+            }
+        }
+        if x == n as usize {
+            return dis.iter().max().copied().unwrap();
+        }
+        if dis[x] == i32::MAX / 2 {
+            return -1;
+        }
+        for (next, cost) in g[x].iter().enumerate() {
+            dis[next] = dis[next].min(dis[x] + cost);
+        }
+    }
+    unreachable!()
+}
+
+fn check3333(
+    mid: i64,
+    next_node_map: &std::collections::HashMap<i32, Vec<(i32, i32)>>,
+    online: &[bool],
+    k: i64,
+) -> bool {
+    use std::collections::{BinaryHeap, HashSet};
+    let mut ans = vec![i32::MAX / 2; online.len()];
+    let mut head = BinaryHeap::new();
+    head.push((0, 0));
+    while let Some((min_cost, node)) = head.pop() {
+        let min_cost = -min_cost;
+        if min_cost > ans[node] {
+            continue;
+        }
+        for &(next, cost) in next_node_map.get(&(node as i32)).unwrap_or(&vec![]).iter() {
+            if cost as i64 <= mid && min_cost + cost < ans[next as usize] {
+                ans[next as usize] = cost + min_cost;
+                head.push((-ans[next as usize], next as usize));
+            }
+        }
+    }
+    ans[online.len() - 1] != i32::MAX / 2
+}
+
+pub fn paths_with_max_score(board: Vec<String>) -> Vec<i32> {
+    let mut res = vec![0, 0];
+    use std::collections::HashMap;
+    // socre,count
+    let mut dp: Vec<Vec<(i32, i32)>> = vec![vec![(-1, -1); board[0].len()]; board.len()];
+    let board: Vec<&[u8]> = board.iter().map(|x| x.as_bytes()).collect();
+    dp[board.len() - 1][board[0].len() - 1] = (0, 1);
+    for i in (0..dp.len() - 1).rev() {
+        let j = dp[0].len() - 1;
+        if board[i][j] == b'X' {
+            break;
+        }
+        let n = (board[i][j] - b'0') as i32;
+        dp[i][j] = (dp[i + 1][j].0, 1);
+    }
+    for j in (0..dp[0].len() - 1).rev() {
+        let i = dp.len() - 1;
+        if board[i][j] == b'X' {
+            break;
+        }
+        let n = (board[i][j] - b'0') as i32;
+        dp[i][j] = (dp[i][j + 1].0, 1);
+    }
+
+    for i in (0..dp.len() - 1).rev() {
+        for j in (0..dp[0].len() - 1).rev() {
+            if board[i][j] != b'X' {
+                let current_score = if board[i][j] == b'E' {
+                    0
+                } else {
+                    (board[i][j] - b'0') as i32
+                };
+                dp[i][j] = (0, 0);
+                if dp[i + 1][j].0 != -1 {
+                    dp[i][j] = dp[i + 1][j];
+                }
+                if dp[i + 1][j + 1].0 != -1 {
+                    if dp[i + 1][j + 1].0 > dp[i][j].0 {
+                        dp[i][j] = dp[i + 1][j + 1]
+                    } else if dp[i + 1][j + 1].0 == dp[i][j].0 {
+                        dp[i][j].1 = (dp[i][j].1 + dp[i + 1][j + 1].1) % 1_000_000_007;
+                    }
+                }
+                if dp[i][j + 1].0 != -1 {
+                    if dp[i][j + 1].0 > dp[i][j].0 {
+                        dp[i][j] = dp[i][j + 1];
+                    } else if dp[i][j + 1].0 == dp[i][j].0 {
+                        dp[i][j].1 = (dp[i][j].1 + dp[i][j + 1].1) % 1_000_000_007;
+                    }
+                }
+                dp[i][j].0 += current_score;
+            }
+        }
+    }
+    // for (score, count) in dp[0][0].iter() {
+    //     if res[0] <= *score {
+    //         res[0] = *score;
+    //         res[1] = *count;
+    //     }
+    // }
+    for x in &dp {
+        println!("{x:?}");
+    }
+    res
+}
+
+pub fn find_max_path_score(edges: Vec<Vec<i32>>, online: Vec<bool>, k: i64) -> i32 {
+    use std::collections::HashMap;
+    // let mut next_node_map: HashMap<i32, Vec<(i32, i32)>> = HashMap::new();
+    let mut max = 0;
+    // for e in edges {
+    //     let f = e[0];
+    //     let t = e[1];
+    //     let c = e[2];
+    //     max = max.max(c);
+    //     if let None = next_node_map.get_mut(&f).map(|x| x.push((t, c))) {
+    //         next_node_map.insert(f, vec![(t, c)]);
+    //     }
+    // }
+    let mut r = max as i64 + 1;
+    let mut l = 0;
+    while l <= r {
+        let mid = (r - l) / 2 + l;
+        // println!("{mid}");
+        if check_for_find_max_path_score(mid, &edges, &online, k) {
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    r as i32
+}
+
+fn check_for_find_max_path_score(
+    mid: i64,
+    next_node_map: &[Vec<i32>],
+    online: &[bool],
+    k: i64,
+) -> bool {
+    const INF: i64 = i64::MIN / 2;
+    let mut g = vec![vec![INF; online.len()]; online.len()];
+    for e in next_node_map {
+        let f = e[0] as usize;
+        let t = e[1] as usize;
+        let c = e[2] as i64;
+        if c >= mid && online[f] && online[t] {
+            g[f][t] = c;
+        }
+    }
+    let mut done = vec![false; online.len()];
+    let mut dis = vec![INF; online.len()];
+    dis[0] = 0;
+    loop {
+        let mut selected_node = 0;
+        for (node, &c) in dis.iter().enumerate() {
+            if c < dis[selected_node] || selected_node == 0 {
+                selected_node = node;
+            }
+        }
+        if selected_node == online.len() - 1 && dis[selected_node] <= k {
+            return true;
+        }
+        if dis[selected_node] == INF {
+            return false;
+        }
+        done[selected_node] = true;
+        for (n, &cost) in g[selected_node].iter().enumerate() {
+            if dis[n] < cost + dis[selected_node] {
+                dis[n] = cost + dis[selected_node];
+            }
+        }
+    }
+
+    false
+}
+
+pub fn remove_covered_intervals(mut intervals: Vec<Vec<i32>>) -> i32 {
+    intervals.sort_by(|a, b| a[0].cmp(&b[0]).then(b[1].cmp(&a[1])));
+    let mut current = &intervals[0];
+    let mut rm = 0;
+    let len = intervals.len();
+    for i in &intervals[1..] {
+        if i[1] <= current[1] {
+            rm += 1;
+        } else {
+            current = &i;
+        }
+    }
+    (len - rm) as i32
+}
+
+pub fn sum_and_multiply2(n: i32) -> i64 {
+    let n = n.to_string();
+    let mut sum = 0;
+    let mut step = 1;
+    let mut len = 0;
+    for &b in n.as_bytes().iter().rev() {
+        let b = b as i64 - 48;
+        if b != 0 {
+            sum += b * step;
+            step *= 10;
+            len += b;
+        }
+    }
+    len * sum
+}
+pub fn sum_and_multiply(s: String, queries: Vec<Vec<i32>>) -> Vec<i32> {
+    const MOD: i64 = 1_000_000_007;
+
+    let number = s.chars().filter(|&c| c != '0').collect::<String>();
+
+    // 原字符串 -> 去0后的下标映射
+    let mut pre_len = vec![0usize; s.len() + 1];
+    for (i, c) in s.chars().enumerate() {
+        pre_len[i + 1] = pre_len[i] + (c != '0') as usize;
+    }
+
+    let m = number.len();
+
+    // 数字和前缀
+    let mut pre_sum = vec![0i64; m + 1];
+
+    // 数字前缀(mod)
+    let mut pre_num = vec![0i64; m + 1];
+
+    // 10^k(mod)
+    let mut pow10 = vec![1i64; m + 1];
+
+    for i in 0..m {
+        let d = (number.as_bytes()[i] - b'0') as i64;
+        if d == 0 {
+            continue;
+        }
+        pre_sum[i + 1] = pre_sum[i] + d;
+        pre_num[i + 1] = (pre_num[i] * 10 + d) % MOD;
+        pow10[i + 1] = pow10[i] * 10 % MOD;
+    }
+
+    queries
+        .into_iter()
+        .map(|q| {
+            let l = q[0] as usize;
+            let r = q[1] as usize;
+
+            let start = pre_len[l];
+            let len = pre_len[r + 1] - pre_len[l];
+
+            if len == 0 {
+                return 0;
+            }
+
+            let sum = pre_sum[start + len] - pre_sum[start];
+
+            let num = (pre_num[start + len] - pre_num[start] * pow10[len] % MOD + MOD) % MOD;
+
+            (sum * num % MOD) as i32
+        })
+        .collect()
+}
+
+// 1 0 2 3 0 4
+// 1 1 12 123 123 1234
+// 1234 - 1200 = 34
+// 1 1 3 6 10
+// 10 - 3
+
+pub fn path_existence_queries2(
+    n: i32,
+    nums: Vec<i32>,
+    max_diff: i32,
+    queries: Vec<Vec<i32>>,
+) -> Vec<bool> {
+    struct DisjointSet {
+        fa: Vec<usize>,
+        size: Vec<usize>,
+        cc: usize,
+        value: Vec<i64>,
+    }
+    impl DisjointSet {
+        fn new(size: usize) -> Self {
+            Self {
+                fa: (0..size).collect(),
+                size: vec![1; size],
+                cc: size,
+                value: vec![0; size],
+            }
+        }
+        fn find(&mut self, n: usize) -> usize {
+            if self.fa[n] != n {
+                self.fa[n] = self.find(self.fa[n]);
+            }
+            self.fa[n]
+        }
+        fn union(&mut self, from: usize, to: usize) -> bool {
+            let a = self.find(from);
+            let b = self.find(to);
+            if a == b {
+                return false;
+            }
+            self.size[b] += self.size[a];
+            self.fa[a] = b;
+            self.value[b] += self.value[a];
+            self.cc -= 1;
+            true
+        }
+        fn get_size(&mut self, n: usize) -> usize {
+            let idx = self.find(n);
+            self.size[idx]
+        }
+        fn get_value(&mut self, n: usize) -> i64 {
+            let idx = self.find(n);
+            self.value[idx]
+        }
+    }
+
+    // 思路2：分组标记法（更简洁）
+    let mut group = vec![0usize; nums.len()];
+    let mut g = 0;
+    for i in 1..nums.len() {
+        if (nums[i] - nums[i - 1]).abs() > max_diff {
+            g += 1;
+        }
+        group[i] = g;
+    }
+    queries
+        .into_iter()
+        .map(|q| group[q[0] as usize] == group[q[1] as usize])
+        .collect()
+
+    // // 思路1：并查集
+    // let len = nums.len();
+    // let mut ds = DisjointSet::new(len);
+    // for i in 1..len {
+    //     if (nums[i] - nums[i - 1]).abs() <= max_diff {
+    //         ds.union(i, i - 1);
+    //     }
+    // }
+    // queries
+    //     .into_iter()
+    //     .map(|q| ds.find(q[0] as usize) == ds.find(q[1] as usize))
+    //     .collect()
+}
+
+pub fn path_existence_queries(
+    n: i32,
+    nums: Vec<i32>,
+    max_diff: i32,
+    queries: Vec<Vec<i32>>,
+) -> Vec<i32> {
+    struct DisjointSet {
+        fa: Vec<usize>,
+    }
+    impl DisjointSet {
+        fn new(size: usize) -> Self {
+            Self {
+                fa: (0..size).collect(),
+            }
+        }
+        fn find(&mut self, n: usize) -> usize {
+            if self.fa[n] != n {
+                self.fa[n] = self.find(self.fa[n]);
+            }
+            self.fa[n]
+        }
+        fn union(&mut self, a: usize, b: usize) {
+            let a = self.find(a);
+            let b = self.find(b);
+            if a != b {
+                self.fa[a] = b;
+            }
+        }
+    }
+
+    let len = nums.len();
+
+    // 带着下标排序
+    let mut sorted_idx: Vec<usize> = (0..len).collect();
+    sorted_idx.sort_by_key(|&i| nums[i]);
+
+    // 在排序后的数组上建 DS：相邻元素差值 <= max_diff 则连通
+    let mut ds = DisjointSet::new(len);
+    for i in 1..len {
+        if nums[sorted_idx[i]] - nums[sorted_idx[i - 1]] <= max_diff {
+            ds.union(sorted_idx[i], sorted_idx[i - 1]);
+        }
+    }
+
+    // 原始下标 -> 排序后位置的映射
+    let mut orig_to_sorted = vec![0; len];
+    for (pos, &orig) in sorted_idx.iter().enumerate() {
+        orig_to_sorted[orig] = pos;
+    }
+
+    // 排序后的值，用于二分查找
+    let sorted_vals: Vec<i32> = sorted_idx.iter().map(|&i| nums[i]).collect();
+
+    // 预计算 nxt[i]：从位置 i 一步能跳到的最右位置
+    let mut nxt = vec![0usize; len];
+    for i in 0..len {
+        let target = sorted_vals[i] + max_diff;
+        let mut lo = i;
+        let mut hi = len - 1;
+        while lo <= hi {
+            let mid = lo + (hi - lo) / 2;
+            if sorted_vals[mid] <= target {
+                nxt[i] = mid;
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+    }
+
+    // 倍增表：jump[j][i] = 从位置 i 出发 2^j 步能到达的最右位置
+    let LOG = 20;
+    let mut jump = vec![nxt.clone(); LOG];
+    for j in 1..LOG {
+        for i in 0..len {
+            jump[j][i] = jump[j - 1][jump[j - 1][i]];
+        }
+    }
+
+    queries
+        .into_iter()
+        .map(|q| {
+            let u = q[0] as usize;
+            let v = q[1] as usize;
+
+            // 不连通返回 -1
+            if ds.find(u) != ds.find(v) {
+                return -1;
+            }
+            if u == v {
+                return 0;
+            }
+
+            // 排序后的区间 [l, r]
+            let l = orig_to_sorted[u].min(orig_to_sorted[v]);
+            let r = orig_to_sorted[u].max(orig_to_sorted[v]);
+
+            // 二分猜答案 k：k 步能否从 l 跳到 >= r
+            let mut lo = 1usize;
+            let mut hi = r - l;
+            let mut ans = hi;
+            while lo <= hi {
+                let mid = lo + (hi - lo) / 2;
+                // 用倍增表计算从 l 出发 mid 步能到达的最远位置
+                let mut pos = l;
+                for j in 0..LOG {
+                    if mid & (1 << j) != 0 {
+                        pos = jump[j][pos];
+                    }
+                }
+                if pos >= r {
+                    ans = mid;
+                    hi = mid - 1;
+                } else {
+                    lo = mid + 1;
+                }
+            }
+            ans as i32
+        })
+        .collect()
+}
+
+pub fn smallest_number(n: i32, t: i32) -> i32 {
+    for n in n.. {
+        let x = n.to_string();
+        let mut p = 1;
+        for &b in x.as_bytes() {
+            let b = b - b'0';
+            p *= b as i32;
+        }
+        if p % t == 0 {
+            return p;
+        }
+    }
+    return 0;
 }

@@ -725,3 +725,28 @@ pub fn minimum_time(n: i32, edges: Vec<Vec<i32>>, disappear: Vec<i32>) -> Vec<i3
 
     ans
 }
+
+fn check(
+    mid: i64,
+    next_node_map: &std::collections::HashMap<i32, Vec<(i32, i32)>>,
+    online: &[bool],
+    k: i64,
+) -> bool {
+    use std::collections::{BinaryHeap, HashSet};
+    let mut ans = vec![i32::MAX / 2; online.len()];
+    let mut head = BinaryHeap::new();
+    head.push((0, 0));
+    while let Some((min_cost, node)) = head.pop() {
+        let min_cost = -min_cost;
+        if min_cost > ans[node] {
+            continue;
+        }
+        for &(next, cost) in next_node_map.get(&(node as i32)).unwrap_or(&vec![]).iter() {
+            if cost as i64 <= mid && min_cost + cost < ans[next as usize] {
+                ans[next as usize] = cost + min_cost;
+                head.push((-ans[next as usize], next as usize));
+            }
+        }
+    }
+    ans[online.len() - 1] != i32::MAX / 2
+}

@@ -2,8 +2,13 @@
 
 use std::{collections::HashMap, vec};
 
-use solutions::{eratosthenes, every_day::give_me_random_array};
+use solutions::{dp::cal_combination, eratosthenes, every_day::give_me_random_array};
 
+#[test]
+fn adasdads() {
+    let res = cal_combination(&[1,2,3,4,5], 3);
+    println!("{res:?}");
+}
 #[test]
 fn asdadas() {
     let a: Vec<u16> = vec![
